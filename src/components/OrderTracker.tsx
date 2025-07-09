@@ -45,6 +45,9 @@ const OrderTracker = () => {
         customerName: pedido.Cliente || 'Cliente',
         currentStatus: pedido.Estatus,
         totalAmount: pedido.Total || 0,
+        price: pedido.Precio || undefined,
+        weight: pedido.Peso || undefined,
+        estimatedDelivery: pedido.Fecha_estimada_entrega || undefined,
         statusHistory: historial?.map(h => ({
           status: h.estatus,
           date: new Date(h.fecha).toLocaleDateString(),
@@ -91,6 +94,9 @@ const OrderTracker = () => {
           customerName={orderFound.customerName}
           currentStatus={orderFound.currentStatus}
           totalAmount={orderFound.totalAmount}
+          price={orderFound.price}
+          weight={orderFound.weight}
+          estimatedDelivery={orderFound.estimatedDelivery}
           statusHistory={orderFound.statusHistory}
         />
         

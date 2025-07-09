@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      Contactos: {
+        Row: {
+          codigo_pedido: string | null
+          correo: string
+          descripcion_problema: string
+          estado: string | null
+          fecha_creacion: string | null
+          id: string
+          nombre_cliente: string
+        }
+        Insert: {
+          codigo_pedido?: string | null
+          correo: string
+          descripcion_problema: string
+          estado?: string | null
+          fecha_creacion?: string | null
+          id?: string
+          nombre_cliente: string
+        }
+        Update: {
+          codigo_pedido?: string | null
+          correo?: string
+          descripcion_problema?: string
+          estado?: string | null
+          fecha_creacion?: string | null
+          id?: string
+          nombre_cliente?: string
+        }
+        Relationships: []
+      }
       Historial_Estatus: {
         Row: {
           "Código de pedido": string
@@ -53,6 +83,9 @@ export type Database = {
           Estatus: string
           Fecha_actualizacion: string | null
           Fecha_creacion: string | null
+          Fecha_estimada_entrega: string | null
+          Peso: number | null
+          Precio: number | null
           Total: number | null
         }
         Insert: {
@@ -61,6 +94,9 @@ export type Database = {
           Estatus: string
           Fecha_actualizacion?: string | null
           Fecha_creacion?: string | null
+          Fecha_estimada_entrega?: string | null
+          Peso?: number | null
+          Precio?: number | null
           Total?: number | null
         }
         Update: {
@@ -69,6 +105,9 @@ export type Database = {
           Estatus?: string
           Fecha_actualizacion?: string | null
           Fecha_creacion?: string | null
+          Fecha_estimada_entrega?: string | null
+          Peso?: number | null
+          Precio?: number | null
           Total?: number | null
         }
         Relationships: []

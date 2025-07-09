@@ -2,15 +2,12 @@
 import Header from "@/components/Header";
 import AttentionHours from "@/components/AttentionHours";
 import OrderTracker from "@/components/OrderTracker";
+import ContactForm from "@/components/ContactForm";
 import ProductShowcase from "@/components/ProductShowcase";
 import Footer from "@/components/Footer";
-import { Diamond, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Diamond } from "lucide-react";
 
 const Index = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-gray-50 relative overflow-hidden">
       {/* Decorative diamonds */}
@@ -25,26 +22,27 @@ const Index = () => {
       
       <Header />
       
-      {/* Botón de administración flotante */}
-      <Button
-        onClick={() => navigate('/admin')}
-        className="fixed top-4 right-4 z-50 bg-blue-600 hover:bg-blue-700 shadow-lg"
-        size="sm"
-      >
-        <Settings className="h-4 w-4 mr-2" />
-        Admin
-      </Button>
-      
       <main className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
         <div className="animate-fade-in space-y-12">
-          <div className="grid lg:grid-cols-3 gap-6">
+          {/* Rastreador de pedidos */}
+          <section>
+            <OrderTracker />
+          </section>
+
+          {/* Formulario de contacto */}
+          <section className="max-w-2xl mx-auto">
+            <ContactForm />
+          </section>
+
+          {/* Horarios de atención */}
+          <section>
             <AttentionHours />
-            <div className="lg:col-span-2">
-              <OrderTracker />
-            </div>
-          </div>
+          </section>
           
-          <ProductShowcase />
+          {/* Productos */}
+          <section>
+            <ProductShowcase />
+          </section>
         </div>
       </main>
       

@@ -10,6 +10,9 @@ interface OrderStatusProps {
   customerName: string;
   currentStatus: string;
   totalAmount: number;
+  price?: number;
+  weight?: number;
+  estimatedDelivery?: string;
   statusHistory: {
     status: string;
     date: string;
@@ -19,7 +22,7 @@ interface OrderStatusProps {
   }[];
 }
 
-const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, statusHistory: initialHistory }: OrderStatusProps) => {
+const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, price, weight, estimatedDelivery, statusHistory: initialHistory }: OrderStatusProps) => {
   const [statusHistory, setStatusHistory] = useState(initialHistory);
 
   useEffect(() => {
@@ -88,7 +91,12 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, stat
         <div className="space-y-2 text-gray-600">
           <p><span className="font-medium">Cliente:</span> {customerName}</p>
           <p><span className="font-medium">Código:</span> {orderCode}</p>
-          <p><span className="font-medium">Total:</span> ${totalAmount}</p>
+          {totalAmount && <p><span className="font-medium">Total:</span> ${totalAmount}</p>}
+          {price && <p><span className="font-medium">Precio:</span> ${price}</p>}
+          {weight && <p><span className="font-medium">Peso:</span> {weight}kg</p>}
+          {estimatedDelivery && (
+            <p><span className="font-medium">Entrega Estimada:</span> {new Date(estimatedDelivery).toLocaleDateString()}</p>
+          )}
         </div>
       </div>
 
