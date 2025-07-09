@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { findOrder } from "@/data/orderData";
+import { supabase } from "@/integrations/supabase/client";
 import OrderStatus from "./OrderStatus";
 
 const OrderTracker = () => {
@@ -19,13 +19,48 @@ const OrderTracker = () => {
     setIsSearching(true);
     setSearchAttempted(true);
     
-    // Simulamos una búsqueda con delay
-    setTimeout(() => {
-      const order = findOrder(orderCode);
-      setOrderFound(order);
+    try {
+      // Buscar pedido en Supabase
+      const { data: pedido, error } = await supabase
+        .from('Pedidos')
+        .select('*')
+        .eq('Código de pedido', orderCode)
+        .single();
+
+      if (error || !pedido) {
+        setOrderFound(null);
+        setIsSearching(false);
+        return;
+      }
+
+      // Buscar historial de estatus
+      const { data: historial, error: historialError } = await supabase
+        .from('Historial_Estatus')
+        .select('*')
+        .eq('Código de pedido', orderCode)
+        .order('fecha', { ascending: true });
+
+      const orderData = {
+        orderCode: pedido['Código de pedido'],
+        customerName: pedido.Cliente || 'Cliente',
+        currentStatus: pedido.Estatus,
+        totalAmount: pedido.Total || 0,
+        statusHistory: historial?.map(h => ({
+          status: h.estatus,
+          date: new Date(h.fecha).toLocaleDateString(),
+          time: new Date(h.fecha).toLocaleTimeString(),
+          description: h.descripcion || '',
+          category: 'processing'
+        })) || []
+      };
+
+      setOrderFound(orderData);
+    } catch (error) {
+      console.error('Error buscando pedido:', error);
+      setOrderFound(null);
+    } finally {
       setIsSearching(false);
-      console.log("Buscando pedido:", orderCode, order ? "Encontrado" : "No encontrado");
-    }, 2000);
+    }
   };
 
   const formatCode = (value: string) => {

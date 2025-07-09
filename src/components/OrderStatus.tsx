@@ -2,6 +2,8 @@
 import { CheckCircle, Clock, Package, Truck, Home, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OrderStatusProps {
   orderCode: string;
@@ -17,7 +19,48 @@ interface OrderStatusProps {
   }[];
 }
 
-const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, statusHistory }: OrderStatusProps) => {
+const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, statusHistory: initialHistory }: OrderStatusProps) => {
+  const [statusHistory, setStatusHistory] = useState(initialHistory);
+
+  useEffect(() => {
+    setStatusHistory(initialHistory);
+    
+    // Suscribirse a cambios en tiempo real
+    const channel = supabase
+      .channel('historial-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'Historial_Estatus',
+          filter: `Código de pedido=eq.${orderCode}`
+        },
+        async () => {
+          // Recargar historial cuando hay cambios
+          const { data: historial } = await supabase
+            .from('Historial_Estatus')
+            .select('*')
+            .eq('Código de pedido', orderCode)
+            .order('fecha', { ascending: true });
+
+          if (historial) {
+            setStatusHistory(historial.map(h => ({
+              status: h.estatus,
+              date: new Date(h.fecha).toLocaleDateString(),
+              time: new Date(h.fecha).toLocaleTimeString(),
+              description: h.descripcion || '',
+              category: 'processing' as const
+            })));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderCode, initialHistory]);
   const getStatusIcon = (category: string, isCompleted: boolean) => {
     const iconClass = `w-5 h-5 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`;
     

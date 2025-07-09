@@ -14,18 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
-      Pedidos: {
+      Historial_Estatus: {
         Row: {
           "Código de pedido": string
-          Estatus: string
+          descripcion: string | null
+          estatus: string
+          fecha: string | null
+          id: string
         }
         Insert: {
           "Código de pedido": string
-          Estatus: string
+          descripcion?: string | null
+          estatus: string
+          fecha?: string | null
+          id?: string
         }
         Update: {
           "Código de pedido"?: string
+          descripcion?: string | null
+          estatus?: string
+          fecha?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Historial_Estatus_Código de pedido_fkey"
+            columns: ["Código de pedido"]
+            isOneToOne: false
+            referencedRelation: "Pedidos"
+            referencedColumns: ["Código de pedido"]
+          },
+        ]
+      }
+      Pedidos: {
+        Row: {
+          Cliente: string | null
+          "Código de pedido": string
+          Estatus: string
+          Fecha_actualizacion: string | null
+          Fecha_creacion: string | null
+          Total: number | null
+        }
+        Insert: {
+          Cliente?: string | null
+          "Código de pedido": string
+          Estatus: string
+          Fecha_actualizacion?: string | null
+          Fecha_creacion?: string | null
+          Total?: number | null
+        }
+        Update: {
+          Cliente?: string | null
+          "Código de pedido"?: string
           Estatus?: string
+          Fecha_actualizacion?: string | null
+          Fecha_creacion?: string | null
+          Total?: number | null
         }
         Relationships: []
       }
