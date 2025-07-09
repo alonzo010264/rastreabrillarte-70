@@ -1,0 +1,124 @@
+
+import { CheckCircle, Clock, Package, Truck, Home, AlertCircle } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+interface OrderStatusProps {
+  orderCode: string;
+  customerName: string;
+  currentStatus: string;
+  totalAmount: number;
+  statusHistory: {
+    status: string;
+    date: string;
+    time: string;
+    description: string;
+    category: 'processing' | 'shipping' | 'returns' | 'special';
+  }[];
+}
+
+const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, statusHistory }: OrderStatusProps) => {
+  const getStatusIcon = (category: string, isCompleted: boolean) => {
+    const iconClass = `w-5 h-5 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`;
+    
+    switch (category) {
+      case 'processing':
+        return <Package className={iconClass} />;
+      case 'shipping':
+        return <Truck className={iconClass} />;
+      case 'delivered':
+        return <Home className={iconClass} />;
+      default:
+        return <Clock className={iconClass} />;
+    }
+  };
+
+  const currentStatusIndex = statusHistory.findIndex(status => status.status === currentStatus);
+
+  return (
+    <Card className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+      <div className="text-center mb-8">
+        <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="text-green-600" size={24} />
+        </div>
+        <h2 className="text-2xl font-light text-gray-800 mb-4">¡Pedido Encontrado!</h2>
+        <div className="space-y-2 text-gray-600">
+          <p><span className="font-medium">Cliente:</span> {customerName}</p>
+          <p><span className="font-medium">Código:</span> {orderCode}</p>
+          <p><span className="font-medium">Total:</span> ${totalAmount}</p>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <div className="flex items-center justify-center mb-6">
+          <Badge className="px-4 py-2 text-sm font-medium bg-green-100 text-green-800 border-green-200">
+            Estado Actual: {currentStatus}
+          </Badge>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <h3 className="text-lg font-medium text-gray-800 mb-6 text-center">Historial del Pedido</h3>
+        
+        <div className="relative max-w-md mx-auto">
+          {statusHistory.map((item, index) => {
+            const isCompleted = index <= currentStatusIndex;
+            const isCurrent = index === currentStatusIndex;
+            
+            return (
+              <div key={index} className="flex items-start space-x-4 pb-6 relative">
+                {/* Línea conectora */}
+                {index < statusHistory.length - 1 && (
+                  <div className={`absolute left-2.5 top-8 w-0.5 h-12 ${
+                    isCompleted ? 'bg-green-300' : 'bg-gray-200'
+                  }`} />
+                )}
+                
+                {/* Icono */}
+                <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                  isCompleted ? 'bg-green-100' : 'bg-gray-100'
+                } ${isCurrent ? 'ring-2 ring-green-300' : ''}`}>
+                  {getStatusIcon(item.category, isCompleted)}
+                </div>
+                
+                {/* Contenido */}
+                <div className={`flex-1 ${isCompleted ? 'opacity-100' : 'opacity-50'}`}>
+                  <div className="flex flex-col">
+                    <h4 className={`font-medium text-sm ${isCurrent ? 'text-green-600' : 'text-gray-800'}`}>
+                      {item.status}
+                    </h4>
+                    {isCompleted && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {item.date} - {item.time}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">{item.description}</p>
+                  {isCurrent && (
+                    <Badge className="mt-2 bg-green-100 text-green-800 text-xs border-green-200">
+                      Estado Actual
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-8 p-4 bg-amber-50 rounded-xl border border-amber-200">
+        <div className="flex items-start">
+          <AlertCircle className="text-amber-600 mr-3 mt-0.5 flex-shrink-0" size={16} />
+          <div>
+            <p className="text-amber-800 text-sm">
+              <strong>Información importante:</strong> Tu pedido se actualiza automáticamente. 
+              Si tienes alguna duda, puedes contactarnos por Instagram o WhatsApp en nuestros horarios de atención.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+export default OrderStatus;
