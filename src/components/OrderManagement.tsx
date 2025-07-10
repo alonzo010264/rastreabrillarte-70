@@ -9,43 +9,72 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Package, Plus, Copy, Edit } from "lucide-react";
 
+interface Estatus {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  categoria: string;
+  orden: number;
+}
+
+interface Pedido {
+  "Código de pedido": string;
+  Cliente: string;
+  Precio: number;
+  Peso: number;
+  Total: number;
+  "Fecha_estimada_entrega": string;
+  "Estatus_id": number;
+  Notas?: string;
+  Estatus?: Estatus;
+}
+
 const OrderManagement = () => {
   const [orderCode, setOrderCode] = useState("");
   const [customerName, setCustomerName] = useState("");
-  const [status, setStatus] = useState("");
+  const [statusId, setStatusId] = useState<number | null>(null);
   const [price, setPrice] = useState("");
   const [weight, setWeight] = useState("");
   const [estimatedDelivery, setEstimatedDelivery] = useState("");
   const [total, setTotal] = useState("");
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
-  const [existingOrders, setExistingOrders] = useState<any[]>([]);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [newStatus, setNewStatus] = useState("");
+  const [existingOrders, setExistingOrders] = useState<Pedido[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<Pedido | null>(null);
+  const [newStatusId, setNewStatusId] = useState<number | null>(null);
   const [newDate, setNewDate] = useState("");
   const [description, setDescription] = useState("");
+  const [statuses, setStatuses] = useState<Estatus[]>([]);
   const { toast } = useToast();
 
-  const statuses = [
-    "Pedido Recibido",
-    "En Preparación", 
-    "Listo para Envío",
-    "En Tránsito",
-    "En Distribución",
-    "Entregado"
-  ];
-
   useEffect(() => {
+    loadStatuses();
     loadExistingOrders();
   }, []);
+
+  const loadStatuses = async () => {
+    const { data, error } = await supabase
+      .from('Estatus')
+      .select('*')
+      .eq('activo', true)
+      .order('orden', { ascending: true });
+    
+    if (!error && data) {
+      setStatuses(data);
+    }
+  };
 
   const loadExistingOrders = async () => {
     const { data, error } = await supabase
       .from('Pedidos')
-      .select('*')
+      .select(`
+        *,
+        Estatus!inner(id, nombre, descripcion, categoria, orden)
+      `)
       .order('Fecha_creacion', { ascending: false });
     
     if (!error && data) {
-      setExistingOrders(data);
+      setExistingOrders(data as any);
     }
   };
 
@@ -62,10 +91,10 @@ const OrderManagement = () => {
   };
 
   const createOrder = async () => {
-    if (!orderCode || !customerName || !status) {
+    if (!orderCode || !customerName || !statusId || !price || !weight || !total || !estimatedDelivery) {
       toast({
         title: "Error",
-        description: "Por favor completa los campos obligatorios",
+        description: "Por favor completa todos los campos obligatorios",
         variant: "destructive"
       });
       return;
@@ -78,7 +107,7 @@ const OrderManagement = () => {
         .from('Pedidos')
         .select('Código de pedido')
         .eq('Código de pedido', orderCode)
-        .single();
+        .maybeSingle();
 
       if (existingOrder) {
         toast({
@@ -93,11 +122,12 @@ const OrderManagement = () => {
       const orderData = {
         'Código de pedido': orderCode,
         'Cliente': customerName,
-        'Estatus': status,
-        'Precio': price ? parseFloat(price) : null,
-        'Peso': weight ? parseFloat(weight) : null,
-        'Total': total ? parseFloat(total) : null,
-        'Fecha_estimada_entrega': estimatedDelivery || null
+        'Estatus_id': statusId,
+        'Precio': parseFloat(price),
+        'Peso': parseFloat(weight),
+        'Total': parseFloat(total),
+        'Fecha_estimada_entrega': estimatedDelivery,
+        'Notas': notes || null
       };
 
       const { error: orderError } = await supabase
@@ -105,17 +135,6 @@ const OrderManagement = () => {
         .insert(orderData);
 
       if (orderError) throw orderError;
-
-      // Insertar historial inicial DESPUÉS de crear el pedido
-      const { error: historyError } = await supabase
-        .from('Historial_Estatus')
-        .insert({
-          'Código de pedido': orderCode,
-          'estatus': status,
-          'descripcion': 'Pedido creado'
-        });
-
-      if (historyError) throw historyError;
 
       toast({
         title: "¡Éxito!",
@@ -125,11 +144,12 @@ const OrderManagement = () => {
       // Limpiar formulario
       setOrderCode("");
       setCustomerName("");
-      setStatus("");
+      setStatusId(null);
       setPrice("");
       setWeight("");
       setTotal("");
       setEstimatedDelivery("");
+      setNotes("");
       
       loadExistingOrders();
     } catch (error) {
@@ -161,7 +181,7 @@ const OrderManagement = () => {
         .from('Pedidos')
         .select('Código de pedido')
         .eq('Código de pedido', orderCode)
-        .single();
+        .maybeSingle();
 
       if (destError || !destOrder) {
         toast({
@@ -173,29 +193,33 @@ const OrderManagement = () => {
         return;
       }
 
-      // Verificar que el pedido origen existe
-      const { data: sourceOrder, error: sourceError } = await supabase
-        .from('Pedidos')
-        .select('Código de pedido')
+      // Copiar historial del pedido B01-00001
+      const { data: sourceHistory, error: sourceError } = await supabase
+        .from('Historial_Estatus')
+        .select('Estatus_id, Descripcion')
         .eq('Código de pedido', 'B01-00001')
-        .single();
+        .order('Fecha', { ascending: true });
 
-      if (sourceError || !sourceOrder) {
+      if (sourceError || !sourceHistory || sourceHistory.length === 0) {
         toast({
           title: "Error",
-          description: "El pedido B01-00001 no existe en la base de datos",
+          description: "No se encontró historial en el pedido B01-00001",
           variant: "destructive"
         });
         setLoading(false);
         return;
       }
 
-      const { error } = await supabase.rpc('copiar_historial_pedido', {
-        codigo_origen: 'B01-00001',
-        codigo_destino: orderCode
-      });
-
-      if (error) throw error;
+      // Insertar cada registro del historial
+      for (const historyItem of sourceHistory) {
+        await supabase
+          .from('Historial_Estatus')
+          .insert({
+            'Código de pedido': orderCode,
+            'Estatus_id': historyItem.Estatus_id,
+            'Descripcion': historyItem.Descripcion
+          });
+      }
 
       toast({
         title: "¡Éxito!",
@@ -214,7 +238,7 @@ const OrderManagement = () => {
   };
 
   const updateOrderStatus = async () => {
-    if (!selectedOrder || !newStatus) {
+    if (!selectedOrder || !newStatusId) {
       toast({
         title: "Error",
         description: "Selecciona un pedido y un nuevo estatus",
@@ -228,18 +252,18 @@ const OrderManagement = () => {
       // Actualizar el estatus del pedido
       await supabase
         .from('Pedidos')
-        .update({ 'Estatus': newStatus })
+        .update({ 'Estatus_id': newStatusId })
         .eq('Código de pedido', selectedOrder['Código de pedido']);
 
       // Insertar en historial con fecha personalizada o actual
       const historialData: any = {
         'Código de pedido': selectedOrder['Código de pedido'],
-        'estatus': newStatus,
-        'descripcion': description || 'Actualización de estatus'
+        'Estatus_id': newStatusId,
+        'Descripcion': description || 'Actualización de estatus'
       };
 
       if (newDate) {
-        historialData.fecha = newDate;
+        historialData.Fecha = newDate;
       }
 
       await supabase
@@ -252,7 +276,7 @@ const OrderManagement = () => {
       });
 
       setSelectedOrder(null);
-      setNewStatus("");
+      setNewStatusId(null);
       setNewDate("");
       setDescription("");
       loadExistingOrders();
@@ -272,7 +296,7 @@ const OrderManagement = () => {
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-light text-gray-800 mb-2">Gestión de Pedidos</h1>
-        <p className="text-gray-600">Crea y actualiza pedidos</p>
+        <p className="text-gray-600">Crea y actualiza pedidos con seguimiento completo</p>
       </div>
 
       {/* Crear nuevo pedido */}
@@ -304,22 +328,25 @@ const OrderManagement = () => {
           
           <div>
             <Label>Estatus *</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select value={statusId?.toString() || ""} onValueChange={(value) => setStatusId(parseInt(value))}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar estatus" />
               </SelectTrigger>
               <SelectContent>
-                {statuses.map((stat) => (
-                  <SelectItem key={stat} value={stat}>{stat}</SelectItem>
+                {statuses.map((status) => (
+                  <SelectItem key={status.id} value={status.id.toString()}>
+                    {status.nombre}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           
           <div>
-            <Label>Precio</Label>
+            <Label>Precio *</Label>
             <Input
               type="number"
+              step="0.01"
               placeholder="0.00"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
@@ -327,9 +354,10 @@ const OrderManagement = () => {
           </div>
           
           <div>
-            <Label>Peso (kg)</Label>
+            <Label>Peso (kg) *</Label>
             <Input
               type="number"
+              step="0.01"
               placeholder="0.0"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
@@ -337,9 +365,10 @@ const OrderManagement = () => {
           </div>
           
           <div>
-            <Label>Total</Label>
+            <Label>Total *</Label>
             <Input
               type="number"
+              step="0.01"
               placeholder="0.00"
               value={total}
               onChange={(e) => setTotal(e.target.value)}
@@ -347,11 +376,20 @@ const OrderManagement = () => {
           </div>
           
           <div className="md:col-span-2">
-            <Label>Fecha Estimada de Entrega</Label>
+            <Label>Fecha Estimada de Entrega *</Label>
             <Input
-              type="date"
+              type="datetime-local"
               value={estimatedDelivery}
               onChange={(e) => setEstimatedDelivery(e.target.value)}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <Label>Notas (opcional)</Label>
+            <Textarea
+              placeholder="Notas adicionales del pedido..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
             />
           </div>
         </div>
@@ -381,7 +419,7 @@ const OrderManagement = () => {
             <Label>Seleccionar Pedido</Label>
             <Select value={selectedOrder?.['Código de pedido'] || ""} onValueChange={(value) => {
               const order = existingOrders.find(o => o['Código de pedido'] === value);
-              setSelectedOrder(order);
+              setSelectedOrder(order || null);
             }}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar pedido" />
@@ -389,7 +427,7 @@ const OrderManagement = () => {
               <SelectContent>
                 {existingOrders.map((order) => (
                   <SelectItem key={order['Código de pedido']} value={order['Código de pedido']}>
-                    {order['Código de pedido']} - {order.Cliente}
+                    {order['Código de pedido']} - {order.Cliente} - {order.Estatus?.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -398,13 +436,15 @@ const OrderManagement = () => {
           
           <div>
             <Label>Nuevo Estatus</Label>
-            <Select value={newStatus} onValueChange={setNewStatus}>
+            <Select value={newStatusId?.toString() || ""} onValueChange={(value) => setNewStatusId(parseInt(value))}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar nuevo estatus" />
               </SelectTrigger>
               <SelectContent>
-                {statuses.map((stat) => (
-                  <SelectItem key={stat} value={stat}>{stat}</SelectItem>
+                {statuses.map((status) => (
+                  <SelectItem key={status.id} value={status.id.toString()}>
+                    {status.nombre}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -429,10 +469,29 @@ const OrderManagement = () => {
           </div>
         </div>
         
-        <Button onClick={updateOrderStatus} disabled={loading || !selectedOrder || !newStatus} className="mt-4">
+        <Button onClick={updateOrderStatus} disabled={loading || !selectedOrder || !newStatusId} className="mt-4">
           Actualizar Estatus
         </Button>
       </Card>
+
+      {/* Mostrar pedidos existentes */}
+      {existingOrders.length > 0 && (
+        <Card className="p-6">
+          <h3 className="text-lg font-medium mb-4">Pedidos Recientes</h3>
+          <div className="space-y-2">
+            {existingOrders.slice(0, 5).map((order) => (
+              <div key={order['Código de pedido']} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <span className="font-medium">{order['Código de pedido']}</span> - {order.Cliente}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {order.Estatus?.nombre} | ${order.Total}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 };

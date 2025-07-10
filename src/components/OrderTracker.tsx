@@ -20,10 +20,13 @@ const OrderTracker = () => {
     setSearchAttempted(true);
     
     try {
-      // Buscar pedido en Supabase
+      // Buscar pedido en Supabase con información del estatus
       const { data: pedido, error } = await supabase
         .from('Pedidos')
-        .select('*')
+        .select(`
+          *,
+          Estatus!inner(id, nombre, descripcion, categoria)
+        `)
         .eq('Código de pedido', orderCode)
         .single();
 
@@ -33,27 +36,30 @@ const OrderTracker = () => {
         return;
       }
 
-      // Buscar historial de estatus
+      // Buscar historial de estatus con información de cada estatus
       const { data: historial, error: historialError } = await supabase
         .from('Historial_Estatus')
-        .select('*')
+        .select(`
+          *,
+          Estatus!inner(id, nombre, descripcion, categoria)
+        `)
         .eq('Código de pedido', orderCode)
-        .order('fecha', { ascending: true });
+        .order('Fecha', { ascending: true });
 
       const orderData = {
         orderCode: pedido['Código de pedido'],
         customerName: pedido.Cliente || 'Cliente',
-        currentStatus: pedido.Estatus,
+        currentStatus: pedido.Estatus.nombre,
         totalAmount: pedido.Total || 0,
         price: pedido.Precio || undefined,
         weight: pedido.Peso || undefined,
         estimatedDelivery: pedido.Fecha_estimada_entrega || undefined,
         statusHistory: historial?.map(h => ({
-          status: h.estatus,
-          date: new Date(h.fecha).toLocaleDateString(),
-          time: new Date(h.fecha).toLocaleTimeString(),
-          description: h.descripcion || '',
-          category: 'processing'
+          status: h.Estatus.nombre,
+          date: new Date(h.Fecha).toLocaleDateString(),
+          time: new Date(h.Fecha).toLocaleTimeString(),
+          description: h.Descripcion || '',
+          category: h.Estatus.categoria as 'processing' | 'shipping' | 'returns' | 'special'
         })) || []
       };
 

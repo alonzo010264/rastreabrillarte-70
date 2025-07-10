@@ -44,27 +44,60 @@ export type Database = {
         }
         Relationships: []
       }
+      Estatus: {
+        Row: {
+          activo: boolean
+          categoria: string
+          created_at: string | null
+          descripcion: string | null
+          id: number
+          nombre: string
+          orden: number
+        }
+        Insert: {
+          activo?: boolean
+          categoria?: string
+          created_at?: string | null
+          descripcion?: string | null
+          id?: number
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          activo?: boolean
+          categoria?: string
+          created_at?: string | null
+          descripcion?: string | null
+          id?: number
+          nombre?: string
+          orden?: number
+        }
+        Relationships: []
+      }
       Historial_Estatus: {
         Row: {
           "Código de pedido": string
-          descripcion: string | null
-          estatus: string
-          fecha: string | null
+          Descripcion: string | null
+          Estatus_id: number
+          Fecha: string
           id: string
+          Usuario: string | null
         }
         Insert: {
           "Código de pedido": string
-          descripcion?: string | null
-          estatus: string
-          fecha?: string | null
+          Descripcion?: string | null
+          Estatus_id: number
+          Fecha?: string
           id?: string
+          Usuario?: string | null
         }
         Update: {
           "Código de pedido"?: string
-          descripcion?: string | null
-          estatus?: string
-          fecha?: string | null
+          Descripcion?: string | null
+          Estatus_id?: number
+          Fecha?: string
           id?: string
+          Usuario?: string | null
         }
         Relationships: [
           {
@@ -74,43 +107,61 @@ export type Database = {
             referencedRelation: "Pedidos"
             referencedColumns: ["Código de pedido"]
           },
+          {
+            foreignKeyName: "Historial_Estatus_Estatus_id_fkey"
+            columns: ["Estatus_id"]
+            isOneToOne: false
+            referencedRelation: "Estatus"
+            referencedColumns: ["id"]
+          },
         ]
       }
       Pedidos: {
         Row: {
-          Cliente: string | null
+          Cliente: string
           "Código de pedido": string
-          Estatus: string
-          Fecha_actualizacion: string | null
-          Fecha_creacion: string | null
-          Fecha_estimada_entrega: string | null
-          Peso: number | null
-          Precio: number | null
-          Total: number | null
+          Estatus_id: number
+          Fecha_actualizacion: string
+          Fecha_creacion: string
+          Fecha_estimada_entrega: string
+          Notas: string | null
+          Peso: number
+          Precio: number
+          Total: number
         }
         Insert: {
-          Cliente?: string | null
+          Cliente: string
           "Código de pedido": string
-          Estatus: string
-          Fecha_actualizacion?: string | null
-          Fecha_creacion?: string | null
-          Fecha_estimada_entrega?: string | null
-          Peso?: number | null
-          Precio?: number | null
-          Total?: number | null
+          Estatus_id: number
+          Fecha_actualizacion?: string
+          Fecha_creacion?: string
+          Fecha_estimada_entrega: string
+          Notas?: string | null
+          Peso: number
+          Precio: number
+          Total: number
         }
         Update: {
-          Cliente?: string | null
+          Cliente?: string
           "Código de pedido"?: string
-          Estatus?: string
-          Fecha_actualizacion?: string | null
-          Fecha_creacion?: string | null
-          Fecha_estimada_entrega?: string | null
-          Peso?: number | null
-          Precio?: number | null
-          Total?: number | null
+          Estatus_id?: number
+          Fecha_actualizacion?: string
+          Fecha_creacion?: string
+          Fecha_estimada_entrega?: string
+          Notas?: string | null
+          Peso?: number
+          Precio?: number
+          Total?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "Pedidos_Estatus_id_fkey"
+            columns: ["Estatus_id"]
+            isOneToOne: false
+            referencedRelation: "Estatus"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

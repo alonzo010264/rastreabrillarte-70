@@ -43,17 +43,20 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
           // Recargar historial cuando hay cambios
           const { data: historial } = await supabase
             .from('Historial_Estatus')
-            .select('*')
+            .select(`
+              *,
+              Estatus!inner(id, nombre, descripcion, categoria)
+            `)
             .eq('Código de pedido', orderCode)
-            .order('fecha', { ascending: true });
+            .order('Fecha', { ascending: true });
 
           if (historial) {
             setStatusHistory(historial.map(h => ({
-              status: h.estatus,
-              date: new Date(h.fecha).toLocaleDateString(),
-              time: new Date(h.fecha).toLocaleTimeString(),
-              description: h.descripcion || '',
-              category: 'processing' as const
+              status: h.Estatus.nombre,
+              date: new Date(h.Fecha).toLocaleDateString(),
+              time: new Date(h.Fecha).toLocaleTimeString(),
+              description: h.Descripcion || '',
+              category: h.Estatus.categoria as 'processing' | 'shipping' | 'returns' | 'special'
             })));
           }
         }
