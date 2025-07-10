@@ -117,7 +117,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      copiar_historial_pedido: {
+        Args: { codigo_origen: string; codigo_destino: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
