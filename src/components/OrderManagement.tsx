@@ -105,22 +105,11 @@ const OrderManagement = () => {
       // Verificar si el pedido ya existe
       const { data: existingOrder } = await supabase
         .from('Pedidos')
-        .select('Código de pedido')
+        .select('*')
         .eq('Código de pedido', orderCode)
         .maybeSingle();
 
-      if (existingOrder) {
-        toast({
-          title: "Error",
-          description: "Ya existe un pedido con este código",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-
       const orderData = {
-        'Código de pedido': orderCode,
         'Cliente': customerName,
         'Estatus_id': statusId,
         'Precio': parseFloat(price),
@@ -130,16 +119,35 @@ const OrderManagement = () => {
         'Notas': notes || null
       };
 
-      const { error: orderError } = await supabase
-        .from('Pedidos')
-        .insert(orderData);
+      if (existingOrder) {
+        // Actualizar pedido existente
+        const { error: updateError } = await supabase
+          .from('Pedidos')
+          .update(orderData)
+          .eq('Código de pedido', orderCode);
 
-      if (orderError) throw orderError;
+        if (updateError) throw updateError;
 
-      toast({
-        title: "¡Éxito!",
-        description: "Pedido creado correctamente"
-      });
+        toast({
+          title: "¡Éxito!",
+          description: "Pedido actualizado correctamente"
+        });
+      } else {
+        // Crear nuevo pedido
+        const { error: insertError } = await supabase
+          .from('Pedidos')
+          .insert({
+            'Código de pedido': orderCode,
+            ...orderData
+          });
+
+        if (insertError) throw insertError;
+
+        toast({
+          title: "¡Éxito!",
+          description: "Pedido creado correctamente"
+        });
+      }
 
       // Limpiar formulario
       setOrderCode("");

@@ -82,7 +82,9 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
     }
   };
 
+  // Find the current status from the actual status history
   const currentStatusIndex = statusHistory.findIndex(status => status.status === currentStatus);
+  const hasStatusHistory = statusHistory.length > 0;
 
   return (
     <Card className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
@@ -112,12 +114,15 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
       </div>
 
       <div className="space-y-6">
-        <h3 className="text-lg font-medium text-gray-800 mb-6 text-center">Historial del Pedido</h3>
+        <h3 className="text-lg font-medium text-gray-800 mb-6 text-center">
+          {hasStatusHistory ? 'Recorrido Completo del Pedido' : 'Historial del Pedido'}
+        </h3>
         
         <div className="relative max-w-md mx-auto">
           {statusHistory.map((item, index) => {
-            const isCompleted = index <= currentStatusIndex;
-            const isCurrent = index === currentStatusIndex;
+            // All statuses in the history are considered "completed" since they actually happened
+            const isCompleted = true;
+            const isCurrent = item.status === currentStatus;
             
             return (
               <div key={index} className="flex items-start space-x-4 pb-6 relative">
@@ -136,16 +141,14 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
                 </div>
                 
                 {/* Contenido */}
-                <div className={`flex-1 ${isCompleted ? 'opacity-100' : 'opacity-50'}`}>
+                <div className="flex-1 opacity-100">
                   <div className="flex flex-col">
                     <h4 className={`font-medium text-sm ${isCurrent ? 'text-green-600' : 'text-gray-800'}`}>
                       {item.status}
                     </h4>
-                    {isCompleted && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {item.date} - {item.time}
-                      </div>
-                    )}
+                    <div className="text-xs text-gray-500 mt-1">
+                      {item.date} - {item.time}
+                    </div>
                   </div>
                   <p className="text-xs text-gray-600 mt-1">{item.description}</p>
                   {isCurrent && (
