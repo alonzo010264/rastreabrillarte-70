@@ -73,6 +73,23 @@ const OrderManagement = () => {
 
     setLoading(true);
     try {
+      // Verificar si el pedido ya existe
+      const { data: existingOrder } = await supabase
+        .from('Pedidos')
+        .select('Código de pedido')
+        .eq('Código de pedido', orderCode)
+        .single();
+
+      if (existingOrder) {
+        toast({
+          title: "Error",
+          description: "Ya existe un pedido con este código",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       const orderData = {
         'Código de pedido': orderCode,
         'Cliente': customerName,
@@ -83,20 +100,22 @@ const OrderManagement = () => {
         'Fecha_estimada_entrega': estimatedDelivery || null
       };
 
-      const { error } = await supabase
+      const { error: orderError } = await supabase
         .from('Pedidos')
         .insert(orderData);
 
-      if (error) throw error;
+      if (orderError) throw orderError;
 
-      // Insertar historial inicial
-      await supabase
+      // Insertar historial inicial DESPUÉS de crear el pedido
+      const { error: historyError } = await supabase
         .from('Historial_Estatus')
         .insert({
           'Código de pedido': orderCode,
           'estatus': status,
           'descripcion': 'Pedido creado'
         });
+
+      if (historyError) throw historyError;
 
       toast({
         title: "¡Éxito!",
@@ -137,6 +156,40 @@ const OrderManagement = () => {
 
     setLoading(true);
     try {
+      // Verificar que el pedido destino existe
+      const { data: destOrder, error: destError } = await supabase
+        .from('Pedidos')
+        .select('Código de pedido')
+        .eq('Código de pedido', orderCode)
+        .single();
+
+      if (destError || !destOrder) {
+        toast({
+          title: "Error",
+          description: "El pedido destino no existe. Créalo primero.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Verificar que el pedido origen existe
+      const { data: sourceOrder, error: sourceError } = await supabase
+        .from('Pedidos')
+        .select('Código de pedido')
+        .eq('Código de pedido', 'B01-00001')
+        .single();
+
+      if (sourceError || !sourceOrder) {
+        toast({
+          title: "Error",
+          description: "El pedido B01-00001 no existe en la base de datos",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.rpc('copiar_historial_pedido', {
         codigo_origen: 'B01-00001',
         codigo_destino: orderCode
