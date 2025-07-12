@@ -82,6 +82,24 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
     }
   };
 
+  const getStatusDescription = (statusName: string, category: string) => {
+    // Descripciones personalizadas para cada estatus
+    const descriptions: Record<string, string> = {
+      'Pedido Recibido': 'Tu pedido fue recibido exitosamente y está siendo procesado por nuestro equipo.',
+      'Confirmado': 'Tu pedido fue confirmado y está en espera para cambiar de estatus dependiendo de la demanda.',
+      'En Preparación': 'Tu pedido está siendo preparado y empacado cuidadosamente por nuestro equipo.',
+      'Listo para Envío': 'Tu pedido está listo y empacado, esperando ser enviado.',
+      'En Tránsito': 'Tu pedido está en camino hacia tu dirección de entrega.',
+      'En Ruta de Entrega': 'Tu pedido está en la ruta final de entrega, llegará pronto.',
+      'Entregado': 'Tu pedido ha sido entregado exitosamente en la dirección indicada.',
+      'Pendiente de Pago': 'Estamos esperando la confirmación de tu pago para procesar el pedido.',
+      'Cancelado': 'Tu pedido ha sido cancelado según tu solicitud.',
+      'Devuelto': 'Tu pedido ha sido devuelto según el proceso de devolución.',
+    };
+
+    return descriptions[statusName] || 'Tu pedido está siendo procesado. Te mantendremos informado de cualquier cambio.';
+  };
+
   // Find the current status from the actual status history
   const currentStatusIndex = statusHistory.findIndex(status => status.status === currentStatus);
   const hasStatusHistory = statusHistory.length > 0;
@@ -150,7 +168,9 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
                       {item.date} - {item.time}
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">{item.description}</p>
+                  <p className="text-sm text-gray-700 mt-2 leading-relaxed">
+                    {getStatusDescription(item.status, item.category)}
+                  </p>
                   {isCurrent && (
                     <Badge className="mt-2 bg-green-100 text-green-800 text-xs border-green-200">
                       Estado Actual
