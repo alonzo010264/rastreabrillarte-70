@@ -83,21 +83,18 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
   };
 
   const getStatusDescription = (statusName: string, category: string) => {
-    // Descripciones específicas y diferentes para cada estatus
+    // Descripciones específicas para cada estatus de Brillarte
     const descriptions: Record<string, string> = {
-      'Pedido Recibido': 'Tu pedido fue recibido exitosamente y está procesándose para pasar al siguiente estatus.',
-      'Confirmado': 'Tu pedido fue confirmado y está esperando a ser preparado por nuestro equipo.',
-      'En Preparación': 'Tu pedido está siendo preparado y empacado cuidadosamente en nuestras instalaciones.',
-      'Listo para Envío': 'Tu pedido está completamente preparado y empacado, esperando ser enviado.',
-      'Enviado': 'Tu pedido ha sido enviado y está en camino hacia tu dirección.',
-      'En Tránsito': 'Tu pedido está viajando hacia tu ubicación y será entregado pronto.',
-      'En Ruta de Entrega': 'Tu pedido está en la ruta final de entrega con nuestro repartidor.',
-      'Entregado': 'Tu pedido ha sido entregado exitosamente en la dirección proporcionada.',
-      'Pendiente de Pago': 'Estamos esperando la confirmación de tu pago para continuar con el proceso.',
-      'Pago Confirmado': 'Tu pago ha sido confirmado exitosamente y el pedido procederá al siguiente paso.',
-      'Cancelado': 'Tu pedido ha sido cancelado según tu solicitud o por falta de disponibilidad.',
-      'Devuelto': 'Tu pedido está en proceso de devolución según las políticas establecidas.',
-      'Reembolsado': 'El reembolso de tu pedido ha sido procesado y será reflejado en tu cuenta.',
+      'Recibido': 'Hemos recibido tu pedido correctamente. Ahora comenzamos con el proceso para prepararlo con todo el cuidado que mereces.',
+      'Confirmado': 'Tu pedido ha sido confirmado. Ya estamos listando los artículos necesarios o iniciando su creación para ti. A partir de aquí, no se puede cancelar el pedido.',
+      'En Preparación': 'Tu pedido está siendo preparado cuidadosamente. En esta etapa, podemos estar fabricando el producto, revisando detalles y empacándolo. Puede tomar un poco más de tiempo, pero garantizamos que llegará impecable.',
+      'Etiquetado': 'Tu pedido ya tiene puestas las etiquetas oficiales de Brillarte. Muy pronto será almacenado y alistado para entrega.',
+      'Almacenado': 'Tu pedido está almacenado y esperando ser recogido por nuestros transportistas. Esto significa que ya está preparado para salir a su destino.',
+      'Listo para Entregar': 'Todo está listo. Uno de nuestros agentes de transporte pasará pronto a recoger tu pedido para llevarlo hasta ti.',
+      'En Ruta de Entrega': 'El transportista ya va en camino para entregarte tu pedido. Puede tardar un poco dependiendo de la cantidad de entregas del día y las rutas optimizadas.',
+      'Entregado': 'Tu pedido fue entregado con éxito. En caso de alta demanda, este estado se actualiza tan pronto nuestro transportista lo confirma.',
+      'Devuelto': 'El pedido fue devuelto por alguna razón y será recogido por nuestro agente transportista. Nos comunicaremos contigo para darte seguimiento.',
+      'Cancelado': 'Tu pedido ha sido cancelado. No es posible cancelar un pedido si ya está confirmado o en preparación.',
     };
 
     return descriptions[statusName] || 'Tu pedido está siendo procesado. Te notificaremos cuando haya actualizaciones.';
