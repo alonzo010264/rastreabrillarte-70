@@ -3,7 +3,6 @@ import Header from "@/components/Header";
 import AttentionHours from "@/components/AttentionHours";
 import OrderTracker from "@/components/OrderTracker";
 import ContactForm from "@/components/ContactForm";
-import ProductShowcase from "@/components/ProductShowcase";
 import Footer from "@/components/Footer";
 import { Diamond } from "lucide-react";
 
@@ -37,11 +36,6 @@ const Index = () => {
           {/* Horarios de atención */}
           <section>
             <AttentionHours />
-          </section>
-          
-          {/* Productos */}
-          <section>
-            <ProductShowcase />
           </section>
         </div>
       </main>
