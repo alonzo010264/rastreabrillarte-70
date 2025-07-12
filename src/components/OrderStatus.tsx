@@ -83,21 +83,24 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
   };
 
   const getStatusDescription = (statusName: string, category: string) => {
-    // Descripciones personalizadas para cada estatus
+    // Descripciones específicas y diferentes para cada estatus
     const descriptions: Record<string, string> = {
-      'Pedido Recibido': 'Tu pedido fue recibido exitosamente y está siendo procesado por nuestro equipo.',
-      'Confirmado': 'Tu pedido fue confirmado y está en espera para cambiar de estatus dependiendo de la demanda.',
-      'En Preparación': 'Tu pedido está siendo preparado y empacado cuidadosamente por nuestro equipo.',
-      'Listo para Envío': 'Tu pedido está listo y empacado, esperando ser enviado.',
-      'En Tránsito': 'Tu pedido está en camino hacia tu dirección de entrega.',
-      'En Ruta de Entrega': 'Tu pedido está en la ruta final de entrega, llegará pronto.',
-      'Entregado': 'Tu pedido ha sido entregado exitosamente en la dirección indicada.',
-      'Pendiente de Pago': 'Estamos esperando la confirmación de tu pago para procesar el pedido.',
-      'Cancelado': 'Tu pedido ha sido cancelado según tu solicitud.',
-      'Devuelto': 'Tu pedido ha sido devuelto según el proceso de devolución.',
+      'Pedido Recibido': 'Tu pedido fue recibido exitosamente y está procesándose para pasar al siguiente estatus.',
+      'Confirmado': 'Tu pedido fue confirmado y está esperando a ser preparado por nuestro equipo.',
+      'En Preparación': 'Tu pedido está siendo preparado y empacado cuidadosamente en nuestras instalaciones.',
+      'Listo para Envío': 'Tu pedido está completamente preparado y empacado, esperando ser enviado.',
+      'Enviado': 'Tu pedido ha sido enviado y está en camino hacia tu dirección.',
+      'En Tránsito': 'Tu pedido está viajando hacia tu ubicación y será entregado pronto.',
+      'En Ruta de Entrega': 'Tu pedido está en la ruta final de entrega con nuestro repartidor.',
+      'Entregado': 'Tu pedido ha sido entregado exitosamente en la dirección proporcionada.',
+      'Pendiente de Pago': 'Estamos esperando la confirmación de tu pago para continuar con el proceso.',
+      'Pago Confirmado': 'Tu pago ha sido confirmado exitosamente y el pedido procederá al siguiente paso.',
+      'Cancelado': 'Tu pedido ha sido cancelado según tu solicitud o por falta de disponibilidad.',
+      'Devuelto': 'Tu pedido está en proceso de devolución según las políticas establecidas.',
+      'Reembolsado': 'El reembolso de tu pedido ha sido procesado y será reflejado en tu cuenta.',
     };
 
-    return descriptions[statusName] || 'Tu pedido está siendo procesado. Te mantendremos informado de cualquier cambio.';
+    return descriptions[statusName] || 'Tu pedido está siendo procesado. Te notificaremos cuando haya actualizaciones.';
   };
 
   // Find the current status from the actual status history
