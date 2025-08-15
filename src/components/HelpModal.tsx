@@ -33,7 +33,28 @@ const HelpModal = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
+      // Buscar el ID del estatus "En Revisión"
+      const { data: estatusData, error: estatusError } = await supabase
+        .from('Estatus')
+        .select('id')
+        .eq('nombre', 'En Revisión')
+        .single();
+
+      if (estatusError) {
+        console.error('Error finding En Revisión status:', estatusError);
+        throw new Error('No se pudo encontrar el estatus En Revisión');
+      }
+
+      // Actualizar el pedido al estatus "En Revisión" PRIMERO
+      const { error: updateError } = await supabase
+        .from('Pedidos')
+        .update({ Estatus_id: estatusData.id })
+        .eq('Código de pedido', formData.codigo_pedido);
+
+      if (updateError) throw updateError;
+
+      // Insertar solicitud de ayuda
+      const { error: insertError } = await supabase
         .from('Solicitudes_Ayuda')
         .insert([{
           codigo_pedido: formData.codigo_pedido,
@@ -41,20 +62,23 @@ const HelpModal = () => {
           correo: formData.correo
         }]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       toast({
-        title: "Solicitud enviada",
-        description: "Hemos recibido tu solicitud. Nuestro equipo te contactará pronto.",
+        title: "¡Solicitud de emergencia procesada!",
+        description: "Tu pedido está EN REVISIÓN. Te contactaremos lo más antes posible para atender tu emergencia y buscar una solución.",
       });
 
       setFormData({ codigo_pedido: "", situacion: "", correo: "" });
       setIsOpen(false);
+      
+      // Recargar la página para mostrar el nuevo estatus
+      window.location.reload();
     } catch (error) {
-      console.error('Error enviando solicitud:', error);
+      console.error('Error procesando solicitud de emergencia:', error);
       toast({
         title: "Error",
-        description: "No pudimos enviar tu solicitud. Intenta de nuevo.",
+        description: "No pudimos procesar tu solicitud de emergencia. Intenta de nuevo.",
         variant: "destructive"
       });
     } finally {

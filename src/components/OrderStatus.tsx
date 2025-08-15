@@ -99,7 +99,7 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
       'Entregado': 'Tu pedido fue entregado con éxito. En caso de alta demanda, este estado se actualiza tan pronto nuestro transportista lo confirma.',
       'Devuelto': 'El pedido fue devuelto por alguna razón y será recogido por nuestro agente transportista. Nos comunicaremos contigo para darte seguimiento.',
       'Cancelado': 'Tu pedido ha sido cancelado. No es posible cancelar un pedido si ya está confirmado o en preparación.',
-      'En Revisión': 'Tu solicitud de cambio de dirección está siendo revisada por nuestro equipo. Te contactaremos pronto para confirmar si es posible realizar el cambio.',
+      'En Revisión': 'Tu solicitud está siendo revisada por nuestro equipo. Te contactaremos lo más antes posible para atender tu caso y buscar la mejor solución.',
     };
 
     return descriptions[statusName] || 'Tu pedido está siendo procesado. Te notificaremos cuando haya actualizaciones.';
