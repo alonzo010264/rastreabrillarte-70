@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import HelpModal from "./HelpModal";
+import AddressChangeModal from "./AddressChangeModal";
 
 interface OrderStatusProps {
   orderCode: string;
@@ -77,6 +79,8 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
         return <Truck className={iconClass} />;
       case 'delivered':
         return <Home className={iconClass} />;
+      case 'special':
+        return <Clock className={iconClass} />;
       default:
         return <Clock className={iconClass} />;
     }
@@ -95,6 +99,7 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
       'Entregado': 'Tu pedido fue entregado con éxito. En caso de alta demanda, este estado se actualiza tan pronto nuestro transportista lo confirma.',
       'Devuelto': 'El pedido fue devuelto por alguna razón y será recogido por nuestro agente transportista. Nos comunicaremos contigo para darte seguimiento.',
       'Cancelado': 'Tu pedido ha sido cancelado. No es posible cancelar un pedido si ya está confirmado o en preparación.',
+      'En Revisión': 'Tu solicitud de cambio de dirección está siendo revisada por nuestro equipo. Te contactaremos pronto para confirmar si es posible realizar el cambio.',
     };
 
     return descriptions[statusName] || 'Tu pedido está siendo procesado. Te notificaremos cuando haya actualizaciones.';
@@ -183,14 +188,21 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
         </div>
       </div>
 
-      <div className="mt-8 p-4 bg-amber-50 rounded-xl border border-amber-200">
-        <div className="flex items-start">
-          <AlertCircle className="text-amber-600 mr-3 mt-0.5 flex-shrink-0" size={16} />
-          <div>
-            <p className="text-amber-800 text-sm">
-              <strong>Información importante:</strong> Tu pedido se actualiza automáticamente. 
-              Si tienes alguna duda, puedes contactarnos por Instagram o WhatsApp en nuestros horarios de atención.
-            </p>
+      <div className="mt-8 space-y-4">
+        <div className="flex gap-3 justify-center">
+          <AddressChangeModal orderCode={orderCode} />
+          <HelpModal />
+        </div>
+        
+        <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+          <div className="flex items-start">
+            <AlertCircle className="text-amber-600 mr-3 mt-0.5 flex-shrink-0" size={16} />
+            <div>
+              <p className="text-amber-800 text-sm">
+                <strong>Información importante:</strong> Tu pedido se actualiza automáticamente. 
+                Si tienes alguna duda, puedes contactarnos por Instagram o WhatsApp en nuestros horarios de atención.
+              </p>
+            </div>
           </div>
         </div>
       </div>

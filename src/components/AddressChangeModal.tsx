@@ -1,0 +1,185 @@
+import { useState } from "react";
+import { MapPin, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface AddressChangeModalProps {
+  orderCode: string;
+}
+
+const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    nueva_direccion: "",
+    razon: "",
+    correo: ""
+  });
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.nueva_direccion || !formData.correo) {
+      toast({
+        title: "Campos requeridos",
+        description: "Por favor completa la nueva dirección y tu correo",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Insertar solicitud de cambio de dirección
+      const { error: insertError } = await supabase
+        .from('Solicitudes_Cambio_Direccion')
+        .insert([{
+          codigo_pedido: orderCode,
+          nueva_direccion: formData.nueva_direccion,
+          razon: formData.razon || 'Solicitud de cambio de dirección',
+          correo: formData.correo
+        }]);
+
+      if (insertError) throw insertError;
+
+      // Buscar el ID del estatus "En Revisión"
+      const { data: estatusData, error: estatusError } = await supabase
+        .from('Estatus')
+        .select('id')
+        .eq('nombre', 'En Revisión')
+        .single();
+
+      if (estatusError) {
+        console.error('Error finding En Revisión status:', estatusError);
+        throw new Error('No se pudo encontrar el estatus En Revisión');
+      }
+
+      // Actualizar el pedido al estatus "En Revisión"
+      const { error: updateError } = await supabase
+        .from('Pedidos')
+        .update({ Estatus_id: estatusData.id })
+        .eq('Código de pedido', orderCode);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Solicitud enviada",
+        description: "Tu pedido está ahora en revisión. Nuestro equipo evaluará si es posible cambiar la dirección.",
+      });
+
+      setFormData({ nueva_direccion: "", razon: "", correo: "" });
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Error enviando solicitud:', error);
+      toast({
+        title: "Error",
+        description: "No pudimos procesar tu solicitud. Intenta de nuevo.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button 
+          variant="outline"
+          className="bg-white text-black border-2 border-black hover:bg-black hover:text-white transition-all duration-300 font-medium rounded-xl"
+        >
+          <MapPin className="mr-2" size={18} />
+          Cambiar Dirección
+        </Button>
+      </DialogTrigger>
+      
+      <DialogContent className="bg-white rounded-2xl border border-gray-200 max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-light text-gray-800 text-center mb-2">
+            Solicitar Cambio de Dirección
+          </DialogTitle>
+        </DialogHeader>
+        
+        <Card className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+          <div className="flex items-start">
+            <MapPin className="text-amber-600 mr-3 mt-0.5 flex-shrink-0" size={16} />
+            <div>
+              <p className="text-amber-800 text-sm">
+                <strong>Importante:</strong> Tu pedido se pondrá en revisión. Nuestro equipo determinará si es posible cambiar la dirección según el estado actual del envío.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nueva dirección de entrega
+            </label>
+            <Textarea
+              placeholder="Ingresa la nueva dirección completa con referencias..."
+              value={formData.nueva_direccion}
+              onChange={(e) => setFormData(prev => ({ ...prev, nueva_direccion: e.target.value }))}
+              className="rounded-xl border-gray-200 focus:border-gray-400 focus:ring-gray-400 min-h-[80px]"
+              maxLength={300}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Razón del cambio (opcional)
+            </label>
+            <Input
+              type="text"
+              placeholder="Ej: Me mudé, dirección incorrecta, etc."
+              value={formData.razon}
+              onChange={(e) => setFormData(prev => ({ ...prev, razon: e.target.value }))}
+              className="rounded-xl border-gray-200 focus:border-gray-400 focus:ring-gray-400"
+              maxLength={100}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tu correo electrónico
+            </label>
+            <Input
+              type="email"
+              placeholder="tu@correo.com"
+              value={formData.correo}
+              onChange={(e) => setFormData(prev => ({ ...prev, correo: e.target.value }))}
+              className="rounded-xl border-gray-200 focus:border-gray-400 focus:ring-gray-400"
+            />
+          </div>
+
+          <Button 
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-black text-white hover:bg-gray-800 rounded-xl font-medium py-3 transition-all duration-300"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Enviando...
+              </div>
+            ) : (
+              <div className="flex items-center justify-center">
+                <Send className="mr-2" size={18} />
+                Enviar Solicitud
+              </div>
+            )}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default AddressChangeModal;

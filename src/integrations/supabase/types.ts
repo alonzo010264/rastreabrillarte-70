@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -163,13 +163,70 @@ export type Database = {
           },
         ]
       }
+      Solicitudes_Ayuda: {
+        Row: {
+          codigo_pedido: string
+          correo: string
+          estado: string
+          fecha_creacion: string
+          id: string
+          situacion: string
+        }
+        Insert: {
+          codigo_pedido: string
+          correo: string
+          estado?: string
+          fecha_creacion?: string
+          id?: string
+          situacion: string
+        }
+        Update: {
+          codigo_pedido?: string
+          correo?: string
+          estado?: string
+          fecha_creacion?: string
+          id?: string
+          situacion?: string
+        }
+        Relationships: []
+      }
+      Solicitudes_Cambio_Direccion: {
+        Row: {
+          codigo_pedido: string
+          correo: string
+          estado: string
+          fecha_creacion: string
+          id: string
+          nueva_direccion: string
+          razon: string | null
+        }
+        Insert: {
+          codigo_pedido: string
+          correo: string
+          estado?: string
+          fecha_creacion?: string
+          id?: string
+          nueva_direccion: string
+          razon?: string | null
+        }
+        Update: {
+          codigo_pedido?: string
+          correo?: string
+          estado?: string
+          fecha_creacion?: string
+          id?: string
+          nueva_direccion?: string
+          razon?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       copiar_historial_pedido: {
-        Args: { codigo_origen: string; codigo_destino: string }
+        Args: { codigo_destino: string; codigo_origen: string }
         Returns: undefined
       }
     }
