@@ -1,5 +1,5 @@
 
-import { CheckCircle, Clock, Package, Truck, Home, AlertCircle } from "lucide-react";
+import { CheckCircle, Clock, Package, Truck, Home, AlertCircle, Plane } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
@@ -69,8 +69,13 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
       supabase.removeChannel(channel);
     };
   }, [orderCode, initialHistory]);
-  const getStatusIcon = (category: string, isCompleted: boolean) => {
+  const getStatusIcon = (category: string, isCompleted: boolean, statusName?: string) => {
     const iconClass = `w-5 h-5 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`;
+    
+    // Icono específico para "Embarcado"
+    if (statusName === 'Embarcado') {
+      return <Plane className={iconClass} />;
+    }
     
     switch (category) {
       case 'processing':
@@ -100,6 +105,7 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
       'Devuelto': 'El pedido fue devuelto por alguna razón y será recogido por nuestro agente transportista. Nos comunicaremos contigo para darte seguimiento.',
       'Cancelado': 'Tu pedido ha sido cancelado. No es posible cancelar un pedido si ya está confirmado o en preparación.',
       'En Revisión': 'Tu solicitud está siendo revisada por nuestro equipo. Te contactaremos lo más antes posible para atender tu caso y buscar la mejor solución.',
+      'Embarcado': 'Tu pedido ha sido embarcado y está en tránsito internacional. Pronto llegará a República Dominicana para continuar con el proceso de entrega.',
     };
 
     return descriptions[statusName] || 'Tu pedido está siendo procesado. Te notificaremos cuando haya actualizaciones.';
@@ -160,7 +166,7 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
                 <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
                   isCompleted ? 'bg-green-100' : 'bg-gray-100'
                 } ${isCurrent ? 'ring-2 ring-green-300' : ''}`}>
-                  {getStatusIcon(item.category, isCompleted)}
+                  {getStatusIcon(item.category, isCompleted, item.status)}
                 </div>
                 
                 {/* Contenido */}
