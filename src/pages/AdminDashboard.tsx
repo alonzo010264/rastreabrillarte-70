@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Users, MessageSquare, HelpCircle, MapPin, Sparkles } from "lucide-react";
+import { Package, Users, MessageSquare, HelpCircle, MapPin, Sparkles, Trash2, Plus, FileText } from "lucide-react";
 
 interface Pedido {
   "Código de pedido": string;
@@ -241,12 +241,49 @@ const AdminDashboard = () => {
         description: `El estado del pedido ${orderCode} ha sido actualizado`,
       });
 
-      loadPedidos();
+      // Recargar pedidos para mostrar el cambio
+      await loadPedidos();
     } catch (error) {
       console.error('Error updating status:', error);
       toast({
         title: "Error",
         description: "No se pudo actualizar el estado",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteOrder = async (orderCode: string) => {
+    if (!confirm(`¿Estás seguro de que deseas eliminar el pedido ${orderCode}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    try {
+      // Primero eliminar el historial del pedido
+      await supabase
+        .from('Historial_Estatus')
+        .delete()
+        .eq('Código de pedido', orderCode);
+
+      // Luego eliminar el pedido
+      const { error } = await supabase
+        .from('Pedidos')
+        .delete()
+        .eq('Código de pedido', orderCode);
+
+      if (error) throw error;
+
+      toast({
+        title: "Pedido eliminado",
+        description: `El pedido ${orderCode} ha sido eliminado exitosamente`,
+      });
+
+      await loadPedidos();
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el pedido",
         variant: "destructive"
       });
     }
@@ -270,11 +307,15 @@ const AdminDashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <Tabs defaultValue="pedidos" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white border border-gray-200">
-            <TabsTrigger value="pedidos" className="flex items-center space-x-2">
+        <Tabs defaultValue="crear-pedido" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200">
+            <TabsTrigger value="crear-pedido" className="flex items-center space-x-2">
+              <Plus className="w-4 h-4" />
+              <span>Crear Pedido</span>
+            </TabsTrigger>
+            <TabsTrigger value="gestionar-pedidos" className="flex items-center space-x-2">
               <Package className="w-4 h-4" />
-              <span>Pedidos</span>
+              <span>Gestionar Pedidos</span>
             </TabsTrigger>
             <TabsTrigger value="contactos" className="flex items-center space-x-2">
               <MessageSquare className="w-4 h-4" />
@@ -290,12 +331,14 @@ const AdminDashboard = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab de Pedidos */}
-          <TabsContent value="pedidos" className="space-y-6">
-            {/* Crear nuevo pedido */}
+          {/* Tab de Crear Pedido */}
+          <TabsContent value="crear-pedido">
             <Card className="bg-white shadow-sm border border-gray-200">
               <CardHeader className="border-b border-gray-100">
-                <CardTitle className="text-gray-900">Crear Nuevo Pedido</CardTitle>
+                <CardTitle className="text-gray-900 flex items-center space-x-2">
+                  <Plus className="w-5 h-5" />
+                  <span>Crear Nuevo Pedido</span>
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -399,11 +442,16 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Lista de pedidos */}
+          {/* Tab de Gestionar Pedidos */}
+          <TabsContent value="gestionar-pedidos">
             <Card className="bg-white shadow-sm border border-gray-200">
               <CardHeader className="border-b border-gray-100">
-                <CardTitle className="text-gray-900">Pedidos Existentes ({pedidos.length})</CardTitle>
+                <CardTitle className="text-gray-900 flex items-center space-x-2">
+                  <Package className="w-5 h-5" />
+                  <span>Gestionar Pedidos ({pedidos.length})</span>
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -415,7 +463,8 @@ const AdminDashboard = () => {
                         <TableHead className="text-gray-700">Estado</TableHead>
                         <TableHead className="text-gray-700">Total</TableHead>
                         <TableHead className="text-gray-700">Fecha Creación</TableHead>
-                        <TableHead className="text-gray-700">Acciones</TableHead>
+                        <TableHead className="text-gray-700">Cambiar Estado</TableHead>
+                        <TableHead className="text-gray-700">Eliminar</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -449,6 +498,16 @@ const AdminDashboard = () => {
                                 ))}
                               </SelectContent>
                             </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() => deleteOrder(pedido["Código de pedido"])}
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
