@@ -3,7 +3,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import Home from "./pages/Home";
+import OrderTracking from "./pages/OrderTracking";
+import AboutUs from "./pages/AboutUs";
+import Products from "./pages/Products";
+import FAQ from "./pages/FAQ";
+import Contact from "./pages/Contact";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import OrderManagement from "./components/OrderManagement";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -17,7 +23,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/nosotros" element={<AboutUs />} />
+          <Route path="/productos" element={<Products />} />
+          <Route path="/rastrear" element={<OrderTracking />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/contacto" element={<Contact />} />
+          <Route path="/cuenta" element={<Account />} />
           <Route path="/manage" element={<OrderManagement />} />
           <Route path="/admin-brillarte-dashboard" element={<AdminDashboard />} />
           <Route path="*" element={<NotFound />} />

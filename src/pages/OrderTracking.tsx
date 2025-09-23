@@ -1,4 +1,5 @@
 
+import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import AttentionHours from "@/components/AttentionHours";
 import OrderTracker from "@/components/OrderTracker";
@@ -6,9 +7,11 @@ import ContactForm from "@/components/ContactForm";
 import Footer from "@/components/Footer";
 import { Diamond } from "lucide-react";
 
-const Index = () => {
+const OrderTracking = () => {
   return (
     <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+      <Navigation />
+      
       {/* Decorative diamonds */}
       <div className="absolute inset-0 pointer-events-none">
         <Diamond className="absolute top-20 left-10 text-gray-200 w-16 h-16 rotate-45 opacity-30" />
@@ -45,4 +48,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default OrderTracking;
