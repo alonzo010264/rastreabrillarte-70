@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Diamond, MessageSquare, Mail, Phone, MapPin, Clock, Instagram, Facebook, Send } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -22,15 +23,54 @@ const Contact = () => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      // Validar que todos los campos estén llenos
+      if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+        toast({
+          title: "Error",
+          description: "Por favor completa todos los campos.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Guardar en la base de datos
+      const { error } = await supabase
+        .from('Contactos')
+        .insert([
+          {
+            nombre_cliente: formData.name.trim(),
+            correo: formData.email.trim(),
+            descripcion_problema: formData.message.trim(),
+            estado: 'Pendiente'
+          }
+        ]);
+
+      if (error) {
+        console.error('Error saving contact:', error);
+        toast({
+          title: "Error",
+          description: "Hubo un problema al enviar tu mensaje. Inténtalo de nuevo.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "¡Mensaje enviado!",
+          description: "Gracias por contactarnos. Te responderemos pronto.",
+        });
+        setFormData({ name: '', email: '', message: '' });
+      }
+    } catch (error) {
+      console.error('Error:', error);
       toast({
-        title: "¡Mensaje enviado!",
-        description: "Gracias por contactarnos. Te responderemos pronto."
+        title: "Error",
+        description: "Hubo un problema al enviar tu mensaje. Inténtalo de nuevo.",
+        variant: "destructive"
       });
-      setFormData({ name: "", email: "", message: "" });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

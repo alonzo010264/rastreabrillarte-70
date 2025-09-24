@@ -13,6 +13,8 @@ import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import OrderManagement from "./components/OrderManagement";
 import AdminDashboard from "./pages/AdminDashboard";
+import CustomerDashboard from "./pages/CustomerDashboard";
+import AdminDemoPage from "./pages/AdminDemoPage";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/cuenta" element={<Account />} />
           <Route path="/manage" element={<OrderManagement />} />
           <Route path="/admin-brillarte-dashboard" element={<AdminDashboard />} />
+          <Route path="/customer-dashboard" element={<CustomerDashboard />} />
+          <Route path="/admin-chat-demo" element={<AdminDemoPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

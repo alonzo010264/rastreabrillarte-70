@@ -14,6 +14,127 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          chat_session_id: string
+          codigo_pedido: string | null
+          fecha_creacion: string
+          id: string
+          imagen_url: string | null
+          mensaje: string | null
+          sender_id: string
+          sender_name: string
+          sender_type: string
+        }
+        Insert: {
+          chat_session_id: string
+          codigo_pedido?: string | null
+          fecha_creacion?: string
+          id?: string
+          imagen_url?: string | null
+          mensaje?: string | null
+          sender_id: string
+          sender_name: string
+          sender_type: string
+        }
+        Update: {
+          chat_session_id?: string
+          codigo_pedido?: string | null
+          fecha_creacion?: string
+          id?: string
+          imagen_url?: string | null
+          mensaje?: string | null
+          sender_id?: string
+          sender_name?: string
+          sender_type?: string
+        }
+        Relationships: []
+      }
+      chat_sessions: {
+        Row: {
+          admin_id: string | null
+          admin_nombre: string | null
+          cliente_id: string
+          cliente_nombre: string
+          estado: string
+          fecha_creacion: string
+          fecha_finalizacion: string | null
+          id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          admin_nombre?: string | null
+          cliente_id: string
+          cliente_nombre: string
+          estado?: string
+          fecha_creacion?: string
+          fecha_finalizacion?: string | null
+          id?: string
+        }
+        Update: {
+          admin_id?: string | null
+          admin_nombre?: string | null
+          cliente_id?: string
+          cliente_nombre?: string
+          estado?: string
+          fecha_creacion?: string
+          fecha_finalizacion?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      codigos_descuento: {
+        Row: {
+          admin_creador: string | null
+          cliente_id: string | null
+          codigo: string
+          descuento_monto: number | null
+          descuento_porcentaje: number | null
+          fecha_creacion: string
+          fecha_vencimiento: string | null
+          id: string
+          usado: boolean | null
+        }
+        Insert: {
+          admin_creador?: string | null
+          cliente_id?: string | null
+          codigo: string
+          descuento_monto?: number | null
+          descuento_porcentaje?: number | null
+          fecha_creacion?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          usado?: boolean | null
+        }
+        Update: {
+          admin_creador?: string | null
+          cliente_id?: string | null
+          codigo?: string
+          descuento_monto?: number | null
+          descuento_porcentaje?: number | null
+          fecha_creacion?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          usado?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "codigos_descuento_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       Contactos: {
         Row: {
           codigo_pedido: string | null
@@ -163,6 +284,42 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          correo: string
+          direccion: string | null
+          fecha_actualizacion: string
+          fecha_creacion: string
+          id: string
+          nombre_completo: string
+          saldo: number
+          telefono: string | null
+          user_id: string
+        }
+        Insert: {
+          correo: string
+          direccion?: string | null
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          id?: string
+          nombre_completo: string
+          saldo?: number
+          telefono?: string | null
+          user_id: string
+        }
+        Update: {
+          correo?: string
+          direccion?: string | null
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          id?: string
+          nombre_completo?: string
+          saldo?: number
+          telefono?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       Solicitudes_Ayuda: {
         Row: {
           codigo_pedido: string
@@ -219,6 +376,47 @@ export type Database = {
           razon?: string | null
         }
         Relationships: []
+      }
+      transacciones_saldo: {
+        Row: {
+          admin_id: string | null
+          admin_nombre: string | null
+          descripcion: string
+          fecha_creacion: string
+          id: string
+          monto: number
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          admin_nombre?: string | null
+          descripcion: string
+          fecha_creacion?: string
+          id?: string
+          monto: number
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          admin_nombre?: string | null
+          descripcion?: string
+          fecha_creacion?: string
+          id?: string
+          monto?: number
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transacciones_saldo_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {
