@@ -1,6 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Diamond, Sparkles, Shield, Clock, Award, CheckCircle } from "lucide-react";
+import { Star, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -13,10 +13,10 @@ const Home = () => {
       {/* Hero Section */}
       <section className="relative py-20 px-4 bg-gradient-to-br from-background to-muted overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <Diamond className="absolute top-20 left-10 text-muted-foreground w-16 h-16 rotate-45 opacity-20 animate-fade-in" />
-          <Sparkles className="absolute top-40 right-20 text-muted-foreground w-12 h-12 rotate-12 opacity-15 animate-fade-in animation-delay-200" />
-          <Diamond className="absolute bottom-60 left-20 text-muted-foreground w-20 h-20 -rotate-12 opacity-10 animate-fade-in animation-delay-300" />
-          <Sparkles className="absolute bottom-20 right-10 text-muted-foreground w-14 h-14 rotate-45 opacity-20 animate-fade-in animation-delay-400" />
+          <Star className="absolute top-20 left-10 text-muted-foreground w-16 h-16 rotate-45 opacity-20 animate-fade-in" />
+          <Star className="absolute top-40 right-20 text-muted-foreground w-12 h-12 rotate-12 opacity-15 animate-fade-in animation-delay-200" />
+          <Star className="absolute bottom-60 left-20 text-muted-foreground w-20 h-20 -rotate-12 opacity-10 animate-fade-in animation-delay-300" />
+          <Star className="absolute bottom-20 right-10 text-muted-foreground w-14 h-14 rotate-45 opacity-20 animate-fade-in animation-delay-400" />
         </div>
         
         <div className="container mx-auto text-center max-w-4xl relative z-10">
@@ -72,7 +72,7 @@ const Home = () => {
             <Card className="animate-fade-in">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-2xl">
-                  <Shield className="w-6 h-6 text-primary" />
+                  <Star className="w-6 h-6 text-primary" />
                   Misión
                 </CardTitle>
               </CardHeader>
@@ -88,7 +88,7 @@ const Home = () => {
             <Card className="animate-fade-in animation-delay-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-2xl">
-                  <Sparkles className="w-6 h-6 text-primary" />
+                  <Star className="w-6 h-6 text-primary" />
                   Visión
                 </CardTitle>
               </CardHeader>
@@ -104,7 +104,7 @@ const Home = () => {
             <Card className="animate-fade-in animation-delay-300">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-2xl">
-                  <Award className="w-6 h-6 text-primary" />
+                  <Star className="w-6 h-6 text-primary" />
                   Valores
                 </CardTitle>
               </CardHeader>
@@ -133,7 +133,7 @@ const Home = () => {
 
           <div className="grid md:grid-cols-2 gap-8">
             <div className="flex items-start gap-4 animate-fade-in">
-              <CheckCircle className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
+              <Star className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
               <div>
                 <h3 className="text-xl font-medium text-foreground mb-2">
                   Productos de Calidad Superior
@@ -159,7 +159,7 @@ const Home = () => {
             </div>
 
             <div className="flex items-start gap-4 animate-fade-in animation-delay-300">
-              <Shield className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
+              <Star className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
               <div>
                 <h3 className="text-xl font-medium text-foreground mb-2">
                   Garantía de Satisfacción
@@ -172,7 +172,7 @@ const Home = () => {
             </div>
 
             <div className="flex items-start gap-4 animate-fade-in animation-delay-400">
-              <Sparkles className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
+              <Star className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
               <div>
                 <h3 className="text-xl font-medium text-foreground mb-2">
                   Diseños Únicos y Exclusivos
