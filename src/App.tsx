@@ -15,6 +15,8 @@ import OrderManagement from "./components/OrderManagement";
 import AdminDashboard from "./pages/AdminDashboard";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import AdminDemoPage from "./pages/AdminDemoPage";
+import Auth from "./pages/Auth";
+import AdminUserManagement from "./pages/AdminUserManagement";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/nosotros" element={<AboutUs />} />
           <Route path="/productos" element={<Products />} />
           <Route path="/rastrear" element={<OrderTracking />} />
@@ -34,6 +37,7 @@ const App = () => (
           <Route path="/cuenta" element={<Account />} />
           <Route path="/manage" element={<OrderManagement />} />
           <Route path="/admin-brillarte-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin-users" element={<AdminUserManagement />} />
           <Route path="/customer-dashboard" element={<CustomerDashboard />} />
           <Route path="/admin-chat-demo" element={<AdminDemoPage />} />
           <Route path="*" element={<NotFound />} />

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Users, MessageCircle, CreditCard, Gift, CheckCircle, Eye, Zap } from "lucide-react";
+import { Send, Users, MessageCircle, CreditCard, Gift, CheckCircle, Eye, Zap, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +36,7 @@ interface AdminChatDashboardProps {
 const AdminChatDashboard = ({ adminName }: AdminChatDashboardProps) => {
   const { toast } = useToast();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [chatRequests, setChatRequests] = useState<any[]>([]);
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -136,6 +137,85 @@ const AdminChatDashboard = ({ adminName }: AdminChatDashboardProps) => {
       setSessions(data || []);
     } catch (error) {
       console.error('Error:', error);
+    }
+  };
+
+  const loadChatRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_requests')
+        .select('*')
+        .eq('estado', 'pendiente')
+        .order('fecha_creacion', { ascending: false });
+
+      if (error) {
+        console.error('Error loading chat requests:', error);
+        return;
+      }
+
+      setChatRequests(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const acceptChatRequest = async (request: any) => {
+    try {
+      // Actualizar la solicitud
+      await supabase
+        .from('chat_requests')
+        .update({ 
+          estado: 'aceptado',
+          admin_asignado: adminName
+        })
+        .eq('id', request.id);
+
+      // Buscar o crear sesión de chat
+      let { data: existingSession } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .eq('cliente_id', request.cliente_id)
+        .eq('estado', 'pendiente')
+        .single();
+
+      if (existingSession) {
+        // Actualizar sesión existente
+        await supabase
+          .from('chat_sessions')
+          .update({
+            admin_nombre: adminName,
+            estado: 'activo'
+          })
+          .eq('id', existingSession.id);
+
+        setActiveSession({...existingSession, admin_nombre: adminName, estado: 'activo'});
+
+        // Enviar mensaje automático de bienvenida del admin
+        await supabase
+          .from('chat_messages')
+          .insert({
+            chat_session_id: existingSession.id,
+            sender_id: adminName,
+            sender_type: 'admin',
+            sender_name: adminName,
+            mensaje: `Hola, soy ${adminName}, agente oficial de BRILLARTE y estoy aquí para ayudarte el día de hoy con tus necesidades. Dinos tu preocupación.`
+          });
+      }
+
+      loadChatRequests();
+      loadChatSessions();
+      
+      toast({
+        title: "Chat aceptado",
+        description: `Has aceptado el chat con ${request.cliente_nombre}`,
+      });
+    } catch (error) {
+      console.error('Error accepting chat request:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo aceptar la solicitud de chat",
+        variant: "destructive"
+      });
     }
   };
 
@@ -391,6 +471,41 @@ const AdminChatDashboard = ({ adminName }: AdminChatDashboardProps) => {
       </header>
 
       <div className="container mx-auto px-4 py-6">
+        {/* Nuevas solicitudes de chat */}
+        {chatRequests.length > 0 && (
+          <Card className="mb-6 border-orange-200 bg-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-orange-800">
+                <Bell className="h-5 w-5" />
+                Nuevas Solicitudes de Chat ({chatRequests.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {chatRequests.map((request) => (
+                  <div key={request.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                    <div>
+                      <p className="font-medium">{request.cliente_nombre}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(request.fecha_creacion).toLocaleString('es-ES')}
+                      </p>
+                      {request.mensaje_inicial && (
+                        <p className="text-sm text-gray-600 mt-1">{request.mensaje_inicial}</p>
+                      )}
+                    </div>
+                    <Button 
+                      onClick={() => acceptChatRequest(request)}
+                      className="bg-orange-600 hover:bg-orange-700"
+                    >
+                      Aceptar Chat
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         <div className="grid lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
           {/* Sessions Sidebar */}
           <Card className="lg:col-span-1">

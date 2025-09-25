@@ -85,6 +85,23 @@ const CustomerChat = ({ isOpen, onClose, customerName, customerId }: CustomerCha
 
   const createChatSession = async () => {
     try {
+      // Crear solicitud de chat primero
+      const { data: chatRequest, error: requestError } = await supabase
+        .from('chat_requests')
+        .insert({
+          cliente_id: customerId,
+          cliente_nombre: customerName,
+          mensaje_inicial: 'El cliente ha iniciado una conversación'
+        })
+        .select()
+        .single();
+
+      if (requestError) {
+        console.error('Error creating chat request:', requestError);
+        return;
+      }
+
+      // Crear sesión de chat
       const { data, error } = await supabase
         .from('chat_sessions')
         .insert([

@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_requests: {
+        Row: {
+          admin_asignado: string | null
+          cliente_id: string
+          cliente_nombre: string
+          estado: string
+          fecha_creacion: string
+          id: string
+          mensaje_inicial: string | null
+        }
+        Insert: {
+          admin_asignado?: string | null
+          cliente_id: string
+          cliente_nombre: string
+          estado?: string
+          fecha_creacion?: string
+          id?: string
+          mensaje_inicial?: string | null
+        }
+        Update: {
+          admin_asignado?: string | null
+          cliente_id?: string
+          cliente_nombre?: string
+          estado?: string
+          fecha_creacion?: string
+          id?: string
+          mensaje_inicial?: string | null
+        }
+        Relationships: []
+      }
       chat_sessions: {
         Row: {
           admin_id: string | null
@@ -418,6 +448,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -426,6 +477,14 @@ export type Database = {
       copiar_historial_pedido: {
         Args: { codigo_destino: string; codigo_origen: string }
         Returns: undefined
+      }
+      get_user_role: {
+        Args: { user_uuid?: string }
+        Returns: string
+      }
+      is_admin: {
+        Args: { user_uuid?: string }
+        Returns: boolean
       }
     }
     Enums: {

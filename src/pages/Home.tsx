@@ -1,11 +1,13 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Star, Clock } from "lucide-react";
+import { Star, Clock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -38,11 +40,15 @@ const Home = () => {
             Pulseras, aretes, monederos y mucho más.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in animation-delay-400">
-            <Button size="lg" className="text-lg px-8">
+            <Button size="lg" className="text-lg px-8" onClick={() => navigate("/productos")}>
               Explorar Productos
             </Button>
             <Button size="lg" variant="outline" asChild className="text-lg px-8">
               <Link to="/rastrear">Rastrear Pedido</Link>
+            </Button>
+            <Button size="lg" variant="secondary" className="text-lg px-8" onClick={() => navigate("/auth")}>
+              <LogIn className="mr-2 h-4 w-4" />
+              Iniciar Sesión
             </Button>
           </div>
         </div>
