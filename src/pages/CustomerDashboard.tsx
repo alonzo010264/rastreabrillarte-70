@@ -95,13 +95,36 @@ const CustomerDashboard = () => {
     return <Badge variant={status.variant}>{status.label}</Badge>;
   };
 
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Demo data for visualization when profile is not loaded
+  const displayProfile = profile || {
+    nombre_completo: "Ana García",
+    correo: "ana.garcia@email.com",
+    saldo: 25.50
+  };
+
+  const displayPedidos = pedidos.length > 0 ? pedidos : [
+    {
+      "Código de pedido": "BR001",
+      Cliente: "Ana García",
+      Total: 45.99,
+      Fecha_estimada_entrega: "2024-01-15T00:00:00Z",
+      Estatus_id: 2
+    },
+    {
+      "Código de pedido": "BR002", 
+      Cliente: "Ana García",
+      Total: 32.50,
+      Fecha_estimada_entrega: "2024-01-20T00:00:00Z",
+      Estatus_id: 3
+    },
+    {
+      "Código de pedido": "BR003",
+      Cliente: "Ana García", 
+      Total: 78.25,
+      Fecha_estimada_entrega: "2024-01-25T00:00:00Z",
+      Estatus_id: 1
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -116,7 +139,7 @@ const CustomerDashboard = () => {
             />
             <div>
               <h1 className="text-xl font-bold text-foreground">Mi Cuenta - BRILLARTE</h1>
-              <p className="text-sm text-muted-foreground">Bienvenido, {profile.nombre_completo}</p>
+              <p className="text-sm text-muted-foreground">Bienvenido, {displayProfile.nombre_completo}</p>
             </div>
           </div>
           
@@ -133,7 +156,7 @@ const CustomerDashboard = () => {
             <Avatar className="cursor-pointer">
               <AvatarImage src="" />
               <AvatarFallback className="bg-primary text-primary-foreground">
-                {profile.nombre_completo.charAt(0).toUpperCase()}
+                {displayProfile.nombre_completo.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             
@@ -170,7 +193,7 @@ const CustomerDashboard = () => {
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-primary">${profile.saldo.toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-primary">${displayProfile.saldo.toFixed(2)}</div>
                   <p className="text-xs text-muted-foreground">
                     Créditos disponibles para compras
                   </p>
@@ -183,7 +206,7 @@ const CustomerDashboard = () => {
                   <Package className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{pedidos.length}</div>
+                  <div className="text-2xl font-bold">{displayPedidos.length}</div>
                   <p className="text-xs text-muted-foreground">
                     Pedidos en proceso
                   </p>
@@ -214,7 +237,7 @@ const CustomerDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {pedidos.slice(0, 3).map((pedido) => (
+                  {displayPedidos.slice(0, 3).map((pedido) => (
                     <div key={pedido["Código de pedido"]} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <p className="font-medium">Pedido #{pedido["Código de pedido"]}</p>
@@ -244,7 +267,7 @@ const CustomerDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {pedidos.map((pedido) => (
+                  {displayPedidos.map((pedido) => (
                     <div key={pedido["Código de pedido"]} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <p className="font-medium">Pedido #{pedido["Código de pedido"]}</p>
@@ -278,7 +301,7 @@ const CustomerDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center space-y-4">
-                  <div className="text-4xl font-bold text-primary">${profile.saldo.toFixed(2)}</div>
+                  <div className="text-4xl font-bold text-primary">${displayProfile.saldo.toFixed(2)}</div>
                   <p className="text-muted-foreground">Saldo disponible</p>
                   
                   <div className="pt-6">
@@ -335,7 +358,7 @@ const CustomerDashboard = () => {
         <CustomerChat 
           isOpen={showChat} 
           onClose={() => setShowChat(false)}
-          customerName={profile.nombre_completo}
+          customerName={displayProfile.nombre_completo}
           customerId={user?.id}
         />
       )}
