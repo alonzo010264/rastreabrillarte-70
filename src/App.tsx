@@ -13,10 +13,11 @@ import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import OrderManagement from "./components/OrderManagement";
 import AdminDashboard from "./pages/AdminDashboard";
-import CustomerDashboard from "./pages/CustomerDashboard";
 import AdminDemoPage from "./pages/AdminDemoPage";
 import Auth from "./pages/Auth";
 import AdminUserManagement from "./pages/AdminUserManagement";
+import AdminOrderManagement from "./pages/AdminOrderManagement";
+import CustomerDashboard from "./pages/CustomerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/manage" element={<OrderManagement />} />
           <Route path="/admin-brillarte-dashboard" element={<AdminDashboard />} />
           <Route path="/admin-users" element={<AdminUserManagement />} />
+          <Route path="/admin-order-management" element={<AdminOrderManagement />} />
           <Route path="/customer-dashboard" element={<CustomerDashboard />} />
           <Route path="/admin-chat-demo" element={<AdminDemoPage />} />
           <Route path="*" element={<NotFound />} />

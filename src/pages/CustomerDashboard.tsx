@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import CustomerChat from "@/components/CustomerChat";
 
 interface Profile {
@@ -25,53 +26,97 @@ interface Pedido {
 
 const CustomerDashboard = () => {
   const { toast } = useToast();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [notificaciones, setNotificaciones] = useState(3);
-  const [user, setUser] = useState<any>(null);
-  const [showChat, setShowChat] = useState(false);
+  // Estados para datos del usuario
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userOrders, setUserOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    loadUserProfile();
-    loadUserOrders();
-  }, []);
+    const loadUserData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        navigate('/auth');
+        return;
+      }
 
-  const loadUserProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
-        const { data: profile, error } = await supabase
+      try {
+        // Cargar perfil del usuario
+        const { data: profile } = await supabase
           .from('profiles')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', session.user.id)
           .single();
 
-        if (error) {
-          console.error('Error loading profile:', error);
-        } else {
-          setProfile(profile);
+        if (profile) {
+          setUserProfile(profile);
         }
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
 
-  const loadUserOrders = async () => {
+        // Cargar pedidos del usuario
+        const { data: orders } = await supabase
+          .from('Pedidos')
+          .select(`
+            *,
+            Estatus(nombre)
+          `)
+          .eq('Cliente', profile?.correo)
+          .order('Fecha_creacion', { ascending: false });
+
+        setUserOrders(orders || []);
+
+        // Cargar notificaciones
+        const { data: notifs } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('fecha_creacion', { ascending: false });
+
+        setNotifications(notifs || []);
+        setUnreadCount(notifs?.filter(n => !n.leido).length || 0);
+
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+
+    // Suscribirse a notificaciones en tiempo real
+    const channel = supabase
+      .channel('user-notifications')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${supabase.auth.getUser().then(u => u.data.user?.id)}`
+      }, (payload) => {
+        setNotifications(prev => [payload.new, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [navigate]);
+
+  const markAsRead = async (notificationId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('Pedidos')
-        .select('*')
-        .limit(5);
+      await supabase
+        .from('notifications')
+        .update({ leido: true })
+        .eq('id', notificationId);
 
-      if (error) {
-        console.error('Error loading orders:', error);
-      } else {
-        setPedidos(data || []);
-      }
+      setNotifications(notifications.map(n => 
+        n.id === notificationId ? { ...n, leido: true } : n
+      ));
+      setUnreadCount(Math.max(0, unreadCount - 1));
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error marking notification as read:', error);
     }
   };
 
@@ -81,6 +126,7 @@ const CustomerDashboard = () => {
       title: "Sesión cerrada",
       description: "Has cerrado sesión exitosamente.",
     });
+    navigate('/auth');
   };
 
   const getStatusBadge = (statusId: number) => {
@@ -95,14 +141,14 @@ const CustomerDashboard = () => {
     return <Badge variant={status.variant}>{status.label}</Badge>;
   };
 
-  // Demo data for visualization when profile is not loaded
-  const displayProfile = profile || {
+  // Display data - usar datos reales si están disponibles, sino datos demo
+  const displayProfile = userProfile || {
     nombre_completo: "Ana García",
     correo: "ana.garcia@email.com",
-    saldo: 25.50
+    saldo: 0.00
   };
 
-  const displayPedidos = pedidos.length > 0 ? pedidos : [
+  const displayOrders = userOrders.length > 0 ? userOrders : [
     {
       "Código de pedido": "BR001",
       Cliente: "Ana García",
@@ -116,13 +162,6 @@ const CustomerDashboard = () => {
       Total: 32.50,
       Fecha_estimada_entrega: "2024-01-20T00:00:00Z",
       Estatus_id: 3
-    },
-    {
-      "Código de pedido": "BR003",
-      Cliente: "Ana García", 
-      Total: 78.25,
-      Fecha_estimada_entrega: "2024-01-25T00:00:00Z",
-      Estatus_id: 1
     }
   ];
 
@@ -145,10 +184,13 @@ const CustomerDashboard = () => {
           
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Bell className="w-5 h-5 text-muted-foreground cursor-pointer hover:text-foreground" />
-              {notificaciones > 0 && (
+              <Bell 
+                className="w-5 h-5 text-muted-foreground cursor-pointer hover:text-foreground"
+                onClick={() => {/* Mostrar panel de notificaciones */}}
+              />
+              {unreadCount > 0 && (
                 <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                  {notificaciones}
+                  {unreadCount}
                 </Badge>
               )}
             </div>
@@ -206,7 +248,7 @@ const CustomerDashboard = () => {
                   <Package className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{displayPedidos.length}</div>
+                  <div className="text-2xl font-bold">{displayOrders.filter(o => o.Estatus_id !== 4).length}</div>
                   <p className="text-xs text-muted-foreground">
                     Pedidos en proceso
                   </p>
@@ -219,7 +261,7 @@ const CustomerDashboard = () => {
                   <Bell className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{notificaciones}</div>
+                  <div className="text-2xl font-bold">{unreadCount}</div>
                   <p className="text-xs text-muted-foreground">
                     Mensajes sin leer
                   </p>
@@ -237,7 +279,7 @@ const CustomerDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {displayPedidos.slice(0, 3).map((pedido) => (
+                  {displayOrders.slice(0, 3).map((pedido) => (
                     <div key={pedido["Código de pedido"]} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <p className="font-medium">Pedido #{pedido["Código de pedido"]}</p>
@@ -267,7 +309,7 @@ const CustomerDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {displayPedidos.map((pedido) => (
+                  {displayOrders.map((pedido) => (
                     <div key={pedido["Código de pedido"]} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <p className="font-medium">Pedido #{pedido["Código de pedido"]}</p>
@@ -308,13 +350,22 @@ const CustomerDashboard = () => {
                     <h3 className="text-lg font-medium mb-4">Historial de Transacciones</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                        <span className="text-sm">Crédito por compensación</span>
-                        <span className="text-green-600 font-medium">+$5.00</span>
+                        <span className="text-sm">Saldo inicial de nuevo usuario</span>
+                        <span className="text-blue-600 font-medium">$0.00</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                        <span className="text-sm">Compra - Pedido #BR001</span>
-                        <span className="text-red-600 font-medium">-$25.99</span>
-                      </div>
+                      {notifications.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <h4 className="text-sm font-medium">Transacciones recientes:</h4>
+                          {notifications.slice(0, 3).map((notif) => (
+                            <div key={notif.id} className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                              <span className="text-sm">{notif.titulo}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {new Date(notif.fecha_creacion).toLocaleDateString()}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
