@@ -267,6 +267,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          admin_nombre: string | null
+          admin_remitente: string | null
+          fecha_creacion: string
+          id: string
+          leido: boolean
+          mensaje: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          admin_nombre?: string | null
+          admin_remitente?: string | null
+          fecha_creacion?: string
+          id?: string
+          leido?: boolean
+          mensaje: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          admin_nombre?: string | null
+          admin_remitente?: string | null
+          fecha_creacion?: string
+          id?: string
+          leido?: boolean
+          mensaje?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       Pedidos: {
         Row: {
           Cliente: string
