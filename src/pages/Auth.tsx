@@ -16,6 +16,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailNotConfirmed, setEmailNotConfirmed] = useState(false);
   
   // Estados para login
   const [loginEmail, setLoginEmail] = useState('');
@@ -134,11 +135,39 @@ const Auth = () => {
         }
       }
     } catch (error: any) {
-      toast({
-        title: 'Error de autenticación',
-        description: error.message,
-        variant: 'destructive',
-      });
+      const msg = String(error?.message || '');
+      if (msg.toLowerCase().includes('email not confirmed')) {
+        setEmailNotConfirmed(true);
+        toast({
+          title: 'Confirma tu correo',
+          description: 'Te enviamos un enlace de verificación. Puedes reenviarlo abajo.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error de autenticación',
+          description: msg,
+          variant: 'destructive',
+        });
+      }
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!loginEmail) {
+      toast({ title: 'Correo requerido', description: 'Escribe tu correo para reenviar la verificación.', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({ type: 'signup', email: loginEmail });
+      if (error) throw error;
+      toast({ title: 'Enviado', description: 'Revisa tu bandeja de entrada o spam.' });
+    } catch (err: any) {
+      toast({ title: 'No se pudo reenviar', description: String(err?.message || 'Intenta de nuevo'), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -176,7 +205,7 @@ const Auth = () => {
         email: signupEmail,
         password: signupPassword,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/cuenta`,
           data: {
             nombre_completo: signupName,
             telefono: signupPhone
@@ -188,7 +217,7 @@ const Auth = () => {
 
       toast({
         title: 'Registro exitoso',
-        description: 'Te has registrado correctamente. Puedes iniciar sesión ahora.',
+        description: 'Te enviamos un correo de confirmación. Ábrelo para activar tu cuenta.',
       });
       
       // Limpiar formulario
@@ -277,6 +306,15 @@ const Auth = () => {
                   {loading ? 'Iniciando...' : 'Iniciar Sesión'}
                 </Button>
               </form>
+              
+              {emailNotConfirmed && (
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">Tu correo no está confirmado.</p>
+                  <Button type="button" variant="secondary" onClick={handleResendConfirmation} disabled={loading || !loginEmail}>
+                    Reenviar correo de confirmación
+                  </Button>
+                </div>
+              )}
               
               <Separator />
               
