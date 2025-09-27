@@ -35,7 +35,7 @@ const App = () => (
           <Route path="/rastrear" element={<OrderTracking />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contact />} />
-          <Route path="/cuenta" element={<Account />} />
+          <Route path="/cuenta" element={<CustomerDashboard />} />
           <Route path="/manage" element={<OrderManagement />} />
           <Route path="/admin-brillarte-dashboard" element={<AdminDashboard />} />
           <Route path="/admin-users" element={<AdminUserManagement />} />

@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff, User, Shield } from 'lucide-react';
+import { z } from 'zod';
 
 const Auth = () => {
   const { toast } = useToast();
@@ -36,7 +37,7 @@ const Auth = () => {
         if (userRole === 'admin') {
           navigate('/admin-brillarte-dashboard');
         } else {
-          navigate('/customer-dashboard');
+          navigate('/cuenta');
         }
       }
     };
@@ -49,6 +50,22 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validación de inputs
+      const loginSchema = z.object({
+        email: z.string().trim().email(),
+        password: z.string().min(6)
+      });
+      const parsed = loginSchema.safeParse({ email: loginEmail, password: loginPassword });
+      if (!parsed.success) {
+        toast({
+          title: 'Datos inválidos',
+          description: 'Verifica tu correo y contraseña (mínimo 6 caracteres).',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
@@ -57,6 +74,37 @@ const Auth = () => {
       if (error) throw error;
 
       if (data.user) {
+        // Asegurar que el perfil y rol existan para este usuario
+        const uid = data.user.id;
+        const email = data.user.email!;
+        const nombre = (data.user.user_metadata?.nombre_completo as string) || email;
+        const telefono = (data.user.user_metadata?.telefono as string) || null;
+
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', uid)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          await supabase.from('profiles').insert({
+            user_id: uid,
+            nombre_completo: nombre,
+            correo: email,
+            telefono: telefono,
+          });
+        }
+
+        const { data: existingRole } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', uid)
+          .maybeSingle();
+
+        if (!existingRole) {
+          await supabase.from('user_roles').insert({ user_id: uid, role: 'client' });
+        }
+
         // Obtener el rol del usuario
         const { data: userRole, error: roleError } = await supabase.rpc('get_user_role');
         
@@ -67,7 +115,7 @@ const Auth = () => {
             title: 'Bienvenido',
             description: 'Has iniciado sesión correctamente',
           });
-          navigate('/customer-dashboard');
+          navigate('/cuenta');
           return;
         }
 
@@ -82,7 +130,7 @@ const Auth = () => {
             title: 'Bienvenido',
             description: 'Has iniciado sesión correctamente',
           });
-          navigate('/customer-dashboard');
+          navigate('/cuenta');
         }
       }
     } catch (error: any) {
@@ -101,6 +149,29 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validación de inputs
+      const signupSchema = z.object({
+        nombre: z.string().trim().min(2).max(100),
+        email: z.string().trim().email().max(255),
+        password: z.string().min(6).max(72),
+        telefono: z.string().trim().max(30).optional(),
+      });
+      const parsed = signupSchema.safeParse({
+        nombre: signupName,
+        email: signupEmail,
+        password: signupPassword,
+        telefono: signupPhone || undefined,
+      });
+      if (!parsed.success) {
+        toast({
+          title: 'Datos inválidos',
+          description: 'Revisa nombre, correo válido y contraseña (mínimo 6).',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: signupEmail,
         password: signupPassword,

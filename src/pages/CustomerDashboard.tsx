@@ -153,22 +153,7 @@ const CustomerDashboard = () => {
     saldo: 0.00
   };
 
-  const displayOrders = userOrders.length > 0 ? userOrders : [
-    {
-      "Código de pedido": "BR001",
-      Cliente: "Ana García",
-      Total: 45.99,
-      Fecha_estimada_entrega: "2024-01-15T00:00:00Z",
-      Estatus_id: 2
-    },
-    {
-      "Código de pedido": "BR002", 
-      Cliente: "Ana García",
-      Total: 32.50,
-      Fecha_estimada_entrega: "2024-01-20T00:00:00Z",
-      Estatus_id: 3
-    }
-  ];
+  const displayOrders = userOrders;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
