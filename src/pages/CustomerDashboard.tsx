@@ -26,12 +26,15 @@ interface Pedido {
 
 const CustomerDashboard = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   // Estados para datos del usuario
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userOrders, setUserOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showChat, setShowChat] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -41,6 +44,8 @@ const CustomerDashboard = () => {
         navigate('/auth');
         return;
       }
+
+      setUser(session.user);
 
       try {
         // Cargar perfil del usuario

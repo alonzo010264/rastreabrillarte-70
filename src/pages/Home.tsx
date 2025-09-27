@@ -46,10 +46,6 @@ const Home = () => {
             <Button size="lg" variant="outline" asChild className="text-lg px-8">
               <Link to="/rastrear">Rastrear Pedido</Link>
             </Button>
-            <Button size="lg" variant="secondary" className="text-lg px-8" onClick={() => navigate("/auth")}>
-              <LogIn className="mr-2 h-4 w-4" />
-              Iniciar Sesión
-            </Button>
           </div>
         </div>
       </section>
