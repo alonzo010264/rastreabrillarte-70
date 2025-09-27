@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, MessageCircle, Package, CreditCard, LogOut } from "lucide-react";
+import { Bell, Package, CreditCard, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import CustomerChat from "@/components/CustomerChat";
 
 interface Profile {
   nombre_completo: string;
@@ -33,7 +32,6 @@ const CustomerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showChat, setShowChat] = useState(false);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -208,11 +206,10 @@ const CustomerDashboard = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="pedidos">Mis Pedidos</TabsTrigger>
             <TabsTrigger value="saldo">Mi Saldo</TabsTrigger>
-            <TabsTrigger value="soporte">Soporte</TabsTrigger>
           </TabsList>
 
           {/* Dashboard Tab */}
@@ -362,47 +359,8 @@ const CustomerDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Soporte Tab */}
-          <TabsContent value="soporte" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5" />
-                  Chat en Línea
-                </CardTitle>
-                <CardDescription>
-                  Chatea con nuestros agentes especializados
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center space-y-4">
-                  <p className="text-muted-foreground">
-                    ¿Necesitas ayuda? Nuestros agentes están listos para atenderte.
-                  </p>
-                  <Button 
-                    onClick={() => setShowChat(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    Iniciar Chat
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </main>
-
-      {/* Chat Modal */}
-      {showChat && (
-        <CustomerChat 
-          isOpen={showChat} 
-          onClose={() => setShowChat(false)}
-          customerName={displayProfile.nombre_completo}
-          customerId={user?.id}
-        />
-      )}
     </div>
   );
 };

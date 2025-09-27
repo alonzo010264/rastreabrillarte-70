@@ -14,7 +14,6 @@ const Navigation = () => {
     { name: "Rastrear Pedidos", href: "/rastrear" },
     { name: "Preguntas Frecuentes", href: "/faq" },
     { name: "Contacto", href: "/contacto" },
-    { name: "Mi Cuenta", href: "/cuenta" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
