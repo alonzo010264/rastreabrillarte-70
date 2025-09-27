@@ -29,21 +29,20 @@ const Auth = () => {
   const [signupPhone, setSignupPhone] = useState('');
 
   useEffect(() => {
-    // Verificar si ya hay un usuario autenticado
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    // Listener de cambios de sesión y verificación inicial
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        // Verificar rol y redirigir apropiadamente
-        const { data: userRole } = await supabase.rpc('get_user_role');
-        if (userRole === 'admin') {
-          navigate('/admin-brillarte-dashboard');
-        } else {
-          navigate('/cuenta');
-        }
+        navigate('/cuenta');
       }
-    };
-    
-    checkUser();
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        navigate('/cuenta');
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
