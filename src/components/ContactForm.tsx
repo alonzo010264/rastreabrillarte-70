@@ -28,9 +28,23 @@ const ContactForm = () => {
 
       if (error) throw error;
 
+      // Enviar email de confirmación
+      try {
+        await supabase.functions.invoke('send-confirmation-email', {
+          body: {
+            nombre_cliente: formData.nombre_cliente,
+            correo: formData.correo,
+            codigo_pedido: formData.codigo_pedido
+          }
+        });
+      } catch (emailError) {
+        console.error('Error enviando email de confirmación:', emailError);
+        // No bloquear el flujo si el email falla
+      }
+
       toast({
         title: "Mensaje enviado",
-        description: "Hemos recibido tu consulta. Te contactaremos pronto.",
+        description: "Hemos recibido tu consulta y te hemos enviado un email de confirmación. Te contactaremos pronto.",
       });
 
       setFormData({
