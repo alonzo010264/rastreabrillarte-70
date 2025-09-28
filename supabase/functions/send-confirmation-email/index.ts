@@ -32,6 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
         <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
           <div style="text-align: center; margin-bottom: 30px;">
+            <img src="https://raw.githubusercontent.com/user-attachments/assets/brillarte-logo.jpg" alt="BrillArte Logo" style="max-width: 150px; height: auto; margin-bottom: 20px;" />
             <h1 style="color: #1f2937; margin-bottom: 10px;">¡Gracias por contactarnos!</h1>
             <div style="width: 50px; height: 3px; background-color: #3b82f6; margin: 0 auto;"></div>
           </div>
