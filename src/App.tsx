@@ -11,6 +11,7 @@ import FAQ from "./pages/FAQ";
 import Contact from "./pages/Contact";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
+import OrderRequest from "./pages/OrderRequest";
 import OrderManagement from "./components/OrderManagement";
 import Auth from "./pages/Auth";
 import CustomerDashboard from "./pages/CustomerDashboard";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/rastrear" element={<OrderTracking />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contact />} />
+          <Route path="/pedir" element={<OrderRequest />} />
           <Route path="/manage" element={<OrderManagement />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

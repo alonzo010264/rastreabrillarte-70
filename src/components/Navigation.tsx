@@ -11,6 +11,7 @@ const Navigation = () => {
   const navigationItems = [
     { name: "Inicio", href: "/" },
     { name: "Nosotros", href: "/nosotros" },
+    { name: "Pedir", href: "/pedir" },
     { name: "Rastrear Pedidos", href: "/rastrear" },
     { name: "Preguntas Frecuentes", href: "/faq" },
     { name: "Contacto", href: "/contacto" },

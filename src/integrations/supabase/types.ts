@@ -240,6 +240,57 @@ export type Database = {
           },
         ]
       }
+      pedidos_formulario: {
+        Row: {
+          correo: string
+          descripcion_articulo: string
+          direccion: string | null
+          estado: string
+          fecha_actualizacion: string
+          fecha_creacion: string
+          id: string
+          nombre: string
+          numero_casa: string | null
+          provincia: string | null
+          referencias: string | null
+          sector: string | null
+          telefono: string | null
+          tipo_servicio: string
+        }
+        Insert: {
+          correo: string
+          descripcion_articulo: string
+          direccion?: string | null
+          estado?: string
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          id?: string
+          nombre: string
+          numero_casa?: string | null
+          provincia?: string | null
+          referencias?: string | null
+          sector?: string | null
+          telefono?: string | null
+          tipo_servicio: string
+        }
+        Update: {
+          correo?: string
+          descripcion_articulo?: string
+          direccion?: string | null
+          estado?: string
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          id?: string
+          nombre?: string
+          numero_casa?: string | null
+          provincia?: string | null
+          referencias?: string | null
+          sector?: string | null
+          telefono?: string | null
+          tipo_servicio?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           correo: string
