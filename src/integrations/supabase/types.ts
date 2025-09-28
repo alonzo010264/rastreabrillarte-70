@@ -384,6 +384,39 @@ export type Database = {
         }
         Relationships: []
       }
+      solicitudes_retiro: {
+        Row: {
+          apellido: string
+          codigo_pedido: string
+          correo: string
+          estado: string
+          fecha_actualizacion: string
+          fecha_creacion: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          apellido: string
+          codigo_pedido: string
+          correo: string
+          estado?: string
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          apellido?: string
+          codigo_pedido?: string
+          correo?: string
+          estado?: string
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
       transacciones_saldo: {
         Row: {
           admin_id: string | null

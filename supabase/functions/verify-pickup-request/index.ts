@@ -56,7 +56,37 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log("Order found, sending confirmation email");
+    console.log("Order found, saving pickup request to database");
+
+    // Save pickup request to database
+    const { error: insertError } = await supabase
+      .from("solicitudes_retiro")
+      .insert({
+        nombre,
+        apellido,
+        codigo_pedido: codigoPedido,
+        correo,
+        estado: "Pendiente"
+      });
+
+    if (insertError) {
+      console.error("Error saving pickup request:", insertError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Error guardando la solicitud. Intenta de nuevo."
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        }
+      );
+    }
+
+    console.log("Pickup request saved successfully, sending confirmation email");
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
