@@ -55,10 +55,37 @@ const OrderRequest = () => {
 
   const watchedTipoServicio = form.watch("tipo_servicio");
 
+  const generateOrderCode = () => {
+    const randomNumber = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+    return `B01-${randomNumber}`;
+  };
+
   const onSubmit = async (data: OrderFormData) => {
     setIsSubmitting(true);
     try {
-      const insertData = {
+      // Generar código único
+      let orderCode = generateOrderCode();
+      
+      // Verificar que el código no exista
+      let { data: existingOrder } = await supabase
+        .from("Pedidos")
+        .select("Código de pedido")
+        .eq("Código de pedido", orderCode)
+        .single();
+      
+      // Si existe, generar uno nuevo
+      while (existingOrder) {
+        orderCode = generateOrderCode();
+        const { data: checkExisting } = await supabase
+          .from("Pedidos")
+          .select("Código de pedido")
+          .eq("Código de pedido", orderCode)
+          .single();
+        existingOrder = checkExisting;
+      }
+
+      // Guardar en pedidos_formulario
+      const formData = {
         nombre: data.nombre,
         correo: data.correo,
         telefono: data.telefono || null,
@@ -71,15 +98,45 @@ const OrderRequest = () => {
         provincia: data.provincia || null,
       };
 
-      const { error } = await supabase
+      const { error: formError } = await supabase
         .from("pedidos_formulario")
-        .insert([insertData]);
+        .insert([formData]);
 
-      if (error) throw error;
+      if (formError) throw formError;
+
+      // Crear pedido en la tabla principal
+      const { error: orderError } = await supabase
+        .from("Pedidos")
+        .insert([{
+          "Código de pedido": orderCode,
+          "Cliente": data.nombre,
+          "Precio": 0,
+          "Peso": 0,
+          "Total": 0,
+          "Fecha_estimada_entrega": new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 días por defecto
+          "Estatus_id": 1, // Primer estatus
+          "Notas": `Tipo de servicio: ${data.tipo_servicio}. Descripción: ${data.descripcion_articulo}${data.direccion ? `. Dirección: ${data.direccion}` : ''}`
+        }]);
+
+      if (orderError) throw orderError;
+
+      // Enviar correo de confirmación
+      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+        body: {
+          customerName: data.nombre,
+          customerEmail: data.correo,
+          orderCode: orderCode
+        }
+      });
+
+      if (emailError) {
+        console.error("Error enviando correo:", emailError);
+        // No lanzar error porque el pedido ya se creó exitosamente
+      }
 
       toast({
         title: "¡Pedido enviado exitosamente!",
-        description: "Hemos recibido tu solicitud. Te contactaremos pronto.",
+        description: `Tu código de pedido es: ${orderCode}. Revisa tu correo para más detalles.`,
       });
 
       form.reset();
