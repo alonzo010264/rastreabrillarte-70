@@ -170,6 +170,11 @@ const OrderTracker = () => {
             placeholder="B01-00000"
             value={orderCode}
             onChange={(e) => setOrderCode(formatCode(e.target.value))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && orderCode.length === 9 && !isSearching) {
+                handleSearch();
+              }
+            }}
             className="text-center text-lg font-mono tracking-wider border-gray-200 focus:border-gray-400 focus:ring-gray-400 rounded-xl h-12"
             maxLength={9}
           />
