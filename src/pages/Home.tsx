@@ -200,11 +200,11 @@ const Home = () => {
             la diferencia BRILLARTE.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in animation-delay-300">
-            <Button size="lg" variant="secondary" className="text-lg px-8">
-              Ver Catálogo
+            <Button size="lg" variant="secondary" className="text-lg px-8" asChild>
+              <Link to="/solicitar-retiro">Solicitar Retiro</Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-              Contactar
+            <Button size="lg" variant="outline" className="text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
+              <Link to="/contacto">Contactar</Link>
             </Button>
           </div>
         </div>

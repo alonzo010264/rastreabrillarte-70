@@ -55,6 +55,21 @@ const Footer = () => {
                   Rastrear Pedidos
                 </Link>
               </li>
+              <li>
+                <Link to="/politicas-privacidad" className="text-gray-300 hover:text-white transition-colors">
+                  Políticas de Privacidad
+                </Link>
+              </li>
+              <li>
+                <Link to="/politicas-envio" className="text-gray-300 hover:text-white transition-colors">
+                  Políticas de Envío
+                </Link>
+              </li>
+              <li>
+                <Link to="/terminos-condiciones" className="text-gray-300 hover:text-white transition-colors">
+                  Términos y Condiciones
+                </Link>
+              </li>
             </ul>
           </div>
 
