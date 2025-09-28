@@ -96,154 +96,107 @@ const handler = async (req: Request): Promise<Response> => {
     const emailData = {
       from: "BRILLARTE <onboarding@resend.dev>",
       to: [correo],
-      subject: "Confirmación de Solicitud de Retiro - BRILLARTE",
+      subject: `Confirmación de Solicitud de Retiro ${codigoPedido} - BRILLARTE`,
       html: `
         <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Confirmación de Retiro - BRILLARTE</title>
-            <style>
-              body { 
-                font-family: 'Arial', sans-serif; 
-                line-height: 1.6; 
-                color: #000; 
-                background-color: #fff;
-                margin: 0;
-                padding: 0; 
-              }
-              .container { 
-                max-width: 600px; 
-                margin: 0 auto; 
-                background: #fff;
-                border: 2px solid #000;
-              }
-              .header { 
-                background: #000; 
-                color: #fff; 
-                padding: 40px 30px; 
-                text-align: center; 
-              }
-              .header h1 { 
-                margin: 0; 
-                font-size: 28px; 
-                font-weight: 300; 
-                letter-spacing: 3px;
-              }
-              .header .diamonds {
-                font-size: 20px;
-                margin: 0 10px;
-              }
-              .content { 
-                padding: 40px 30px; 
-                background: #fff;
-              }
-              .order-box {
-                background: #f8f8f8;
-                border: 2px solid #000;
-                padding: 20px;
-                text-align: center;
-                margin: 30px 0;
-              }
-              .order-code {
-                font-size: 24px;
-                font-weight: bold;
-                font-family: 'Courier New', monospace;
-                color: #000;
-                letter-spacing: 2px;
-              }
-              .address-section {
-                background: #000;
-                color: #fff;
-                padding: 25px;
-                margin: 30px 0;
-              }
-              .address-section h3 {
-                margin-top: 0;
-                color: #fff;
-                font-size: 18px;
-              }
-              .instagram-info {
-                background: #f0f0f0;
-                border-left: 4px solid #000;
-                padding: 20px;
-                margin: 20px 0;
-              }
-              .footer { 
-                background: #000; 
-                color: #fff; 
-                padding: 30px; 
-                text-align: center; 
-                font-size: 12px;
-              }
-              .footer a {
-                color: #fff;
-                text-decoration: none;
-              }
-              h2 { 
-                color: #000; 
-                font-weight: 300;
-                font-size: 22px;
-              }
-              .success-message {
-                background: #f8f8f8;
-                border: 2px solid #000;
-                padding: 25px;
-                text-align: center;
-                margin: 20px 0;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1><span class="diamonds">◆</span> BRILLARTE <span class="diamonds">◆</span></h1>
-                <p style="margin: 10px 0 0 0; font-size: 16px; font-weight: 300;">El Arte de Brillar</p>
-              </div>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Confirmación de Solicitud de Retiro - BRILLARTE</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #000000; font-family: Arial, sans-serif;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+            <!-- Header -->
+            <div style="background-color: #000000; padding: 20px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 2px;">
+                BRILLARTE
+              </h1>
+              <p style="color: #ffffff; margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">
+                Excelencia en cada detalle
+              </p>
+            </div>
+            
+            <!-- Main Content -->
+            <div style="padding: 40px 30px; background-color: #ffffff;">
+              <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold;">
+                ¡Solicitud de Retiro Recibida!
+              </h2>
               
-              <div class="content">
-                <h2>¡Hola ${nombre} ${apellido}!</h2>
-                
-                <div class="success-message">
-                  <h3 style="margin-top: 0; color: #000;">✓ Retiro Notificado con Éxito</h3>
-                  <p style="margin-bottom: 0; font-size: 16px;">Gracias por confiar en BRILLARTE</p>
-                </div>
-                
-                <p>Has notificado tu retiro con éxito. <strong>En unas horas te diremos cuándo pasar.</strong></p>
-                
-                <div class="order-box">
-                  <p style="margin: 0 0 10px 0; font-size: 14px;">Código de Pedido:</p>
-                  <div class="order-code">${codigoPedido}</div>
-                </div>
-                
-                <div class="address-section">
-                  <h3>📍 Nuestra Dirección:</h3>
-                  <p style="margin: 0; font-size: 16px; line-height: 1.5;">
-                    <strong>Cerro Alto, Barrio Las Mercedes</strong><br>
-                    Calle Primera
-                  </p>
-                </div>
-                
-                <div class="instagram-info">
-                  <h4 style="margin-top: 0; color: #000;">📱 ¿Dificultades para llegar?</h4>
-                  <p style="margin: 10px 0;">
-                    Contáctanos en Instagram: <strong>@brillarte.do.oficial</strong><br>
-                    Estaremos para contestar
-                  </p>
-                </div>
-                
-                <p style="margin: 30px 0 0 0; text-align: center; font-style: italic; color: #666;">
-                  Gracias por elegir BRILLARTE - El Arte de Brillar
+              <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                Hola <strong>${nombre} ${apellido}</strong>,
+              </p>
+              
+              <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                Hemos recibido tu solicitud de retiro para el pedido <strong>${codigoPedido}</strong> exitosamente.
+              </p>
+              
+              <!-- Order Info Box -->
+              <div style="background-color: #f8f9fa; border-left: 4px solid #000000; padding: 20px; margin: 20px 0;">
+                <h3 style="color: #000000; margin: 0 0 15px 0; font-size: 18px;">
+                  Información de tu Solicitud
+                </h3>
+                <p style="color: #000000; margin: 0 0 8px 0; font-size: 14px;">
+                  <strong>Código de Pedido:</strong> ${codigoPedido}
+                </p>
+                <p style="color: #000000; margin: 0 0 8px 0; font-size: 14px;">
+                  <strong>Correo de Contacto:</strong> ${correo}
+                </p>
+                <p style="color: #000000; margin: 0; font-size: 14px;">
+                  <strong>Estado:</strong> Pendiente de Coordinación
                 </p>
               </div>
               
-              <div class="footer">
-                <p style="margin: 0 0 10px 0;">© ${new Date().getFullYear()} BRILLARTE - Todos los derechos reservados</p>
-                <p style="margin: 0; opacity: 0.8;">Productos únicos de calidad</p>
+              <!-- Contact Info -->
+              <div style="background-color: #000000; color: #ffffff; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                <h3 style="color: #ffffff; margin: 0 0 15px 0; font-size: 18px; text-align: center;">
+                  Información de Contacto
+                </h3>
+                <div style="text-align: center;">
+                  <p style="color: #ffffff; margin: 0 0 8px 0; font-size: 14px;">
+                    📞 <strong>Teléfono:</strong> +1 849-262-9565
+                  </p>
+                  <p style="color: #ffffff; margin: 0 0 8px 0; font-size: 14px;">
+                    📱 <strong>WhatsApp:</strong> +1 849-262-9565
+                  </p>
+                  <p style="color: #ffffff; margin: 0; font-size: 14px;">
+                    ✉️ <strong>Correo:</strong> info@brillarte.com
+                  </p>
+                </div>
               </div>
+              
+              <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0;">
+                Nos comunicaremos contigo pronto para coordinar el retiro de tu pedido. 
+                Mantente atento a tu teléfono y correo electrónico.
+              </p>
+              
+              <!-- Action Button -->
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://gzyfcunlbrfcnbxxaaft.lovable.app/rastrear" 
+                   style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+                  Rastrear Pedido
+                </a>
+              </div>
+              
+              <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 30px 0 0 0;">
+                Gracias por elegir BRILLARTE. Tu confianza es nuestra mayor recompensa.
+              </p>
             </div>
-          </body>
+            
+            <!-- Footer -->
+            <div style="background-color: #000000; padding: 30px; text-align: center;">
+              <p style="color: #ffffff; font-size: 16px; margin: 0 0 10px 0; font-weight: bold;">
+                BRILLARTE
+              </p>
+              <p style="color: #cccccc; font-size: 14px; margin: 0 0 15px 0;">
+                Excelencia y calidad en cada producto
+              </p>
+              <p style="color: #999999; font-size: 12px; margin: 0;">
+                © ${new Date().getFullYear()} BRILLARTE. Todos los derechos reservados.
+              </p>
+            </div>
+          </div>
+        </body>
         </html>
       `,
     };

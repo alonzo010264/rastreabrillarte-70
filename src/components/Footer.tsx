@@ -66,8 +66,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/terminos-condiciones" className="text-gray-300 hover:text-white transition-colors">
-                  Términos y Condiciones
+                <Link to="/cancel-notifications" className="text-gray-300 hover:text-white transition-colors">
+                  Cancelar Notificaciones
                 </Link>
               </li>
             </ul>

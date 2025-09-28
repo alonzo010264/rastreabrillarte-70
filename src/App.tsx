@@ -16,6 +16,7 @@ import OrderManagement from "./components/OrderManagement";
 import Auth from "./pages/Auth";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import PickupRequest from "./pages/PickupRequest";
+import CancelNotifications from "./pages/CancelNotifications";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import TermsConditions from "./pages/TermsConditions";
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/pedir" element={<OrderRequest />} />
           <Route path="/manage" element={<OrderManagement />} />
           <Route path="/solicitar-retiro" element={<PickupRequest />} />
+          <Route path="/cancel-notifications" element={<CancelNotifications />} />
           <Route path="/politicas-privacidad" element={<PrivacyPolicy />} />
           <Route path="/politicas-envio" element={<ShippingPolicy />} />
           <Route path="/terminos-condiciones" element={<TermsConditions />} />

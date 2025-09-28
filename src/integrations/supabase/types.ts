@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      cancelaciones_notificaciones: {
+        Row: {
+          activo: boolean
+          correo: string
+          fecha_creacion: string
+          id: string
+        }
+        Insert: {
+          activo?: boolean
+          correo: string
+          fecha_creacion?: string
+          id?: string
+        }
+        Update: {
+          activo?: boolean
+          correo?: string
+          fecha_creacion?: string
+          id?: string
+        }
+        Relationships: []
+      }
       codigos_descuento: {
         Row: {
           admin_creador: string | null
@@ -197,6 +218,7 @@ export type Database = {
         Row: {
           Cliente: string
           "Código de pedido": string
+          correo_cliente: string | null
           Estatus_id: number
           Fecha_actualizacion: string
           Fecha_creacion: string
@@ -209,6 +231,7 @@ export type Database = {
         Insert: {
           Cliente: string
           "Código de pedido": string
+          correo_cliente?: string | null
           Estatus_id: number
           Fecha_actualizacion?: string
           Fecha_creacion?: string
@@ -221,6 +244,7 @@ export type Database = {
         Update: {
           Cliente?: string
           "Código de pedido"?: string
+          correo_cliente?: string | null
           Estatus_id?: number
           Fecha_actualizacion?: string
           Fecha_creacion?: string
