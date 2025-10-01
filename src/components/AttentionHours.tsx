@@ -1,6 +1,6 @@
 
 
-import { Clock, Instagram, MessageCircle, Phone, Truck, MapPin } from "lucide-react";
+import { Clock, Instagram, MessageCircle, Phone, Truck, MapPin, Mail } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const AttentionHours = () => {
@@ -58,7 +58,11 @@ const AttentionHours = () => {
           </div>
           <div className="flex items-center">
             <MessageCircle className="text-green-500 mr-3" size={16} />
-            <span className="text-sm text-gray-700">WhatsApp</span>
+            <span className="text-sm text-gray-700">WhatsApp: 849-425-2220</span>
+          </div>
+          <div className="flex items-center">
+            <Mail className="text-blue-500 mr-3" size={16} />
+            <span className="text-sm text-gray-700">brillarte.oficial.ventas@gmail.com</span>
           </div>
           <p className="text-xs text-gray-500 mt-2">
             Puedes consultar el estatus por estos medios

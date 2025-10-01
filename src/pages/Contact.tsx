@@ -170,8 +170,7 @@ const Contact = () => {
                       <Mail className="w-5 h-5 text-primary mt-1" />
                       <div>
                         <p className="font-medium">Email</p>
-                        <p className="text-muted-foreground text-sm">info@brillarte.com</p>
-                        <p className="text-muted-foreground text-sm">soporte@brillarte.com</p>
+                        <p className="text-muted-foreground text-sm">brillarte.oficial.ventas@gmail.com</p>
                       </div>
                     </div>
                     
@@ -179,7 +178,7 @@ const Contact = () => {
                       <Phone className="w-5 h-5 text-primary mt-1" />
                       <div>
                         <p className="font-medium">WhatsApp</p>
-                        <p className="text-muted-foreground text-sm">+1 234 567 890</p>
+                        <p className="text-muted-foreground text-sm">849-425-2220</p>
                         <p className="text-muted-foreground text-xs">Disponible en horarios de atención</p>
                       </div>
                     </div>
@@ -188,7 +187,7 @@ const Contact = () => {
                       <MapPin className="w-5 h-5 text-primary mt-1" />
                       <div>
                         <p className="font-medium">Ubicación</p>
-                        <p className="text-muted-foreground text-sm">Ciudad, País</p>
+                        <p className="text-muted-foreground text-sm">Santiago de los Caballeros, República Dominicana</p>
                         <p className="text-muted-foreground text-xs">Envíos a nivel nacional</p>
                       </div>
                     </div>

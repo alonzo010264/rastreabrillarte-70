@@ -154,13 +154,10 @@ const handler = async (req: Request): Promise<Response> => {
                 </h3>
                 <div style="text-align: center;">
                   <p style="color: #ffffff; margin: 0 0 8px 0; font-size: 14px;">
-                    📞 <strong>Teléfono:</strong> +1 849-262-9565
-                  </p>
-                  <p style="color: #ffffff; margin: 0 0 8px 0; font-size: 14px;">
-                    📱 <strong>WhatsApp:</strong> +1 849-262-9565
+                    📞 <strong>WhatsApp:</strong> 849-425-2220
                   </p>
                   <p style="color: #ffffff; margin: 0; font-size: 14px;">
-                    ✉️ <strong>Correo:</strong> info@brillarte.com
+                    ✉️ <strong>Correo:</strong> brillarte.oficial.ventas@gmail.com
                   </p>
                 </div>
               </div>
@@ -189,9 +186,11 @@ const handler = async (req: Request): Promise<Response> => {
                 BRILLARTE
               </p>
               <p style="color: #cccccc; font-size: 14px; margin: 0 0 15px 0;">
-                Excelencia y calidad en cada producto
+                El Arte de Brillar
               </p>
               <p style="color: #999999; font-size: 12px; margin: 0;">
+                Santiago de los Caballeros, República Dominicana<br>
+                Email: brillarte.oficial.ventas@gmail.com | WhatsApp: 849-425-2220<br>
                 © ${new Date().getFullYear()} BRILLARTE. Todos los derechos reservados.
               </p>
             </div>

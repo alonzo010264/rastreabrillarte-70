@@ -100,7 +100,8 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #666666; font-size: 14px; margin: 0; line-height: 1.6;">
                 Gracias por confiar en<br>
                 <strong style="color: #000000; font-size: 18px; letter-spacing: 2px;">BRILLARTE</strong><br>
-                <span style="font-size: 13px;">Tu tienda de confianza</span>
+                <span style="font-size: 13px;">Santiago de los Caballeros, República Dominicana</span><br>
+                <span style="font-size: 12px;">Email: brillarte.oficial.ventas@gmail.com | WhatsApp: 849-425-2220</span>
               </p>
             </div>
           </div>
@@ -156,7 +157,8 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #666666; font-size: 14px; margin: 0; line-height: 1.6;">
                 Atentamente,<br>
                 <strong style="color: #000000; font-size: 18px; letter-spacing: 2px;">El equipo de BRILLARTE</strong><br>
-                <span style="font-size: 13px;">Siempre a tu servicio</span>
+                <span style="font-size: 13px;">Santiago de los Caballeros, República Dominicana</span><br>
+                <span style="font-size: 12px;">Email: brillarte.oficial.ventas@gmail.com | WhatsApp: 849-425-2220</span>
               </p>
             </div>
           </div>

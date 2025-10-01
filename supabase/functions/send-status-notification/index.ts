@@ -108,9 +108,11 @@ const handler = async (req: Request): Promise<Response> => {
               BRILLARTE
             </p>
             <p style="color: #cccccc; font-size: 14px; margin: 0 0 15px 0;">
-              Excelencia y calidad en cada producto
+              El Arte de Brillar
             </p>
             <p style="color: #999999; font-size: 12px; margin: 0;">
+              Santiago de los Caballeros, República Dominicana<br>
+              Email: brillarte.oficial.ventas@gmail.com | WhatsApp: 849-425-2220<br>
               © ${new Date().getFullYear()} BRILLARTE. Todos los derechos reservados.
             </p>
           </div>

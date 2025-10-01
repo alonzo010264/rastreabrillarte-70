@@ -64,9 +64,26 @@ const HelpModal = () => {
 
       if (insertError) throw insertError;
 
+      // Enviar correo automático
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-help-email', {
+          body: {
+            orderCode: formData.codigo_pedido,
+            email: formData.correo,
+            situation: formData.situacion
+          }
+        });
+
+        if (emailError) {
+          console.error('Error sending help email:', emailError);
+        }
+      } catch (emailError) {
+        console.error('Error invoking help email function:', emailError);
+      }
+
       toast({
         title: "¡Solicitud de emergencia procesada!",
-        description: "Tu pedido está EN REVISIÓN. Te contactaremos lo más antes posible para atender tu emergencia y buscar una solución.",
+        description: "Tu pedido está EN REVISIÓN. Te hemos enviado un correo de confirmación.",
       });
 
       setFormData({ codigo_pedido: "", situacion: "", correo: "" });

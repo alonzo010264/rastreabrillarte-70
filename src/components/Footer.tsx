@@ -79,15 +79,15 @@ const Footer = () => {
             <div className="space-y-2 text-sm">
               <div className="flex items-center text-gray-300">
                 <Mail size={16} className="mr-2" />
-                <span>info@brillarte.com</span>
+                <span>brillarte.oficial.ventas@gmail.com</span>
               </div>
               <div className="flex items-center text-gray-300">
                 <Phone size={16} className="mr-2" />
-                <span>+1 234 567 890</span>
+                <span>849-425-2220</span>
               </div>
               <div className="flex items-center text-gray-300">
                 <MapPin size={16} className="mr-2" />
-                <span>Ciudad, País</span>
+                <span>Santiago de los Caballeros, República Dominicana</span>
               </div>
             </div>
           </div>

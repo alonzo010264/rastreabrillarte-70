@@ -77,9 +77,26 @@ const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
 
       if (insertError) throw insertError;
 
+      // Enviar correos automáticos
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-address-change-email', {
+          body: {
+            orderCode,
+            email: formData.correo,
+            newAddress: formData.nueva_direccion
+          }
+        });
+
+        if (emailError) {
+          console.error('Error sending emails:', emailError);
+        }
+      } catch (emailError) {
+        console.error('Error invoking email function:', emailError);
+      }
+
       toast({
         title: "¡Solicitud procesada!",
-        description: "Tu pedido ahora está EN REVISIÓN. Nuestro equipo evaluará el cambio de dirección y te contactará pronto.",
+        description: "Tu pedido ahora está EN REVISIÓN. Te hemos enviado un correo con más información.",
       });
 
       setFormData({ nueva_direccion: "", razon: "", correo: "" });
