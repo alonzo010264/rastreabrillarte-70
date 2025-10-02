@@ -20,6 +20,9 @@ import CancelNotifications from "./pages/CancelNotifications";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import TermsConditions from "./pages/TermsConditions";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import RegistroConfirmado from "./pages/RegistroConfirmado";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +47,10 @@ const App = () => (
           <Route path="/politicas-privacidad" element={<PrivacyPolicy />} />
           <Route path="/politicas-envio" element={<ShippingPolicy />} />
           <Route path="/terminos-condiciones" element={<TermsConditions />} />
+          <Route path="/registro" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro-confirmado" element={<RegistroConfirmado />} />
+          <Route path="/mi-cuenta" element={<CustomerDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

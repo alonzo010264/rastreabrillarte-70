@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface AddressChangeModalProps {
-  orderCode: string;
+  orderCode?: string;
 }
 
 const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
@@ -18,6 +18,7 @@ const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [formData, setFormData] = useState({
+    codigo_pedido: orderCode || "",
     nueva_direccion: "",
     razon: "",
     correo: ""
@@ -27,10 +28,10 @@ const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nueva_direccion || !formData.correo) {
+    if (!formData.codigo_pedido || !formData.nueva_direccion || !formData.correo) {
       toast({
         title: "Campos requeridos",
-        description: "Por favor completa la nueva dirección y tu correo",
+        description: "Por favor completa todos los campos",
         variant: "destructive"
       });
       return;
@@ -69,7 +70,7 @@ const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
       const { error: insertError } = await supabase
         .from('Solicitudes_Cambio_Direccion')
         .insert([{
-          codigo_pedido: orderCode,
+          codigo_pedido: formData.codigo_pedido,
           nueva_direccion: formData.nueva_direccion,
           razon: formData.razon || 'Solicitud de cambio de dirección',
           correo: formData.correo
@@ -81,7 +82,7 @@ const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
       try {
         const { error: emailError } = await supabase.functions.invoke('send-address-change-email', {
           body: {
-            orderCode,
+            orderCode: formData.codigo_pedido,
             email: formData.correo,
             newAddress: formData.nueva_direccion
           }
@@ -99,7 +100,7 @@ const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
         description: "Tu pedido ahora está EN REVISIÓN. Te hemos enviado un correo con más información.",
       });
 
-      setFormData({ nueva_direccion: "", razon: "", correo: "" });
+      setFormData({ codigo_pedido: orderCode || "", nueva_direccion: "", razon: "", correo: "" });
       setIsOpen(false);
       
       // Recargar la página para mostrar el nuevo estatus
@@ -148,6 +149,22 @@ const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
           </Card>
 
           <form onSubmit={handleFormSubmit} className="space-y-4">
+            {!orderCode && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Código de Pedido
+                </label>
+                <Input
+                  type="text"
+                  placeholder="B01-00000"
+                  value={formData.codigo_pedido}
+                  onChange={(e) => setFormData(prev => ({ ...prev, codigo_pedido: e.target.value }))}
+                  className="rounded-xl border-gray-200 focus:border-gray-400 focus:ring-gray-400"
+                  maxLength={9}
+                />
+              </div>
+            )}
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Nueva dirección de entrega

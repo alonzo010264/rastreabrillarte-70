@@ -76,7 +76,7 @@ const Footer = () => {
           {/* Contacto */}
           <div>
             <h3 className="text-white font-medium mb-4">Contacto</h3>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm mb-4">
               <div className="flex items-center text-gray-300">
                 <Mail size={16} className="mr-2" />
                 <span>brillarte.oficial.ventas@gmail.com</span>
@@ -89,6 +89,21 @@ const Footer = () => {
                 <MapPin size={16} className="mr-2" />
                 <span>Santiago de los Caballeros, República Dominicana</span>
               </div>
+            </div>
+            
+            <div className="space-y-2 mt-4">
+              <Link 
+                to="/registro" 
+                className="block text-sm bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-center font-medium"
+              >
+                Mi Cuenta
+              </Link>
+              <Link 
+                to="/solicitar-retiro" 
+                className="block text-sm border border-white text-white px-4 py-2 rounded-lg hover:bg-white hover:text-black transition-colors text-center"
+              >
+                Solicitar Retiro
+              </Link>
             </div>
           </div>
         </div>

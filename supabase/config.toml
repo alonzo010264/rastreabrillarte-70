@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.send-help-email]
 verify_jwt = false
+
+[functions.send-registration-email]
+verify_jwt = false

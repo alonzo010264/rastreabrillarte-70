@@ -110,6 +110,7 @@ const OrderRequest = () => {
         .insert([{
           "Código de pedido": orderCode,
           "Cliente": data.nombre,
+          "correo_cliente": data.correo,
           "Precio": 0,
           "Peso": 0,
           "Total": 0,

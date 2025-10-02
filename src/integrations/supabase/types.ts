@@ -181,6 +181,33 @@ export type Database = {
           },
         ]
       }
+      noticias: {
+        Row: {
+          activo: boolean
+          contenido: string
+          created_at: string
+          fecha_publicacion: string
+          id: string
+          titulo: string
+        }
+        Insert: {
+          activo?: boolean
+          contenido: string
+          created_at?: string
+          fecha_publicacion?: string
+          id?: string
+          titulo: string
+        }
+        Update: {
+          activo?: boolean
+          contenido?: string
+          created_at?: string
+          fecha_publicacion?: string
+          id?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           admin_nombre: string | null
@@ -317,6 +344,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          codigo_membresia: string | null
+          confirmado: boolean | null
           correo: string
           direccion: string | null
           fecha_actualizacion: string
@@ -328,6 +357,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          codigo_membresia?: string | null
+          confirmado?: boolean | null
           correo: string
           direccion?: string | null
           fecha_actualizacion?: string
@@ -339,6 +370,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          codigo_membresia?: string | null
+          confirmado?: boolean | null
           correo?: string
           direccion?: string | null
           fecha_actualizacion?: string
