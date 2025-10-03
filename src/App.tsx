@@ -23,6 +23,7 @@ import TermsConditions from "./pages/TermsConditions";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import RegistroConfirmado from "./pages/RegistroConfirmado";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/registro-confirmado" element={<RegistroConfirmado />} />
           <Route path="/mi-cuenta" element={<CustomerDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

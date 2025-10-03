@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, LogIn, Gift, Bell, Package, Zap } from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -112,88 +113,87 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
-        <Card className="bg-white border-2 border-black rounded-2xl p-8">
+    <div className="min-h-screen bg-white flex flex-col">
+      <Navigation />
+      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <Card className="bg-white border-2 border-black rounded-xl p-6">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-black mb-2">Únete a BRILLARTE</h1>
-            <p className="text-gray-600">Crea tu cuenta y disfruta de beneficios exclusivos</p>
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-black mb-1">Únete a BRILLARTE</h1>
+            <p className="text-sm text-gray-600">Crea tu cuenta y disfruta de beneficios exclusivos</p>
           </div>
 
-          {/* Beneficios */}
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <Zap className="mb-2 text-black" size={24} />
-              <h3 className="font-bold text-black mb-1">Notificaciones Rápidas</h3>
-              <p className="text-sm text-gray-600">Recibe actualizaciones instantáneas de tus pedidos</p>
+          {/* Beneficios compactos */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-center">
+              <Zap className="mx-auto mb-1 text-black" size={20} />
+              <p className="text-xs font-medium text-black">Notificaciones</p>
             </div>
             
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <Package className="mb-2 text-black" size={24} />
-              <h3 className="font-bold text-black mb-1">Gestión de Pedidos</h3>
-              <p className="text-sm text-gray-600">Administra todos tus pedidos en un solo lugar</p>
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-center">
+              <Package className="mx-auto mb-1 text-black" size={20} />
+              <p className="text-xs font-medium text-black">Pedidos</p>
             </div>
             
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <Gift className="mb-2 text-black" size={24} />
-              <h3 className="font-bold text-black mb-1">Saldo y Canjes</h3>
-              <p className="text-sm text-gray-600">Acumula saldo y canjea tarjetas de regalo</p>
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-center">
+              <Gift className="mx-auto mb-1 text-black" size={20} />
+              <p className="text-xs font-medium text-black">Saldo</p>
             </div>
           </div>
 
           {/* Formulario */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-black mb-2">Nombre</label>
+                <label className="block text-xs font-medium text-black mb-1">Nombre</label>
                 <Input
                   type="text"
                   placeholder="Tu nombre"
                   value={formData.nombre}
                   onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
-                  className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
+                  className="rounded-lg border-gray-300 focus:border-black focus:ring-black h-9 text-sm"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-black mb-2">Apellido</label>
+                <label className="block text-xs font-medium text-black mb-1">Apellido</label>
                 <Input
                   type="text"
                   placeholder="Tu apellido"
                   value={formData.apellido}
                   onChange={(e) => setFormData(prev => ({ ...prev, apellido: e.target.value }))}
-                  className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
+                  className="rounded-lg border-gray-300 focus:border-black focus:ring-black h-9 text-sm"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-black mb-2">Correo Electrónico</label>
+              <label className="block text-xs font-medium text-black mb-1">Correo Electrónico</label>
               <Input
                 type="email"
                 placeholder="tu@correo.com"
                 value={formData.correo}
                 onChange={(e) => setFormData(prev => ({ ...prev, correo: e.target.value }))}
-                className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
+                className="rounded-lg border-gray-300 focus:border-black focus:ring-black h-9 text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-black mb-2">Dirección de Envío</label>
+              <label className="block text-xs font-medium text-black mb-1">Dirección de Envío</label>
               <Input
                 type="text"
                 placeholder="Calle, sector, ciudad"
                 value={formData.direccion}
                 onChange={(e) => setFormData(prev => ({ ...prev, direccion: e.target.value }))}
-                className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
+                className="rounded-lg border-gray-300 focus:border-black focus:ring-black h-9 text-sm"
               />
             </div>
 
             <Button 
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-black text-white hover:bg-gray-800 rounded-xl py-6 text-lg font-medium"
+              className="w-full bg-black text-white hover:bg-gray-800 rounded-lg py-4 text-sm font-medium"
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">
@@ -210,18 +210,19 @@ const Register = () => {
           </form>
 
           {/* Login Link */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-600 mb-3">¿Ya tienes una cuenta?</p>
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-600 mb-2">¿Ya tienes una cuenta?</p>
             <Button 
               variant="outline"
               onClick={() => navigate('/login')}
-              className="bg-white text-black border-2 border-black hover:bg-black hover:text-white rounded-xl px-8"
+              className="w-full bg-white text-black border-2 border-black hover:bg-black hover:text-white rounded-lg text-sm"
             >
-              <LogIn className="mr-2" size={18} />
+              <LogIn className="mr-2" size={16} />
               Iniciar Sesión
             </Button>
           </div>
         </Card>
+      </div>
       </div>
     </div>
   );

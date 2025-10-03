@@ -109,6 +109,42 @@ export type Database = {
         }
         Relationships: []
       }
+      creditos_dados: {
+        Row: {
+          admin_id: string | null
+          admin_nombre: string | null
+          codigo_membresia: string
+          correo: string
+          descripcion: string | null
+          fecha_creacion: string
+          id: string
+          monto: number
+          nombre: string
+        }
+        Insert: {
+          admin_id?: string | null
+          admin_nombre?: string | null
+          codigo_membresia: string
+          correo: string
+          descripcion?: string | null
+          fecha_creacion?: string
+          id?: string
+          monto: number
+          nombre: string
+        }
+        Update: {
+          admin_id?: string | null
+          admin_nombre?: string | null
+          codigo_membresia?: string
+          correo?: string
+          descripcion?: string | null
+          fecha_creacion?: string
+          id?: string
+          monto?: number
+          nombre?: string
+        }
+        Relationships: []
+      }
       Estatus: {
         Row: {
           activo: boolean
@@ -290,6 +326,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pedidos_cuenta: {
+        Row: {
+          codigo_membresia: string
+          codigo_pedido: string
+          fecha_asignacion: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          codigo_membresia: string
+          codigo_pedido: string
+          fecha_asignacion?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          codigo_membresia?: string
+          codigo_pedido?: string
+          fecha_asignacion?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       pedidos_formulario: {
         Row: {

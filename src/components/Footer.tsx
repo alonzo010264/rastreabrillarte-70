@@ -91,18 +91,12 @@ const Footer = () => {
               </div>
             </div>
             
-            <div className="space-y-2 mt-4">
+            <div className="mt-4">
               <Link 
                 to="/registro" 
                 className="block text-sm bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-center font-medium"
               >
                 Mi Cuenta
-              </Link>
-              <Link 
-                to="/solicitar-retiro" 
-                className="block text-sm border border-white text-white px-4 py-2 rounded-lg hover:bg-white hover:text-black transition-colors text-center"
-              >
-                Solicitar Retiro
               </Link>
             </div>
           </div>
