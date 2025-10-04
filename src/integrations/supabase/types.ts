@@ -444,6 +444,45 @@ export type Database = {
         }
         Relationships: []
       }
+      registros_acceso: {
+        Row: {
+          apellido: string | null
+          codigo_membresia: string
+          correo: string
+          direccion: string | null
+          email_enviado: boolean
+          fecha_creacion: string
+          id: string
+          metadata: Json | null
+          nombre: string | null
+          password_temporal_mascarado: string | null
+        }
+        Insert: {
+          apellido?: string | null
+          codigo_membresia: string
+          correo: string
+          direccion?: string | null
+          email_enviado?: boolean
+          fecha_creacion?: string
+          id?: string
+          metadata?: Json | null
+          nombre?: string | null
+          password_temporal_mascarado?: string | null
+        }
+        Update: {
+          apellido?: string | null
+          codigo_membresia?: string
+          correo?: string
+          direccion?: string | null
+          email_enviado?: boolean
+          fecha_creacion?: string
+          id?: string
+          metadata?: Json | null
+          nombre?: string | null
+          password_temporal_mascarado?: string | null
+        }
+        Relationships: []
+      }
       Solicitudes_Ayuda: {
         Row: {
           codigo_pedido: string
