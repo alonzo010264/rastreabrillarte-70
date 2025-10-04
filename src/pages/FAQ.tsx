@@ -65,15 +65,11 @@ const FAQ = () => {
       questions: [
         {
           question: "¿Qué métodos de pago aceptan?",
-          answer: "Aceptamos diversos métodos de pago para tu comodidad: tarjetas de crédito, débito, transferencias bancarias y pagos en línea. Te informaremos sobre todas las opciones disponibles al realizar tu pedido."
-        },
-        {
-          question: "¿Es seguro pagar en línea?",
-          answer: "Absolutamente. Utilizamos sistemas de pago seguros y encriptados para proteger tu información. Tus datos financieros siempre estarán seguros con nosotros."
+          answer: "Aceptamos transferencia bancaria y pago contra entrega (en algunos casos). Estos son nuestros métodos de pago disponibles de momento."
         },
         {
           question: "¿Puedo pagar en cuotas?",
-          answer: "Dependiendo del monto de tu compra, podemos ofrecer planes de pago flexibles. Contactanos para conocer las opciones disponibles para tu pedido específico."
+          answer: "Sí, ofrecemos planes de pago flexibles. Por ejemplo, puedes depositar la mitad ahora y la otra mitad después. Dependiendo del monto, podemos acordar 5 cuotas o más. Contactanos para conocer las opciones disponibles para tu pedido."
         }
       ]
     },
