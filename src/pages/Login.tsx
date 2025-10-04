@@ -12,14 +12,14 @@ const Login = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    correo: "",
+    codigoMembresia: "",
     password: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.correo || !formData.password) {
+    if (!formData.codigoMembresia || !formData.password) {
       toast({
         title: "Campos requeridos",
         description: "Por favor completa todos los campos",
@@ -31,15 +31,33 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
+      // Buscar el correo asociado al código de membresía
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('correo, nombre_completo')
+        .eq('codigo_membresia', formData.codigoMembresia)
+        .single();
+
+      if (profileError || !profileData) {
+        toast({
+          title: "Error",
+          description: "Código de membresía no encontrado",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Iniciar sesión con el correo encontrado
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.correo,
+        email: profileData.correo,
         password: formData.password
       });
 
       if (error) throw error;
 
       toast({
-        title: "¡Bienvenido!",
+        title: `¡Bienvenido, ${profileData.nombre_completo}!`,
         description: "Has iniciado sesión correctamente"
       });
 
@@ -48,7 +66,7 @@ const Login = () => {
       console.error('Error en login:', error);
       toast({
         title: "Error",
-        description: "Correo o contraseña incorrectos",
+        description: "Código de membresía o contraseña incorrectos",
         variant: "destructive"
       });
     } finally {
@@ -67,21 +85,21 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-black mb-2">Correo Electrónico</label>
+              <label className="block text-sm font-medium text-black mb-2">Código de Membresía</label>
               <Input
-                type="email"
-                placeholder="tu@correo.com"
-                value={formData.correo}
-                onChange={(e) => setFormData(prev => ({ ...prev, correo: e.target.value }))}
+                type="text"
+                placeholder="B-123456"
+                value={formData.codigoMembresia}
+                onChange={(e) => setFormData(prev => ({ ...prev, codigoMembresia: e.target.value }))}
                 className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-black mb-2">Contraseña</label>
+              <label className="block text-sm font-medium text-black mb-2">Contraseña Temporal</label>
               <Input
                 type="password"
-                placeholder="Tu contraseña"
+                placeholder="Tu contraseña temporal"
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
