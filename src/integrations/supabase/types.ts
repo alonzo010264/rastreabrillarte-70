@@ -277,6 +277,74 @@ export type Database = {
         }
         Relationships: []
       }
+      paquetes_digitados: {
+        Row: {
+          admin_creador: string | null
+          admin_nombre: string | null
+          cliente: string
+          codigo_membresia: string | null
+          codigo_pedido: string
+          correo_cliente: string | null
+          descripcion: string | null
+          estatus_id: number
+          fecha_actualizacion: string
+          fecha_creacion: string
+          fecha_estimada_entrega: string | null
+          id: string
+          notas: string | null
+          peso: number | null
+          precio: number
+          total: number
+          user_id: string | null
+        }
+        Insert: {
+          admin_creador?: string | null
+          admin_nombre?: string | null
+          cliente: string
+          codigo_membresia?: string | null
+          codigo_pedido: string
+          correo_cliente?: string | null
+          descripcion?: string | null
+          estatus_id: number
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          fecha_estimada_entrega?: string | null
+          id?: string
+          notas?: string | null
+          peso?: number | null
+          precio: number
+          total: number
+          user_id?: string | null
+        }
+        Update: {
+          admin_creador?: string | null
+          admin_nombre?: string | null
+          cliente?: string
+          codigo_membresia?: string | null
+          codigo_pedido?: string
+          correo_cliente?: string | null
+          descripcion?: string | null
+          estatus_id?: number
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          fecha_estimada_entrega?: string | null
+          id?: string
+          notas?: string | null
+          peso?: number | null
+          precio?: number
+          total?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paquetes_digitados_estatus_id_fkey"
+            columns: ["estatus_id"]
+            isOneToOne: false
+            referencedRelation: "Estatus"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Pedidos: {
         Row: {
           Cliente: string
@@ -483,6 +551,41 @@ export type Database = {
         }
         Relationships: []
       }
+      respuestas_tickets: {
+        Row: {
+          es_admin: boolean
+          fecha_creacion: string
+          id: string
+          mensaje: string
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          es_admin?: boolean
+          fecha_creacion?: string
+          id?: string
+          mensaje: string
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          es_admin?: boolean
+          fecha_creacion?: string
+          id?: string
+          mensaje?: string
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "respuestas_tickets_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_ayuda"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Solicitudes_Ayuda: {
         Row: {
           codigo_pedido: string
@@ -570,6 +673,48 @@ export type Database = {
           fecha_creacion?: string
           id?: string
           nombre?: string
+        }
+        Relationships: []
+      }
+      tickets_ayuda: {
+        Row: {
+          admin_asignado: string | null
+          admin_nombre: string | null
+          asunto: string
+          codigo_membresia: string
+          descripcion: string
+          estado: string
+          fecha_actualizacion: string
+          fecha_creacion: string
+          id: string
+          prioridad: string
+          user_id: string
+        }
+        Insert: {
+          admin_asignado?: string | null
+          admin_nombre?: string | null
+          asunto: string
+          codigo_membresia: string
+          descripcion: string
+          estado?: string
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          id?: string
+          prioridad?: string
+          user_id: string
+        }
+        Update: {
+          admin_asignado?: string | null
+          admin_nombre?: string | null
+          asunto?: string
+          codigo_membresia?: string
+          descripcion?: string
+          estado?: string
+          fecha_actualizacion?: string
+          fecha_creacion?: string
+          id?: string
+          prioridad?: string
+          user_id?: string
         }
         Relationships: []
       }

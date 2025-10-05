@@ -38,7 +38,17 @@ const Login = () => {
         .eq('codigo_membresia', formData.codigoMembresia)
         .maybeSingle();
 
-      if (regError || !regData) {
+      if (regError) {
+        toast({
+          title: "Error",
+          description: "Error al buscar el código de membresía",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!regData) {
         toast({
           title: "Error",
           description: "Código de membresía no encontrado",

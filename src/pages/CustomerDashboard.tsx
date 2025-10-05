@@ -8,12 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   LogOut, Package, DollarSign, Bell, Gift, 
-  AlertTriangle, Mail, Newspaper, Truck
+  AlertTriangle, Mail, Newspaper, Truck, Ticket
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import HelpModal from "@/components/HelpModal";
 import AddressChangeModal from "@/components/AddressChangeModal";
+import TicketSupport from "@/components/TicketSupport";
 
 interface Profile {
   nombre_completo: string;
@@ -274,7 +275,7 @@ const CustomerDashboard = () => {
 
         {/* Tabs principales */}
         <Tabs defaultValue="pedidos" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-white border-2 border-black">
+          <TabsList className="grid w-full grid-cols-4 bg-white border-2 border-black">
             <TabsTrigger value="pedidos" className="data-[state=active]:bg-black data-[state=active]:text-white">
               <Package className="mr-2" size={18} />
               Mis Pedidos
@@ -282,6 +283,10 @@ const CustomerDashboard = () => {
             <TabsTrigger value="notificaciones" className="data-[state=active]:bg-black data-[state=active]:text-white">
               <Bell className="mr-2" size={18} />
               Notificaciones
+            </TabsTrigger>
+            <TabsTrigger value="soporte" className="data-[state=active]:bg-black data-[state=active]:text-white">
+              <Ticket className="mr-2" size={18} />
+              Soporte
             </TabsTrigger>
             <TabsTrigger value="noticias" className="data-[state=active]:bg-black data-[state=active]:text-white">
               <Newspaper className="mr-2" size={18} />
@@ -372,6 +377,15 @@ const CustomerDashboard = () => {
                   </Card>
                 ))}
               </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="soporte" className="mt-6">
+            {user && profile && (
+              <TicketSupport 
+                userId={user.id} 
+                codigoMembresia={profile.codigo_membresia || ""} 
+              />
             )}
           </TabsContent>
 
