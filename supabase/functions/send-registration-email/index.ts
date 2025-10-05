@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,6 +23,11 @@ const handler = async (req: Request): Promise<Response> => {
     const { email, nombre, codigo, password }: RegistrationEmailRequest = await req.json();
 
     console.log(`Sending registration email to: ${email}`);
+
+    // Initialize Supabase client with service role for inserting into registros_acceso
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
@@ -159,6 +165,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await response.json();
     console.log("Registration email sent successfully:", emailResponse);
+
+    // Record in registros_acceso table
+    const { error: regError } = await supabase
+      .from('registros_acceso')
+      .insert({
+        correo: email,
+        nombre: nombre,
+        codigo_membresia: codigo,
+        password_temporal_mascarado: '****',
+        email_enviado: true
+      });
+
+    if (regError) {
+      console.error("Error inserting into registros_acceso:", regError);
+    }
 
     return new Response(JSON.stringify({ 
       success: true, 

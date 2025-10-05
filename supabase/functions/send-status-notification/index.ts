@@ -58,8 +58,8 @@ const handler = async (req: Request): Promise<Response> => {
           
           <!-- Main Content -->
           <div style="padding: 40px 30px; background-color: #ffffff;">
-            <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold;">
-              ¡Tu pedido ha sido actualizado!
+            <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold; text-align: center;">
+              ${statusName === 'Entregado' ? '¡Pedido Entregado Exitosamente!' : '¡Tu pedido ha sido actualizado!'}
             </h2>
             
             <div style="background-color: #f8f9fa; border-left: 4px solid #000000; padding: 20px; margin: 20px 0;">
@@ -67,38 +67,33 @@ const handler = async (req: Request): Promise<Response> => {
                 Código de Pedido: <span style="font-weight: normal;">${orderCode}</span>
               </h3>
               <p style="color: #000000; margin: 0 0 10px 0; font-size: 16px;">
-                <strong>Nuevo Estado:</strong> ${statusName}
+                <strong>Estado:</strong> ${statusName}
               </p>
               <p style="color: #666666; margin: 0; font-size: 14px; line-height: 1.5;">
                 ${statusDescription}
               </p>
             </div>
             
-            <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0;">
-              Te mantendremos informado sobre cualquier cambio en el estado de tu pedido.
-            </p>
+            ${statusName === 'Entregado' 
+              ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
+                  Por favor, revisa tu zona o confirma si fue entregado en tus manos.<br>
+                  <strong>¡Gracias por elegirnos!</strong>
+                 </p>`
+              : `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0;">
+                  Te mantendremos informado sobre cualquier cambio en el estado de tu pedido.
+                 </p>`
+            }
             
             <!-- Action Button -->
             <div style="text-align: center; margin: 30px 0;">
               <a href="https://gzyfcunlbrfcnbxxaaft.lovable.app/rastrear" 
-                 style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
-                Rastrear Pedido
+                 style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px;">
+                RASTREAR PEDIDO
               </a>
             </div>
             
-            <!-- Cancellation Notice -->
-            <div style="background-color: #f1f3f4; padding: 20px; border-radius: 5px; margin: 30px 0;">
-              <p style="color: #666666; font-size: 14px; line-height: 1.5; margin: 0;">
-                <strong>¿No deseas recibir estas notificaciones?</strong><br>
-                Puedes cancelar las notificaciones de estado de tus pedidos visitando nuestra 
-                <a href="https://gzyfcunlbrfcnbxxaaft.lovable.app/cancel-notifications" 
-                   style="color: #000000; text-decoration: underline;">página de cancelaciones</a>.
-                Ten en cuenta que deberás estar pendiente del estado de tus pedidos por otros medios.
-              </p>
-            </div>
-            
-            <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 30px 0 0 0;">
-              Gracias por preferirnos y confiar en BRILLARTE para tus necesidades.
+            <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
+              Gracias por confiar en BRILLARTE.
             </p>
           </div>
           

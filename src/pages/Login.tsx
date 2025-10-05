@@ -31,14 +31,14 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      // Buscar el correo asociado al código de membresía vía Edge Function
-      const { data: lookupRes, error: lookupError } = await supabase.functions.invoke('lookup-email-by-code', {
-        body: { codigoMembresia: formData.codigoMembresia }
-      });
+      // Buscar el correo asociado al código de membresía en registros_acceso
+      const { data: regData, error: regError } = await supabase
+        .from('registros_acceso')
+        .select('correo, nombre')
+        .eq('codigo_membresia', formData.codigoMembresia)
+        .maybeSingle();
 
-      const profileData = lookupRes as { correo: string; nombre_completo?: string } | null;
-
-      if (lookupError || !profileData?.correo) {
+      if (regError || !regData) {
         toast({
           title: "Error",
           description: "Código de membresía no encontrado",
@@ -50,14 +50,14 @@ const Login = () => {
 
       // Iniciar sesión con el correo encontrado
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: profileData.correo,
+        email: regData.correo,
         password: formData.password
       });
 
       if (error) throw error;
 
       toast({
-        title: `¡Bienvenido, ${profileData.nombre_completo}!`,
+        title: `¡Bienvenido, ${regData.nombre}!`,
         description: "Has iniciado sesión correctamente"
       });
 

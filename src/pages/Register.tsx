@@ -55,24 +55,7 @@ const Register = () => {
 
       if (authError) throw authError;
 
-      // Registrar en tabla registros_acceso
-      const { error: regError } = await supabase
-        .from('registros_acceso')
-        .insert({
-          nombre: formData.nombre,
-          apellido: formData.apellido,
-          correo: formData.correo,
-          direccion: formData.direccion,
-          codigo_membresia: codigo,
-          password_temporal_mascarado: '****',
-          email_enviado: false
-        });
-
-      if (regError) {
-        console.error('Error al registrar datos de acceso:', regError);
-      }
-
-      // Enviar correo con credenciales
+      // Enviar correo con credenciales (esto también registrará en registros_acceso automáticamente)
       const { error: emailError } = await supabase.functions.invoke('send-registration-email', {
         body: {
           email: formData.correo,
@@ -82,13 +65,8 @@ const Register = () => {
         }
       });
 
-      // Actualizar que el email fue enviado
-      if (!emailError) {
-        await supabase
-          .from('registros_acceso')
-          .update({ email_enviado: true })
-          .eq('correo', formData.correo)
-          .eq('codigo_membresia', codigo);
+      if (emailError) {
+        console.error('Error al enviar email de registro:', emailError);
       }
 
       toast({
