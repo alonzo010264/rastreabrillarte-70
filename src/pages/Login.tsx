@@ -31,14 +31,14 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      // Buscar el correo asociado al código de membresía
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('correo, nombre_completo')
-        .eq('codigo_membresia', formData.codigoMembresia)
-        .single();
+      // Buscar el correo asociado al código de membresía vía Edge Function
+      const { data: lookupRes, error: lookupError } = await supabase.functions.invoke('lookup-email-by-code', {
+        body: { codigoMembresia: formData.codigoMembresia }
+      });
 
-      if (profileError || !profileData) {
+      const profileData = lookupRes as { correo: string; nombre_completo?: string } | null;
+
+      if (lookupError || !profileData?.correo) {
         toast({
           title: "Error",
           description: "Código de membresía no encontrado",
