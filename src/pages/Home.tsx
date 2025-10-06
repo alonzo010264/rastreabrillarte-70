@@ -121,6 +121,29 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Pedidos en Línea Section */}
+      <section className="py-16 px-4 bg-gradient-to-r from-primary/10 to-secondary/10">
+        <div className="container mx-auto max-w-5xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-3xl md:text-4xl font-light text-foreground mb-4">
+                ¿Quieres hacer pedidos en línea y que te lleguen directamente?
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Descubre nuestro nuevo servicio de envíos internacionales
+              </p>
+            </div>
+            <Button 
+              size="lg" 
+              className="text-lg px-8 whitespace-nowrap"
+              onClick={() => navigate("/brillarte-pedidos")}
+            >
+              Ver Más
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Por qué elegirnos */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl">

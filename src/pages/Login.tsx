@@ -11,6 +11,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     codigoMembresia: "",
     password: ""
@@ -66,6 +67,15 @@ const Login = () => {
 
       if (error) throw error;
 
+      // Guardar preferencia de "recordar sesión"
+      if (rememberMe) {
+        localStorage.setItem('brillarte_remember', 'true');
+        localStorage.setItem('brillarte_codigo', formData.codigoMembresia);
+      } else {
+        localStorage.removeItem('brillarte_remember');
+        localStorage.removeItem('brillarte_codigo');
+      }
+
       toast({
         title: `¡Bienvenido, ${regData.nombre}!`,
         description: "Has iniciado sesión correctamente"
@@ -116,7 +126,20 @@ const Login = () => {
               />
             </div>
 
-            <Button 
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+              />
+              <label htmlFor="remember" className="text-sm text-gray-700">
+                Mantener sesión iniciada
+              </label>
+            </div>
+
+            <Button
               type="submit"
               disabled={isSubmitting}
               className="w-full bg-black text-white hover:bg-gray-800 rounded-xl py-6 text-lg font-medium"

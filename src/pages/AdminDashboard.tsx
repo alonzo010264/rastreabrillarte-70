@@ -103,15 +103,31 @@ const AdminDashboard = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
+        toast({
+          title: "Sesión requerida",
+          description: "Por favor inicia sesión",
+          variant: "destructive"
+        });
         navigate('/login');
         return;
       }
 
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('Error fetching role:', roleError);
+        toast({
+          title: "Error",
+          description: "No se pudo verificar permisos",
+          variant: "destructive"
+        });
+        navigate('/');
+        return;
+      }
 
       if (!roleData || roleData.role !== 'admin') {
         toast({
@@ -126,6 +142,11 @@ const AdminDashboard = () => {
       await loadData();
     } catch (error) {
       console.error('Error checking admin:', error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error al verificar permisos",
+        variant: "destructive"
+      });
       navigate('/login');
     } finally {
       setLoading(false);

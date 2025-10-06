@@ -8,13 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   LogOut, Package, DollarSign, Bell, Gift, 
-  AlertTriangle, Mail, Newspaper, Truck, Ticket
+  AlertTriangle, Mail, Newspaper, Truck, Ticket, ShoppingCart
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import HelpModal from "@/components/HelpModal";
 import AddressChangeModal from "@/components/AddressChangeModal";
 import TicketSupport from "@/components/TicketSupport";
+import OrderRequest from "@/components/OrderRequest";
 
 interface Profile {
   nombre_completo: string;
@@ -275,10 +276,14 @@ const CustomerDashboard = () => {
 
         {/* Tabs principales */}
         <Tabs defaultValue="pedidos" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white border-2 border-black">
+          <TabsList className="grid w-full grid-cols-5 bg-white border-2 border-black">
             <TabsTrigger value="pedidos" className="data-[state=active]:bg-black data-[state=active]:text-white">
               <Package className="mr-2" size={18} />
               Mis Pedidos
+            </TabsTrigger>
+            <TabsTrigger value="solicitar-pedido" className="data-[state=active]:bg-black data-[state=active]:text-white">
+              <ShoppingCart className="mr-2" size={18} />
+              Solicitar Pedido
             </TabsTrigger>
             <TabsTrigger value="notificaciones" className="data-[state=active]:bg-black data-[state=active]:text-white">
               <Bell className="mr-2" size={18} />
@@ -343,6 +348,16 @@ const CustomerDashboard = () => {
                   </Card>
                 ))}
               </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="solicitar-pedido" className="mt-6">
+            {user && profile && (
+              <OrderRequest 
+                userEmail={profile.correo}
+                userName={profile.nombre_completo}
+                codigoMembresia={profile.codigo_membresia || ""}
+              />
             )}
           </TabsContent>
 
