@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.lookup-email-by-code]
 verify_jwt = false
+
+[functions.chatbot-assistant]
+verify_jwt = false

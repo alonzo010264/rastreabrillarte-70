@@ -10,9 +10,11 @@ const Footer = () => {
           {/* Logo y descripción */}
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
-              <Diamond className="text-white mr-2" size={20} />
-              <span className="font-light text-xl text-white">BRILLARTE</span>
-              <Diamond className="text-white ml-2" size={20} />
+              <img 
+                src="/lovable-uploads/9fddbd33-95e9-4a29-af18-6d93693beabb.png" 
+                alt="BRILLARTE" 
+                className="h-16 w-auto"
+              />
             </div>
             <p className="text-gray-300 mb-4 text-sm leading-relaxed">
               El Arte de Brillar. Productos únicos de calidad que reflejan tu personalidad. 
@@ -89,15 +91,6 @@ const Footer = () => {
                 <MapPin size={16} className="mr-2" />
                 <span>Santiago de los Caballeros, República Dominicana</span>
               </div>
-            </div>
-            
-            <div className="mt-4">
-              <Link 
-                to="/registro" 
-                className="block text-sm bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-center font-medium"
-              >
-                Mi Cuenta
-              </Link>
             </div>
           </div>
         </div>

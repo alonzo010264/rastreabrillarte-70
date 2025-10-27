@@ -9,6 +9,7 @@ import { Diamond, MessageSquare, Mail, Phone, MapPin, Clock, Instagram, Facebook
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Chatbot } from "@/components/Chatbot";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ const Contact = () => {
     message: ""
   });
   const [loading, setLoading] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -183,7 +185,7 @@ const Contact = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-start gap-3">
+                     <div className="flex items-start gap-3">
                       <MapPin className="w-5 h-5 text-primary mt-1" />
                       <div>
                         <p className="font-medium">Ubicación</p>
@@ -191,6 +193,20 @@ const Contact = () => {
                         <p className="text-muted-foreground text-xs">Envíos a nivel nacional</p>
                       </div>
                     </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t">
+                    <Button 
+                      className="w-full" 
+                      variant="default"
+                      onClick={() => setChatbotOpen(true)}
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Hablar con Nosotros
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center mt-2">
+                      Chatea con nuestro asistente virtual
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -259,6 +275,7 @@ const Contact = () => {
         </div>
       </div>
 
+      {chatbotOpen && <Chatbot onClose={() => setChatbotOpen(false)} />}
       <Footer />
     </div>
   );
