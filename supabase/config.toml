@@ -1,1 +1,7 @@
 project_id = "usgqtqadoqzyfttjazmz"
+
+[functions.chatbot-assistant]
+verify_jwt = false
+
+[functions.agent-support]
+verify_jwt = false

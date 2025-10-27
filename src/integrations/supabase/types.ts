@@ -65,6 +65,33 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_requests: {
+        Row: {
+          created_at: string | null
+          email: string
+          estado: string | null
+          id: string
+          mensaje: string | null
+          origen: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          estado?: string | null
+          id?: string
+          mensaje?: string | null
+          origen?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          estado?: string | null
+          id?: string
+          mensaje?: string | null
+          origen?: string | null
+        }
+        Relationships: []
+      }
       Contactos: {
         Row: {
           codigo_pedido: string | null
@@ -309,6 +336,7 @@ export type Database = {
           Cliente: string
           "Código de pedido": string
           created_at: string | null
+          estado: string | null
           Estatus_id: number | null
           Fecha_creacion: string | null
           Fecha_estimada_entrega: string | null
@@ -321,6 +349,7 @@ export type Database = {
           Cliente: string
           "Código de pedido": string
           created_at?: string | null
+          estado?: string | null
           Estatus_id?: number | null
           Fecha_creacion?: string | null
           Fecha_estimada_entrega?: string | null
@@ -333,6 +362,7 @@ export type Database = {
           Cliente?: string
           "Código de pedido"?: string
           created_at?: string | null
+          estado?: string | null
           Estatus_id?: number | null
           Fecha_creacion?: string | null
           Fecha_estimada_entrega?: string | null
@@ -643,6 +673,71 @@ export type Database = {
           razon?: string | null
         }
         Relationships: []
+      }
+      support_agents: {
+        Row: {
+          activo: boolean | null
+          cliente_actual: string | null
+          created_at: string | null
+          id: string
+          nombre: string
+          ocupado: boolean | null
+        }
+        Insert: {
+          activo?: boolean | null
+          cliente_actual?: string | null
+          created_at?: string | null
+          id?: string
+          nombre: string
+          ocupado?: boolean | null
+        }
+        Update: {
+          activo?: boolean | null
+          cliente_actual?: string | null
+          created_at?: string | null
+          id?: string
+          nombre?: string
+          ocupado?: boolean | null
+        }
+        Relationships: []
+      }
+      support_queue: {
+        Row: {
+          agente_asignado: string | null
+          atendido_at: string | null
+          codigo_pedido: string | null
+          created_at: string | null
+          email: string
+          estado: string | null
+          id: string
+        }
+        Insert: {
+          agente_asignado?: string | null
+          atendido_at?: string | null
+          codigo_pedido?: string | null
+          created_at?: string | null
+          email: string
+          estado?: string | null
+          id?: string
+        }
+        Update: {
+          agente_asignado?: string | null
+          atendido_at?: string | null
+          codigo_pedido?: string | null
+          created_at?: string | null
+          email?: string
+          estado?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_queue_agente_asignado_fkey"
+            columns: ["agente_asignado"]
+            isOneToOne: false
+            referencedRelation: "support_agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tickets_ayuda: {
         Row: {

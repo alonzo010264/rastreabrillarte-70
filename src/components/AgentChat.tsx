@@ -2,33 +2,35 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { X, Send, MessageCircle } from "lucide-react";
+import { X, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import brillarteLogo from "@/assets/brillarte-logo.jpg";
 
 interface Message {
-  role: "user" | "assistant";
+  role: "user" | "agent" | "system";
   content: string;
 }
 
-interface ChatbotProps {
+interface AgentChatProps {
   onClose: () => void;
 }
 
-export const Chatbot = ({ onClose }: ChatbotProps) => {
+export const AgentChat = ({ onClose }: AgentChatProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
-      role: "assistant",
-      content: "Hola! Soy tu asistente de BRILLARTE. ¿En qué puedo ayudarte?"
+      role: "system",
+      content: "Esperando un agente para que te ayude..."
     }
   ]);
   const [input, setInput] = useState("");
   const [email, setEmail] = useState("");
   const [orderCode, setOrderCode] = useState("");
   const [needsInfo, setNeedsInfo] = useState(true);
+  const [agentName, setAgentName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [waitingForAgent, setWaitingForAgent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -50,74 +52,98 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       return;
     }
 
-    // Guardar información del cliente
-    try {
-      await supabase.from('chatbot_conversations').insert({
-        email: email.trim(),
-        order_code: orderCode.trim() || null,
-        conversation_data: { messages: [] }
-      });
-    } catch (error) {
-      console.error('Error saving initial info:', error);
-    }
-
     setNeedsInfo(false);
-    setMessages([
-      {
-        role: "assistant",
-        content: `Perfecto! ¿En qué puedo ayudarte?`
-      }
-    ]);
-  };
-
-  const handleSendMessage = async () => {
-    if (!input.trim() || loading) return;
-
-    const userMessage = input.trim();
-    setInput("");
-    setLoading(true);
-
-    const newMessages = [...messages, { role: "user" as const, content: userMessage }];
-    setMessages(newMessages);
+    setWaitingForAgent(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('chatbot-assistant', {
+      const { data, error } = await supabase.functions.invoke('agent-support', {
         body: {
-          messages: newMessages,
-          email,
-          orderCode
+          action: 'request_agent',
+          email: email.trim(),
+          codigo_pedido: orderCode.trim() || null
         }
       });
 
       if (error) throw error;
 
-      setMessages([...newMessages, { role: "assistant", content: data.response }]);
-
-      // Guardar conversación
-      await supabase.from('chatbot_conversations').insert({
-        email,
-        order_code: orderCode || null,
-        conversation_data: { 
-          messages: [...newMessages, { role: "assistant", content: data.response }] 
-        }
-      });
+      if (data.success) {
+        setAgentName(data.agent);
+        setMessages([
+          {
+            role: "agent",
+            content: data.message
+          }
+        ]);
+      } else {
+        setMessages([
+          {
+            role: "system",
+            content: data.message
+          }
+        ]);
+      }
     } catch (error) {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Hubo un problema. Por favor intenta de nuevo.",
+        description: "Hubo un problema al conectar con un agente.",
         variant: "destructive"
       });
-      setMessages([
-        ...newMessages,
-        {
-          role: "assistant",
-          content: "Disculpa, tuve un problema técnico. ¿Podrías intentar de nuevo?"
-        }
-      ]);
     } finally {
-      setLoading(false);
+      setWaitingForAgent(false);
     }
+  };
+
+  const handleSendMessage = async () => {
+    if (!input.trim() || loading) return;
+
+    if (!agentName) {
+      // Si no hay agente, guardar correo de contacto
+      setLoading(true);
+      try {
+        const { error } = await supabase.functions.invoke('agent-support', {
+          body: {
+            action: 'save_contact',
+            email,
+            mensaje: input.trim()
+          }
+        });
+
+        if (error) throw error;
+
+        setMessages([
+          ...messages,
+          { role: "user", content: input.trim() },
+          {
+            role: "system",
+            content: "Gracias por tu mensaje. Por favor déjanos tu correo y nos contactaremos contigo pronto."
+          }
+        ]);
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: "Error",
+          description: "No pudimos guardar tu mensaje. Intenta de nuevo.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+        setInput("");
+      }
+      return;
+    }
+
+    const userMessage = input.trim();
+    setInput("");
+    
+    setMessages([
+      ...messages,
+      { role: "user", content: userMessage },
+      {
+        role: "agent",
+        content: "Déjame revisar eso por ti..."
+      }
+    ]);
   };
 
   if (!isOpen) {
@@ -131,8 +157,10 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         <div className="flex items-center gap-3">
           <img src={brillarteLogo} alt="Brillarte" className="w-10 h-10 rounded-full" />
           <div>
-            <h3 className="font-semibold">Brillarte</h3>
-            <p className="text-xs opacity-90">Asistente Virtual</p>
+            <h3 className="font-semibold">{agentName || "Soporte"}</h3>
+            <p className="text-xs opacity-90">
+              {waitingForAgent ? "Conectando..." : agentName ? "En línea" : "Esperando"}
+            </p>
           </div>
         </div>
         <Button
@@ -159,6 +187,8 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               className={`max-w-[80%] p-3 rounded-lg ${
                 msg.role === "user"
                   ? "bg-primary text-primary-foreground"
+                  : msg.role === "system"
+                  ? "bg-muted text-muted-foreground text-center w-full"
                   : "bg-background border"
               }`}
             >
@@ -192,7 +222,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
             onChange={(e) => setOrderCode(e.target.value)}
           />
           <Button onClick={handleSubmitInfo} className="w-full">
-            Comenzar Chat
+            Solicitar Agente
           </Button>
         </div>
       ) : (

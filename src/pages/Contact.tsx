@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Chatbot } from "@/components/Chatbot";
+import { AgentChat } from "@/components/AgentChat";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ const Contact = () => {
   });
   const [loading, setLoading] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [agentChatOpen, setAgentChatOpen] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -195,18 +197,23 @@ const Contact = () => {
                     </div>
                   </div>
                   
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t space-y-3">
                     <Button 
                       className="w-full" 
                       variant="default"
                       onClick={() => setChatbotOpen(true)}
                     >
                       <MessageSquare className="w-4 h-4 mr-2" />
-                      Hablar con Nosotros
+                      Hablar con Nosotros (AI)
                     </Button>
-                    <p className="text-xs text-muted-foreground text-center mt-2">
-                      Chatea con nuestro asistente virtual
-                    </p>
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={() => setAgentChatOpen(true)}
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      Hablar con Agente
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -276,6 +283,7 @@ const Contact = () => {
       </div>
 
       {chatbotOpen && <Chatbot onClose={() => setChatbotOpen(false)} />}
+      {agentChatOpen && <AgentChat onClose={() => setAgentChatOpen(false)} />}
       <Footer />
     </div>
   );
