@@ -54,12 +54,11 @@ const OrderRequest = ({ userEmail, userName, codigoMembresia }: OrderRequestProp
         .from('pedidos_formulario')
         .insert({
           nombre: formData.nombre,
+          apellido: formData.apellido,
           correo: formData.correo,
-          telefono: formData.whatsapp,
-          tipo_servicio: 'pedido_online',
-          descripcion_articulo: `Instagram: ${formData.instagram}, WhatsApp: ${formData.whatsapp}, Correo: ${formData.correo_contacto}`,
-          referencias: `Apellido: ${formData.apellido}${formData.codigo_membresia ? `, Código: ${formData.codigo_membresia}` : ''}`,
-          estado: 'Pendiente'
+          instagram: formData.instagram || null,
+          whatsapp: formData.whatsapp || null,
+          codigo_membresia: formData.codigo_membresia || null
         });
 
       if (insertError) throw insertError;

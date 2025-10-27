@@ -110,7 +110,7 @@ const CustomerDashboard = () => {
         const { data: pedidosCuentaData } = await supabase
           .from('pedidos_cuenta')
           .select('codigo_pedido')
-          .eq('user_id', userId);
+          .eq('codigo_membresia', profileData.codigo_membresia);
 
         const codigosPedidos = pedidosCuentaData?.map(p => p.codigo_pedido) || [];
 

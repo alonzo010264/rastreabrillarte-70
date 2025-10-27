@@ -102,11 +102,11 @@ const Auth = () => {
           .maybeSingle();
 
         if (!existingRole) {
-          await supabase.from('user_roles').insert({ user_id: uid, role: 'client' });
+          await supabase.from('user_roles').insert({ user_id: uid, role: 'user' as const });
         }
 
         // Obtener el rol del usuario
-        const { data: userRole, error: roleError } = await supabase.rpc('get_user_role');
+        const { data: userRole, error: roleError } = await supabase.rpc('get_user_role', { input_user_id: uid });
         
         if (roleError) {
           console.error('Error getting user role:', roleError);
@@ -119,7 +119,9 @@ const Auth = () => {
           return;
         }
 
-        if (userRole === 'admin') {
+        const role = userRole && userRole.length > 0 ? userRole[0].role : null;
+
+        if (role === 'admin') {
           toast({
             title: 'Bienvenido Administrador',
             description: 'Has iniciado sesión como administrador',

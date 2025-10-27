@@ -122,20 +122,20 @@ const Home = () => {
       </section>
 
       {/* Pedidos en Línea Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-primary/10 to-secondary/10">
+      <section className="py-16 px-4 bg-gradient-to-r from-primary/10 to-secondary/10 animate-fade-in">
         <div className="container mx-auto max-w-5xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex-1 text-center md:text-left">
-              <h2 className="text-3xl md:text-4xl font-light text-foreground mb-4">
+              <h2 className="text-3xl md:text-4xl font-light text-foreground mb-4 animate-fade-in">
                 ¿Quieres hacer pedidos en línea y que te lleguen directamente?
               </h2>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-muted-foreground animate-fade-in animation-delay-200">
                 Descubre nuestro nuevo servicio de envíos internacionales
               </p>
             </div>
             <Button 
               size="lg" 
-              className="text-lg px-8 whitespace-nowrap"
+              className="text-lg px-8 whitespace-nowrap transition-all duration-300 hover:scale-110 hover:shadow-lg animate-scale-in animation-delay-300"
               onClick={() => navigate("/brillarte-pedidos")}
             >
               Ver Más
@@ -157,7 +157,7 @@ const Home = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="flex items-start gap-4 animate-fade-in">
+            <div className="flex items-start gap-4 animate-fade-in transition-all duration-300 hover:translate-x-2">
               <Star className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
               <div>
                 <h3 className="text-xl font-medium text-foreground mb-2">
@@ -170,7 +170,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-4 animate-fade-in animation-delay-200">
+            <div className="flex items-start gap-4 animate-fade-in animation-delay-200 transition-all duration-300 hover:translate-x-2">
               <Clock className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
               <div>
                 <h3 className="text-xl font-medium text-foreground mb-2">
@@ -183,7 +183,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-4 animate-fade-in animation-delay-300">
+            <div className="flex items-start gap-4 animate-fade-in animation-delay-300 transition-all duration-300 hover:translate-x-2">
               <Star className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
               <div>
                 <h3 className="text-xl font-medium text-foreground mb-2">
@@ -196,7 +196,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-4 animate-fade-in animation-delay-400">
+            <div className="flex items-start gap-4 animate-fade-in animation-delay-400 transition-all duration-300 hover:translate-x-2">
               <Star className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
               <div>
                 <h3 className="text-xl font-medium text-foreground mb-2">

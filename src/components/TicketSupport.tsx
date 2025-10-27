@@ -25,23 +25,24 @@ import {
 
 interface TicketData {
   id: string;
+  user_id?: string;
   asunto: string;
   descripcion: string;
   estado: string;
   prioridad: string;
-  fecha_creacion: string;
-  fecha_actualizacion: string;
-  respuestas?: TicketResponse[];
+  categoria?: string;
+  created_at: string;
+  updated_at: string;
+  respuestas_tickets?: TicketResponse[];
 }
 
 interface TicketResponse {
   id: string;
   mensaje: string;
   es_admin: boolean;
-  fecha_creacion: string;
-  profiles?: {
-    nombre_completo: string;
-  };
+  created_at: string;
+  user_id?: string;
+  ticket_id?: string;
 }
 
 interface TicketSupportProps {
@@ -307,7 +308,7 @@ const TicketSupport = ({ userId, codigoMembresia }: TicketSupportProps) => {
                 </p>
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <span>Prioridad: {ticket.prioridad}</span>
-                  <span>{new Date(ticket.fecha_creacion).toLocaleDateString()}</span>
+                  <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
                 </div>
               </Card>
             ))}
@@ -341,7 +342,7 @@ const TicketSupport = ({ userId, codigoMembresia }: TicketSupportProps) => {
 
                 {/* Chat de respuestas */}
                 <div className="flex-1 overflow-y-auto space-y-3 mb-3">
-                  {selectedTicket.respuestas?.map((resp) => (
+                  {selectedTicket.respuestas_tickets?.map((resp) => (
                     <div
                       key={resp.id}
                       className={`p-3 rounded-lg ${
@@ -355,7 +356,7 @@ const TicketSupport = ({ userId, codigoMembresia }: TicketSupportProps) => {
                           {resp.es_admin ? 'Administrador' : 'Tú'}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {new Date(resp.fecha_creacion).toLocaleString()}
+                          {new Date(resp.created_at).toLocaleString()}
                         </span>
                       </div>
                       <p className="text-sm">{resp.mensaje}</p>

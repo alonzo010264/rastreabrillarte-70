@@ -46,13 +46,13 @@ interface Profile {
 interface Ticket {
   id: string;
   user_id: string;
-  codigo_membresia: string;
   asunto: string;
   descripcion: string;
   estado: string;
   prioridad: string;
-  fecha_creacion: string;
-  admin_nombre?: string;
+  categoria?: string;
+  created_at: string;
+  updated_at?: string;
   profiles?: {
     nombre_completo: string;
     correo: string;
@@ -274,10 +274,10 @@ const AdminDashboard = () => {
 
       await supabase.from('notifications').insert({
         user_id: selectedProfile.user_id,
+        codigo_membresia: selectedProfile.codigo_membresia,
+        tipo: 'credito',
         titulo: 'Crédito Agregado',
-        mensaje: `Se agregó RD$${creditAmount} a tu cuenta. ${creditDescription}`,
-        admin_remitente: user?.id,
-        admin_nombre: adminProfile?.nombre_completo
+        mensaje: `Se agregó RD$${creditAmount} a tu cuenta. ${creditDescription}`
       });
 
       await supabase.functions.invoke('send-credit-notification', {
@@ -338,17 +338,17 @@ const AdminDashboard = () => {
       const notifications = notifTarget === "todos"
         ? profiles.map(p => ({
             user_id: p.user_id,
+            codigo_membresia: p.codigo_membresia,
+            tipo: 'general',
             titulo: notifTitle,
-            mensaje: notifMessage,
-            admin_remitente: user?.id,
-            admin_nombre: adminProfile?.nombre_completo
+            mensaje: notifMessage
           }))
         : [{
             user_id: selectedProfile!.user_id,
+            codigo_membresia: selectedProfile!.codigo_membresia,
+            tipo: 'general',
             titulo: notifTitle,
-            mensaje: notifMessage,
-            admin_remitente: user?.id,
-            admin_nombre: adminProfile?.nombre_completo
+            mensaje: notifMessage
           }];
 
       const { error } = await supabase
@@ -423,10 +423,10 @@ const AdminDashboard = () => {
       if (selectedProfile) {
         await supabase.from('notifications').insert({
           user_id: selectedProfile.user_id,
+          codigo_membresia: selectedProfile.codigo_membresia,
+          tipo: 'paquete',
           titulo: 'Nuevo Paquete Asignado',
-          mensaje: `Se asignó el paquete ${packageForm.codigo_pedido} a tu cuenta.`,
-          admin_remitente: user?.id,
-          admin_nombre: adminProfile?.nombre_completo
+          mensaje: `Se asignó el paquete ${packageForm.codigo_pedido} a tu cuenta.`
         });
       }
 
@@ -807,7 +807,7 @@ const AdminDashboard = () => {
                   <TableCell className="font-medium">
                     {ticket.profiles?.nombre_completo}
                   </TableCell>
-                  <TableCell>{ticket.codigo_membresia}</TableCell>
+                  <TableCell>{ticket.user_id}</TableCell>
                   <TableCell>{ticket.asunto}</TableCell>
                   <TableCell>
                     <Badge variant={
@@ -821,7 +821,7 @@ const AdminDashboard = () => {
                     <Badge variant="outline">{ticket.prioridad}</Badge>
                   </TableCell>
                   <TableCell className="text-sm">
-                    {new Date(ticket.fecha_creacion).toLocaleDateString()}
+                    {new Date(ticket.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">

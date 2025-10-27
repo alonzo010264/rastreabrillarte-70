@@ -87,15 +87,11 @@ const OrderRequest = () => {
       // Guardar en pedidos_formulario
       const formData = {
         nombre: data.nombre,
+        apellido: data.nombre, // usando nombre como apellido si no hay apellido separado
         correo: data.correo,
-        telefono: data.telefono || null,
-        tipo_servicio: data.tipo_servicio,
-        descripcion_articulo: data.descripcion_articulo,
-        direccion: data.direccion || null,
-        referencias: data.referencias || null,
-        numero_casa: data.numero_casa || null,
-        sector: data.sector || null,
-        provincia: data.provincia || null,
+        instagram: null,
+        whatsapp: data.telefono || null,
+        codigo_membresia: null
       };
 
       const { error: formError } = await supabase

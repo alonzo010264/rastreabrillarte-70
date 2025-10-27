@@ -52,12 +52,11 @@ const BrillartePedidos = () => {
         .from('pedidos_formulario')
         .insert({
           nombre: formData.nombre,
+          apellido: formData.apellido,
           correo: formData.correo,
-          telefono: formData.whatsapp,
-          tipo_servicio: 'pedido_online',
-          descripcion_articulo: `Instagram: ${formData.instagram}, WhatsApp: ${formData.whatsapp}, Correo: ${formData.correo_contacto}`,
-          referencias: `Apellido: ${formData.apellido}${formData.codigo_membresia ? `, Código: ${formData.codigo_membresia}` : ''}`,
-          estado: 'Pendiente'
+          instagram: formData.instagram || null,
+          whatsapp: formData.whatsapp || null,
+          codigo_membresia: formData.codigo_membresia || null
         });
 
       if (insertError) throw insertError;
@@ -106,33 +105,104 @@ const BrillartePedidos = () => {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-primary/20 to-secondary/20">
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/20 to-secondary/20 animate-fade-in">
         <div className="container mx-auto text-center max-w-4xl">
-          <h1 className="text-5xl md:text-6xl font-light text-foreground mb-6">
+          <div className="inline-block bg-primary/10 px-6 py-2 rounded-full mb-6 animate-scale-in">
+            <p className="text-sm font-semibold text-primary">Extensión de BRILLARTE</p>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-light text-foreground mb-6 animate-fade-in animation-delay-200">
             BRILLARTE Pedidos
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8">
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 animate-fade-in animation-delay-300">
             ¿Te gusta comprar en línea? Elígenos para traer tus pedidos directamente a República Dominicana
           </p>
-          <p className="text-lg text-primary font-semibold mb-4">
-            ¡Sin costo adicional en tu primera compra!
-          </p>
-          <p className="text-muted-foreground">
-            ¿Qué esperas? Descubre todos nuestros servicios
-          </p>
+          <div className="bg-card border-2 border-primary/20 rounded-2xl p-6 mb-6 animate-scale-in animation-delay-400">
+            <p className="text-2xl font-bold text-primary mb-2">
+              ¡Sin costo adicional en tu primera compra!
+            </p>
+            <p className="text-muted-foreground">
+              Servicio disponible para compras en TEMU
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Por qué TEMU y confianza */}
+      <section className="py-16 px-4 bg-muted/30">
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="text-4xl font-light text-center text-foreground mb-8 animate-fade-in">
+            ¿Por qué elegir nuestro servicio?
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card className="animate-fade-in animation-delay-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="text-primary" />
+                  Compras Seguras desde TEMU
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  TEMU ofrece productos de excelente calidad a precios increíbles. Entendemos que muchos 
+                  dominicanos desconfían de poner su tarjeta en línea, y por eso existimos.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>✓ No necesitas tarjeta internacional</li>
+                  <li>✓ Sin riesgo de fraude</li>
+                  <li>✓ Nosotros gestionamos la compra</li>
+                  <li>✓ Pagas solo cuando confirmes tu pedido</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="animate-fade-in animation-delay-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="text-primary" />
+                  Emprendimiento Confiable
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Somos un emprendimiento casi empresa, operando con total transparencia 
+                  y compromiso con nuestros clientes. Cada paso está coordinado contigo.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>✓ Comunicación constante</li>
+                  <li>✓ Seguimiento en tiempo real</li>
+                  <li>✓ Atención personalizada</li>
+                  <li>✓ Satisfacción garantizada</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-8 text-center">
+            <Card className="bg-primary/5 border-primary/20 animate-fade-in animation-delay-400">
+              <CardContent className="py-6">
+                <p className="text-lg font-medium text-foreground mb-2">
+                  🚀 Próximamente: Amazon y otros servicios
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Por ahora enfocados en TEMU para ofrecerte el mejor servicio. 
+                  Expandiremos gradualmente según coordinemos cada paso.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
       {/* Servicios */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-light text-center text-foreground mb-12">
+          <h2 className="text-4xl font-light text-center text-foreground mb-12 animate-fade-in">
             Nuestros Servicios
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in animation-delay-200">
               <CardHeader>
-                <Package className="w-12 h-12 mx-auto mb-4 text-primary" />
+                <Package className="w-12 h-12 mx-auto mb-4 text-primary transition-transform duration-300 hover:scale-110" />
                 <CardTitle>Gestión Aduanal</CardTitle>
               </CardHeader>
               <CardContent>
@@ -142,9 +212,9 @@ const BrillartePedidos = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in animation-delay-300">
               <CardHeader>
-                <Plane className="w-12 h-12 mx-auto mb-4 text-primary" />
+                <Plane className="w-12 h-12 mx-auto mb-4 text-primary transition-transform duration-300 hover:scale-110" />
                 <CardTitle>Almacenamiento Miami</CardTitle>
               </CardHeader>
               <CardContent>
@@ -154,9 +224,9 @@ const BrillartePedidos = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in animation-delay-400">
               <CardHeader>
-                <Clock className="w-12 h-12 mx-auto mb-4 text-primary" />
+                <Clock className="w-12 h-12 mx-auto mb-4 text-primary transition-transform duration-300 hover:scale-110" />
                 <CardTitle>Entrega Rápida</CardTitle>
               </CardHeader>
               <CardContent>
@@ -166,9 +236,9 @@ const BrillartePedidos = () => {
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in animation-delay-500">
               <CardHeader>
-                <DollarSign className="w-12 h-12 mx-auto mb-4 text-primary" />
+                <DollarSign className="w-12 h-12 mx-auto mb-4 text-primary transition-transform duration-300 hover:scale-110" />
                 <CardTitle>Envíos Adicionales</CardTitle>
               </CardHeader>
               <CardContent>
@@ -180,9 +250,9 @@ const BrillartePedidos = () => {
           </div>
 
           <div className="mt-12 text-center">
-            <Card className="inline-block">
+            <Card className="inline-block hover:shadow-xl transition-all duration-300 animate-scale-in animation-delay-500">
               <CardHeader>
-                <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-primary" />
+                <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-primary transition-transform duration-300 hover:scale-110" />
                 <CardTitle>Compra por Ti</CardTitle>
               </CardHeader>
               <CardContent>
@@ -197,7 +267,7 @@ const BrillartePedidos = () => {
       </section>
 
       {/* Formulario de Solicitud */}
-      <section className="py-20 px-4 bg-muted/50" id="solicitar">
+      <section className="py-20 px-4 bg-muted/50 animate-fade-in" id="solicitar">
         <div className="container mx-auto max-w-2xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-light text-foreground mb-4">

@@ -72,6 +72,8 @@ const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
         .insert([{
           codigo_pedido: formData.codigo_pedido,
           nueva_direccion: formData.nueva_direccion,
+          codigo_membresia: 'N/A',
+          password: 'N/A',
           razon: formData.razon || 'Solicitud de cambio de dirección',
           correo: formData.correo
         }]);
