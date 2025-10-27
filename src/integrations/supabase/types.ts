@@ -10,81 +10,67 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
       cancelaciones_notificaciones: {
         Row: {
-          activo: boolean
+          activo: boolean | null
           correo: string
-          fecha_creacion: string
+          created_at: string | null
           id: string
+          razon: string | null
         }
         Insert: {
-          activo?: boolean
+          activo?: boolean | null
           correo: string
-          fecha_creacion?: string
+          created_at?: string | null
           id?: string
+          razon?: string | null
         }
         Update: {
-          activo?: boolean
+          activo?: boolean | null
           correo?: string
-          fecha_creacion?: string
+          created_at?: string | null
           id?: string
+          razon?: string | null
         }
         Relationships: []
       }
-      codigos_descuento: {
+      chatbot_conversations: {
         Row: {
-          admin_creador: string | null
-          cliente_id: string | null
-          codigo: string
-          descuento_monto: number | null
-          descuento_porcentaje: number | null
-          fecha_creacion: string
-          fecha_vencimiento: string | null
+          conversation_data: Json
+          created_at: string | null
+          email: string
           id: string
-          usado: boolean | null
+          order_code: string | null
+          updated_at: string | null
         }
         Insert: {
-          admin_creador?: string | null
-          cliente_id?: string | null
-          codigo: string
-          descuento_monto?: number | null
-          descuento_porcentaje?: number | null
-          fecha_creacion?: string
-          fecha_vencimiento?: string | null
+          conversation_data?: Json
+          created_at?: string | null
+          email: string
           id?: string
-          usado?: boolean | null
+          order_code?: string | null
+          updated_at?: string | null
         }
         Update: {
-          admin_creador?: string | null
-          cliente_id?: string | null
-          codigo?: string
-          descuento_monto?: number | null
-          descuento_porcentaje?: number | null
-          fecha_creacion?: string
-          fecha_vencimiento?: string | null
+          conversation_data?: Json
+          created_at?: string | null
+          email?: string
           id?: string
-          usado?: boolean | null
+          order_code?: string | null
+          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "codigos_descuento_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       Contactos: {
         Row: {
           codigo_pedido: string | null
           correo: string
           descripcion_problema: string
-          estado: string | null
+          estado: string
           fecha_creacion: string | null
           id: string
           nombre_cliente: string
@@ -93,7 +79,7 @@ export type Database = {
           codigo_pedido?: string | null
           correo: string
           descripcion_problema: string
-          estado?: string | null
+          estado?: string
           fecha_creacion?: string | null
           id?: string
           nombre_cliente: string
@@ -102,7 +88,7 @@ export type Database = {
           codigo_pedido?: string | null
           correo?: string
           descripcion_problema?: string
-          estado?: string | null
+          estado?: string
           fecha_creacion?: string | null
           id?: string
           nombre_cliente?: string
@@ -111,39 +97,41 @@ export type Database = {
       }
       creditos_dados: {
         Row: {
-          admin_id: string | null
-          admin_nombre: string | null
-          codigo_membresia: string
-          correo: string
-          descripcion: string | null
-          fecha_creacion: string
+          admin_creador: string | null
+          codigo_membresia: string | null
+          created_at: string | null
           id: string
           monto: number
-          nombre: string
+          profile_id: string | null
+          razon: string | null
         }
         Insert: {
-          admin_id?: string | null
-          admin_nombre?: string | null
-          codigo_membresia: string
-          correo: string
-          descripcion?: string | null
-          fecha_creacion?: string
+          admin_creador?: string | null
+          codigo_membresia?: string | null
+          created_at?: string | null
           id?: string
           monto: number
-          nombre: string
+          profile_id?: string | null
+          razon?: string | null
         }
         Update: {
-          admin_id?: string | null
-          admin_nombre?: string | null
-          codigo_membresia?: string
-          correo?: string
-          descripcion?: string | null
-          fecha_creacion?: string
+          admin_creador?: string | null
+          codigo_membresia?: string | null
+          created_at?: string | null
           id?: string
           monto?: number
-          nombre?: string
+          profile_id?: string | null
+          razon?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "creditos_dados_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       Estatus: {
         Row: {
@@ -157,7 +145,7 @@ export type Database = {
         }
         Insert: {
           activo?: boolean
-          categoria?: string
+          categoria: string
           created_at?: string | null
           descripcion?: string | null
           id?: number
@@ -177,28 +165,25 @@ export type Database = {
       }
       Historial_Estatus: {
         Row: {
-          "Código de pedido": string
+          "Código de pedido": string | null
           Descripcion: string | null
-          Estatus_id: number
-          Fecha: string
-          id: string
-          Usuario: string | null
+          Estatus_id: number | null
+          Fecha: string | null
+          id: number
         }
         Insert: {
-          "Código de pedido": string
+          "Código de pedido"?: string | null
           Descripcion?: string | null
-          Estatus_id: number
-          Fecha?: string
-          id?: string
-          Usuario?: string | null
+          Estatus_id?: number | null
+          Fecha?: string | null
+          id?: number
         }
         Update: {
-          "Código de pedido"?: string
+          "Código de pedido"?: string | null
           Descripcion?: string | null
-          Estatus_id?: number
-          Fecha?: string
-          id?: string
-          Usuario?: string | null
+          Estatus_id?: number | null
+          Fecha?: string | null
+          id?: number
         }
         Relationships: [
           {
@@ -219,26 +204,32 @@ export type Database = {
       }
       noticias: {
         Row: {
-          activo: boolean
+          activo: boolean | null
+          categoria: string | null
           contenido: string
-          created_at: string
-          fecha_publicacion: string
+          created_at: string | null
+          descripcion: string | null
+          fecha_publicacion: string | null
           id: string
           titulo: string
         }
         Insert: {
-          activo?: boolean
+          activo?: boolean | null
+          categoria?: string | null
           contenido: string
-          created_at?: string
-          fecha_publicacion?: string
+          created_at?: string | null
+          descripcion?: string | null
+          fecha_publicacion?: string | null
           id?: string
           titulo: string
         }
         Update: {
-          activo?: boolean
+          activo?: boolean | null
+          categoria?: string | null
           contenido?: string
-          created_at?: string
-          fecha_publicacion?: string
+          created_at?: string | null
+          descripcion?: string | null
+          fecha_publicacion?: string | null
           id?: string
           titulo?: string
         }
@@ -246,144 +237,109 @@ export type Database = {
       }
       notifications: {
         Row: {
-          admin_nombre: string | null
-          admin_remitente: string | null
-          fecha_creacion: string
+          codigo_membresia: string | null
+          created_at: string | null
           id: string
-          leido: boolean
+          leido: boolean | null
           mensaje: string
+          tipo: string
           titulo: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
-          admin_nombre?: string | null
-          admin_remitente?: string | null
-          fecha_creacion?: string
+          codigo_membresia?: string | null
+          created_at?: string | null
           id?: string
-          leido?: boolean
+          leido?: boolean | null
           mensaje: string
+          tipo: string
           titulo: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
-          admin_nombre?: string | null
-          admin_remitente?: string | null
-          fecha_creacion?: string
+          codigo_membresia?: string | null
+          created_at?: string | null
           id?: string
-          leido?: boolean
+          leido?: boolean | null
           mensaje?: string
+          tipo?: string
           titulo?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
       paquetes_digitados: {
         Row: {
-          admin_creador: string | null
-          admin_nombre: string | null
-          cliente: string
-          codigo_membresia: string | null
-          codigo_pedido: string
-          correo_cliente: string | null
+          codigo_membresia: string
+          created_at: string | null
           descripcion: string | null
-          estatus_id: number
-          fecha_actualizacion: string
-          fecha_creacion: string
-          fecha_estimada_entrega: string | null
+          estado: string | null
           id: string
-          notas: string | null
           peso: number | null
-          precio: number
-          total: number
-          user_id: string | null
+          tracking_number: string
+          updated_at: string | null
+          valor_declarado: number | null
         }
         Insert: {
-          admin_creador?: string | null
-          admin_nombre?: string | null
-          cliente: string
-          codigo_membresia?: string | null
-          codigo_pedido: string
-          correo_cliente?: string | null
+          codigo_membresia: string
+          created_at?: string | null
           descripcion?: string | null
-          estatus_id: number
-          fecha_actualizacion?: string
-          fecha_creacion?: string
-          fecha_estimada_entrega?: string | null
+          estado?: string | null
           id?: string
-          notas?: string | null
           peso?: number | null
-          precio: number
-          total: number
-          user_id?: string | null
+          tracking_number: string
+          updated_at?: string | null
+          valor_declarado?: number | null
         }
         Update: {
-          admin_creador?: string | null
-          admin_nombre?: string | null
-          cliente?: string
-          codigo_membresia?: string | null
-          codigo_pedido?: string
-          correo_cliente?: string | null
+          codigo_membresia?: string
+          created_at?: string | null
           descripcion?: string | null
-          estatus_id?: number
-          fecha_actualizacion?: string
-          fecha_creacion?: string
-          fecha_estimada_entrega?: string | null
+          estado?: string | null
           id?: string
-          notas?: string | null
           peso?: number | null
-          precio?: number
-          total?: number
-          user_id?: string | null
+          tracking_number?: string
+          updated_at?: string | null
+          valor_declarado?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "paquetes_digitados_estatus_id_fkey"
-            columns: ["estatus_id"]
-            isOneToOne: false
-            referencedRelation: "Estatus"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       Pedidos: {
         Row: {
           Cliente: string
           "Código de pedido": string
-          correo_cliente: string | null
-          Estatus_id: number
-          Fecha_actualizacion: string
-          Fecha_creacion: string
-          Fecha_estimada_entrega: string
+          created_at: string | null
+          Estatus_id: number | null
+          Fecha_creacion: string | null
+          Fecha_estimada_entrega: string | null
           Notas: string | null
-          Peso: number
-          Precio: number
-          Total: number
+          Peso: number | null
+          Precio: number | null
+          Total: number | null
         }
         Insert: {
           Cliente: string
           "Código de pedido": string
-          correo_cliente?: string | null
-          Estatus_id: number
-          Fecha_actualizacion?: string
-          Fecha_creacion?: string
-          Fecha_estimada_entrega: string
+          created_at?: string | null
+          Estatus_id?: number | null
+          Fecha_creacion?: string | null
+          Fecha_estimada_entrega?: string | null
           Notas?: string | null
-          Peso: number
-          Precio: number
-          Total: number
+          Peso?: number | null
+          Precio?: number | null
+          Total?: number | null
         }
         Update: {
           Cliente?: string
           "Código de pedido"?: string
-          correo_cliente?: string | null
-          Estatus_id?: number
-          Fecha_actualizacion?: string
-          Fecha_creacion?: string
-          Fecha_estimada_entrega?: string
+          created_at?: string | null
+          Estatus_id?: number | null
+          Fecha_creacion?: string | null
+          Fecha_estimada_entrega?: string | null
           Notas?: string | null
-          Peso?: number
-          Precio?: number
-          Total?: number
+          Peso?: number | null
+          Precio?: number | null
+          Total?: number | null
         }
         Relationships: [
           {
@@ -399,74 +355,110 @@ export type Database = {
         Row: {
           codigo_membresia: string
           codigo_pedido: string
-          fecha_asignacion: string
+          created_at: string | null
+          descripcion: string | null
+          estado: string | null
           id: string
-          user_id: string
+          monto: number | null
+          updated_at: string | null
         }
         Insert: {
           codigo_membresia: string
           codigo_pedido: string
-          fecha_asignacion?: string
+          created_at?: string | null
+          descripcion?: string | null
+          estado?: string | null
           id?: string
-          user_id: string
+          monto?: number | null
+          updated_at?: string | null
         }
         Update: {
           codigo_membresia?: string
           codigo_pedido?: string
-          fecha_asignacion?: string
+          created_at?: string | null
+          descripcion?: string | null
+          estado?: string | null
           id?: string
-          user_id?: string
+          monto?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
       pedidos_formulario: {
         Row: {
+          apellido: string
+          codigo_membresia: string | null
           correo: string
-          descripcion_articulo: string
-          direccion: string | null
-          estado: string
-          fecha_actualizacion: string
-          fecha_creacion: string
+          fecha_registro: string | null
           id: string
+          instagram: string | null
           nombre: string
-          numero_casa: string | null
-          provincia: string | null
-          referencias: string | null
-          sector: string | null
-          telefono: string | null
-          tipo_servicio: string
+          whatsapp: string | null
         }
         Insert: {
+          apellido: string
+          codigo_membresia?: string | null
           correo: string
-          descripcion_articulo: string
-          direccion?: string | null
-          estado?: string
-          fecha_actualizacion?: string
-          fecha_creacion?: string
+          fecha_registro?: string | null
           id?: string
+          instagram?: string | null
           nombre: string
-          numero_casa?: string | null
-          provincia?: string | null
-          referencias?: string | null
-          sector?: string | null
-          telefono?: string | null
-          tipo_servicio: string
+          whatsapp?: string | null
         }
         Update: {
+          apellido?: string
+          codigo_membresia?: string | null
           correo?: string
-          descripcion_articulo?: string
-          direccion?: string | null
-          estado?: string
-          fecha_actualizacion?: string
-          fecha_creacion?: string
+          fecha_registro?: string | null
           id?: string
+          instagram?: string | null
           nombre?: string
-          numero_casa?: string | null
-          provincia?: string | null
-          referencias?: string | null
-          sector?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      pedidos_registro: {
+        Row: {
+          codigo_membresia: string
+          codigo_pedido: string
+          correo: string
+          credito: number | null
+          direccion: string | null
+          estado_pedido: string
+          fecha_registro: string | null
+          id: string
+          nombre_cliente: string
+          password: string
+          telefono: string | null
+          ultima_modificacion: string | null
+        }
+        Insert: {
+          codigo_membresia: string
+          codigo_pedido: string
+          correo: string
+          credito?: number | null
+          direccion?: string | null
+          estado_pedido?: string
+          fecha_registro?: string | null
+          id?: string
+          nombre_cliente: string
+          password: string
           telefono?: string | null
-          tipo_servicio?: string
+          ultima_modificacion?: string | null
+        }
+        Update: {
+          codigo_membresia?: string
+          codigo_pedido?: string
+          correo?: string
+          credito?: number | null
+          direccion?: string | null
+          estado_pedido?: string
+          fecha_registro?: string | null
+          id?: string
+          nombre_cliente?: string
+          password?: string
+          telefono?: string | null
+          ultima_modificacion?: string | null
         }
         Relationships: []
       }
@@ -474,107 +466,110 @@ export type Database = {
         Row: {
           codigo_membresia: string | null
           confirmado: boolean | null
-          correo: string
+          correo: string | null
+          created_at: string | null
           direccion: string | null
-          fecha_actualizacion: string
-          fecha_creacion: string
+          fecha_creacion: string | null
           id: string
-          nombre_completo: string
-          saldo: number
+          nombre_completo: string | null
+          saldo: number | null
           telefono: string | null
-          user_id: string
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           codigo_membresia?: string | null
           confirmado?: boolean | null
-          correo: string
+          correo?: string | null
+          created_at?: string | null
           direccion?: string | null
-          fecha_actualizacion?: string
-          fecha_creacion?: string
+          fecha_creacion?: string | null
           id?: string
-          nombre_completo: string
-          saldo?: number
+          nombre_completo?: string | null
+          saldo?: number | null
           telefono?: string | null
-          user_id: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           codigo_membresia?: string | null
           confirmado?: boolean | null
-          correo?: string
+          correo?: string | null
+          created_at?: string | null
           direccion?: string | null
-          fecha_actualizacion?: string
-          fecha_creacion?: string
+          fecha_creacion?: string | null
           id?: string
-          nombre_completo?: string
-          saldo?: number
+          nombre_completo?: string | null
+          saldo?: number | null
           telefono?: string | null
-          user_id?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
       registros_acceso: {
         Row: {
-          apellido: string | null
+          activo: boolean | null
           codigo_membresia: string
-          correo: string
+          correo: string | null
           direccion: string | null
-          email_enviado: boolean
-          fecha_creacion: string
+          fecha_creacion: string | null
           id: string
-          metadata: Json | null
           nombre: string | null
-          password_temporal_mascarado: string | null
+          password: string
+          telefono: string | null
+          ultima_modificacion: string | null
         }
         Insert: {
-          apellido?: string | null
+          activo?: boolean | null
           codigo_membresia: string
-          correo: string
+          correo?: string | null
           direccion?: string | null
-          email_enviado?: boolean
-          fecha_creacion?: string
+          fecha_creacion?: string | null
           id?: string
-          metadata?: Json | null
           nombre?: string | null
-          password_temporal_mascarado?: string | null
+          password: string
+          telefono?: string | null
+          ultima_modificacion?: string | null
         }
         Update: {
-          apellido?: string | null
+          activo?: boolean | null
           codigo_membresia?: string
-          correo?: string
+          correo?: string | null
           direccion?: string | null
-          email_enviado?: boolean
-          fecha_creacion?: string
+          fecha_creacion?: string | null
           id?: string
-          metadata?: Json | null
           nombre?: string | null
-          password_temporal_mascarado?: string | null
+          password?: string
+          telefono?: string | null
+          ultima_modificacion?: string | null
         }
         Relationships: []
       }
       respuestas_tickets: {
         Row: {
+          created_at: string | null
           es_admin: boolean
-          fecha_creacion: string
           id: string
           mensaje: string
           ticket_id: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
+          created_at?: string | null
           es_admin?: boolean
-          fecha_creacion?: string
           id?: string
           mensaje: string
           ticket_id: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
+          created_at?: string | null
           es_admin?: boolean
-          fecha_creacion?: string
           id?: string
           mensaje?: string
           ticket_id?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -591,7 +586,7 @@ export type Database = {
           codigo_pedido: string
           correo: string
           estado: string
-          fecha_creacion: string
+          fecha_creacion: string | null
           id: string
           situacion: string
         }
@@ -599,7 +594,7 @@ export type Database = {
           codigo_pedido: string
           correo: string
           estado?: string
-          fecha_creacion?: string
+          fecha_creacion?: string | null
           id?: string
           situacion: string
         }
@@ -607,7 +602,7 @@ export type Database = {
           codigo_pedido?: string
           correo?: string
           estado?: string
-          fecha_creacion?: string
+          fecha_creacion?: string | null
           id?: string
           situacion?: string
         }
@@ -615,167 +610,93 @@ export type Database = {
       }
       Solicitudes_Cambio_Direccion: {
         Row: {
+          codigo_membresia: string
           codigo_pedido: string
-          correo: string
+          correo: string | null
           estado: string
-          fecha_creacion: string
+          fecha_creacion: string | null
           id: string
           nueva_direccion: string
+          password: string
           razon: string | null
         }
         Insert: {
+          codigo_membresia: string
           codigo_pedido: string
-          correo: string
+          correo?: string | null
           estado?: string
-          fecha_creacion?: string
+          fecha_creacion?: string | null
           id?: string
           nueva_direccion: string
+          password: string
           razon?: string | null
         }
         Update: {
+          codigo_membresia?: string
           codigo_pedido?: string
-          correo?: string
+          correo?: string | null
           estado?: string
-          fecha_creacion?: string
+          fecha_creacion?: string | null
           id?: string
           nueva_direccion?: string
+          password?: string
           razon?: string | null
-        }
-        Relationships: []
-      }
-      solicitudes_retiro: {
-        Row: {
-          apellido: string
-          codigo_pedido: string
-          correo: string
-          estado: string
-          fecha_actualizacion: string
-          fecha_creacion: string
-          id: string
-          nombre: string
-        }
-        Insert: {
-          apellido: string
-          codigo_pedido: string
-          correo: string
-          estado?: string
-          fecha_actualizacion?: string
-          fecha_creacion?: string
-          id?: string
-          nombre: string
-        }
-        Update: {
-          apellido?: string
-          codigo_pedido?: string
-          correo?: string
-          estado?: string
-          fecha_actualizacion?: string
-          fecha_creacion?: string
-          id?: string
-          nombre?: string
         }
         Relationships: []
       }
       tickets_ayuda: {
         Row: {
-          admin_asignado: string | null
-          admin_nombre: string | null
           asunto: string
-          codigo_membresia: string
+          categoria: string | null
+          created_at: string | null
           descripcion: string
           estado: string
-          fecha_actualizacion: string
-          fecha_creacion: string
           id: string
           prioridad: string
-          user_id: string
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
-          admin_asignado?: string | null
-          admin_nombre?: string | null
           asunto: string
-          codigo_membresia: string
+          categoria?: string | null
+          created_at?: string | null
           descripcion: string
           estado?: string
-          fecha_actualizacion?: string
-          fecha_creacion?: string
           id?: string
           prioridad?: string
-          user_id: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
-          admin_asignado?: string | null
-          admin_nombre?: string | null
           asunto?: string
-          codigo_membresia?: string
+          categoria?: string | null
+          created_at?: string | null
           descripcion?: string
           estado?: string
-          fecha_actualizacion?: string
-          fecha_creacion?: string
           id?: string
           prioridad?: string
-          user_id?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
-      transacciones_saldo: {
-        Row: {
-          admin_id: string | null
-          admin_nombre: string | null
-          descripcion: string
-          fecha_creacion: string
-          id: string
-          monto: number
-          tipo: string
-          user_id: string
-        }
-        Insert: {
-          admin_id?: string | null
-          admin_nombre?: string | null
-          descripcion: string
-          fecha_creacion?: string
-          id?: string
-          monto: number
-          tipo: string
-          user_id: string
-        }
-        Update: {
-          admin_id?: string | null
-          admin_nombre?: string | null
-          descripcion?: string
-          fecha_creacion?: string
-          id?: string
-          monto?: number
-          tipo?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "transacciones_saldo_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       user_roles: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
-          role: string
+          role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          role?: string
+          role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          role?: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: []
@@ -785,21 +706,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      copiar_historial_pedido: {
-        Args: { codigo_destino: string; codigo_origen: string }
-        Returns: undefined
-      }
       get_user_role: {
-        Args: { user_uuid?: string }
-        Returns: string
-      }
-      is_admin: {
-        Args: { user_uuid?: string }
-        Returns: boolean
+        Args: { input_user_id: string }
+        Returns: {
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -926,6 +841,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

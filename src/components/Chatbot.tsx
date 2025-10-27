@@ -50,9 +50,16 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       return;
     }
 
-    // TODO: Guardar información del cliente en la base de datos
-    // Una vez creada la tabla chatbot_conversations
-    console.log('Usuario iniciando chat:', email, orderCode);
+    // Guardar información del cliente
+    try {
+      await supabase.from('chatbot_conversations').insert({
+        email: email.trim(),
+        order_code: orderCode.trim() || null,
+        conversation_data: { messages: [] }
+      });
+    } catch (error) {
+      console.error('Error saving initial info:', error);
+    }
 
     setNeedsInfo(false);
     setMessages([
@@ -86,9 +93,14 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
 
       setMessages([...newMessages, { role: "assistant", content: data.response }]);
 
-      // TODO: Guardar conversación en la base de datos
-      // Una vez creada la tabla chatbot_conversations
-      console.log('Conversación actualizada');
+      // Guardar conversación
+      await supabase.from('chatbot_conversations').insert({
+        email,
+        order_code: orderCode || null,
+        conversation_data: { 
+          messages: [...newMessages, { role: "assistant", content: data.response }] 
+        }
+      });
     } catch (error) {
       console.error('Error:', error);
       toast({
