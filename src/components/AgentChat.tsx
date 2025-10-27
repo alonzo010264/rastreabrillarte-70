@@ -135,15 +135,41 @@ export const AgentChat = ({ onClose }: AgentChatProps) => {
 
     const userMessage = input.trim();
     setInput("");
-    
-    setMessages([
-      ...messages,
-      { role: "user", content: userMessage },
-      {
-        role: "agent",
-        content: "Déjame revisar eso por ti..."
-      }
-    ]);
+    setLoading(true);
+
+    const newMessages = [...messages, { role: "user" as const, content: userMessage }];
+    setMessages(newMessages);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('agent-chat', {
+        body: {
+          messages: newMessages,
+          email,
+          orderCode,
+          agentName
+        }
+      });
+
+      if (error) throw error;
+
+      setMessages([...newMessages, { role: "agent", content: data.response }]);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema. Por favor intenta de nuevo.",
+        variant: "destructive"
+      });
+      setMessages([
+        ...newMessages,
+        {
+          role: "agent",
+          content: "Disculpa, tuve un problema. ¿Podrías intentar de nuevo? 😅"
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) {

@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.agent-support]
 verify_jwt = false
+
+[functions.agent-chat]
+verify_jwt = false
