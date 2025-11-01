@@ -1,4 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.0";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,11 +34,6 @@ const handler = async (req: Request): Promise<Response> => {
     const orderCode = requestData.orderCode || requestData.codigo_pedido || '';
 
     console.log("Enviando email de confirmación a:", customerEmail);
-
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) {
-      throw new Error("RESEND_API_KEY no está configurado");
-    }
 
     // Determine if this is a new order or a support request
     const isNewOrder = requestData.customerName && requestData.orderCode;
@@ -166,28 +164,14 @@ const handler = async (req: Request): Promise<Response> => {
       `;
     }
 
-    const emailData = {
+    // Enviar email usando Resend SDK
+    const emailResponse = await resend.emails.send({
       from: "BRILLARTE <soporte@brillarte.lat>",
       to: [customerEmail],
       subject: subject,
       html: emailHtml,
-    };
-
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(emailData),
     });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`Error de Resend: ${response.status} - ${errorData}`);
-    }
-
-    const emailResponse = await response.json();
     console.log("Email enviado exitosamente:", emailResponse);
 
     return new Response(JSON.stringify(emailResponse), {
