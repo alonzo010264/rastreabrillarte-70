@@ -28,18 +28,18 @@ const ContactForm = () => {
 
       if (error) throw error;
 
-      // Enviar email de confirmación
-      try {
-        await supabase.functions.invoke('send-confirmation-email', {
-          body: {
-            nombre_cliente: formData.nombre_cliente,
-            correo: formData.correo,
-            codigo_pedido: formData.codigo_pedido
-          }
-        });
-      } catch (emailError) {
+      // Enviar email de confirmación automáticamente
+      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+        body: {
+          nombre_cliente: formData.nombre_cliente,
+          correo: formData.correo,
+          codigo_pedido: formData.codigo_pedido
+        }
+      });
+
+      if (emailError) {
         console.error('Error enviando email de confirmación:', emailError);
-        // No bloquear el flujo si el email falla
+        // Continuar aunque falle el email
       }
 
       toast({
