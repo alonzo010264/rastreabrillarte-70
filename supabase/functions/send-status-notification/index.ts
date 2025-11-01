@@ -117,7 +117,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailData = {
-      from: "BRILLARTE <onboarding@resend.dev>",
+      from: "BRILLARTE <soporte@brillarte.lat>",
       to: [customerEmail],
       subject: subject,
       html: emailHtml,

@@ -143,7 +143,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Enviar correo de confirmación
     await resend.emails.send({
-      from: "BRILLARTE <onboarding@resend.dev>",
+      from: "BRILLARTE <soporte@brillarte.lat>",
       to: [email],
       subject: "Solicitud de Cambio de Dirección Recibida - BRILLARTE",
       html: confirmationHtml,
@@ -263,7 +263,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Enviar correo de estado
     await resend.emails.send({
-      from: "BRILLARTE <onboarding@resend.dev>",
+      from: "BRILLARTE <soporte@brillarte.lat>",
       to: [email],
       subject: canChange 
         ? "✅ Cambio de Dirección Aprobado - BRILLARTE"

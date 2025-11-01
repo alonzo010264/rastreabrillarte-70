@@ -125,7 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     await resend.emails.send({
-      from: "BRILLARTE <onboarding@resend.dev>",
+      from: "BRILLARTE <soporte@brillarte.lat>",
       to: [email],
       subject: "Solicitud de Ayuda de Emergencia Recibida - BRILLARTE",
       html,
