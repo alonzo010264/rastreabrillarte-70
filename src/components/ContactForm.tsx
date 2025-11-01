@@ -28,8 +28,10 @@ const ContactForm = () => {
 
       if (error) throw error;
 
+      console.log('Intentando enviar email de confirmación a:', formData.correo);
+
       // Enviar email de confirmación automáticamente
-      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
         body: {
           nombre_cliente: formData.nombre_cliente,
           correo: formData.correo,
@@ -38,14 +40,18 @@ const ContactForm = () => {
       });
 
       if (emailError) {
-        console.error('Error enviando email de confirmación:', emailError);
-        // Continuar aunque falle el email
+        console.error('Error enviando email:', emailError);
+        toast({
+          title: "Mensaje guardado",
+          description: "Tu consulta fue guardada, pero hubo un problema al enviar el correo de confirmación. Te contactaremos pronto.",
+        });
+      } else {
+        console.log('Email enviado exitosamente:', emailData);
+        toast({
+          title: "Mensaje enviado",
+          description: "Hemos recibido tu consulta y te hemos enviado un email de confirmación. Te contactaremos pronto.",
+        });
       }
-
-      toast({
-        title: "Mensaje enviado",
-        description: "Hemos recibido tu consulta y te hemos enviado un email de confirmación. Te contactaremos pronto.",
-      });
 
       setFormData({
         nombre_cliente: "",
