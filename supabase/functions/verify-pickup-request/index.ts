@@ -94,8 +94,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailData = {
-      from: "BRILLARTE <soporte@brillarte.lat>",
+      from: "BRILLARTE <contacto@brillarte.lat>",
       to: [correo],
+      reply_to: "contacto@brillarte.lat",
       subject: `Confirmación de Solicitud de Retiro ${codigoPedido} - BRILLARTE`,
       html: `
         <!DOCTYPE html>

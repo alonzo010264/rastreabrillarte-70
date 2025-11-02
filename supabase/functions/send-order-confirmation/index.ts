@@ -26,8 +26,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending order confirmation to:", customerEmail);
 
     const emailResponse = await resend.emails.send({
-      from: "BRILLARTE <soporte@brillarte.lat>",
+      from: "BRILLARTE <contacto@brillarte.lat>",
       to: [customerEmail],
+      replyTo: ["contacto@brillarte.lat"],
       subject: "¡Gracias por tu solicitud de pedido!",
       html: `
         <!DOCTYPE html>

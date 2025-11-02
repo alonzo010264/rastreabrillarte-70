@@ -126,8 +126,9 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailData = {
-      from: "BRILLARTE <soporte@brillarte.lat>",
+      from: "BRILLARTE <contacto@brillarte.lat>",
       to: [email],
+      reply_to: "contacto@brillarte.lat",
       subject: "¡Crédito Aplicado a tu Cuenta! - BRILLARTE",
       html: emailHtml,
     };
