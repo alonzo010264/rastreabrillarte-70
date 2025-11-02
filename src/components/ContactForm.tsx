@@ -28,28 +28,39 @@ const ContactForm = () => {
 
       if (error) throw error;
 
-      console.log('Intentando enviar email de confirmación a:', formData.correo);
+      console.log('Guardado en BD exitoso. Enviando email de confirmación a:', formData.correo);
 
-      // Enviar email de confirmación automáticamente
-      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
-        body: {
-          nombre_cliente: formData.nombre_cliente,
-          correo: formData.correo,
-          codigo_pedido: formData.codigo_pedido
-        }
-      });
-
-      if (emailError) {
-        console.error('Error enviando email:', emailError);
-        toast({
-          title: "Mensaje guardado",
-          description: "Tu consulta fue guardada, pero hubo un problema al enviar el correo de confirmación. Te contactaremos pronto.",
+      // Enviar email de confirmación automáticamente usando Resend directamente
+      try {
+        const response = await fetch('https://usgqtqadoqzyfttjazmz.supabase.co/functions/v1/send-confirmation-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+          },
+          body: JSON.stringify({
+            nombre_cliente: formData.nombre_cliente,
+            correo: formData.correo,
+            codigo_pedido: formData.codigo_pedido
+          })
         });
-      } else {
-        console.log('Email enviado exitosamente:', emailData);
+
+        const emailResult = await response.json();
+        console.log('Respuesta de send-confirmation-email:', emailResult);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${emailResult.error || 'Error desconocido'}`);
+        }
+
         toast({
           title: "Mensaje enviado",
-          description: "Hemos recibido tu consulta y te hemos enviado un email de confirmación. Te contactaremos pronto.",
+          description: "Hemos recibido tu consulta y te enviamos un correo de confirmación.",
+        });
+      } catch (emailError: any) {
+        console.error('Error llamando a send-confirmation-email:', emailError);
+        toast({
+          title: "Mensaje guardado",
+          description: "Tu consulta fue guardada, pero no pudimos enviar el correo de confirmación. Te contactaremos pronto.",
         });
       }
 
