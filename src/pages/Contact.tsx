@@ -59,11 +59,37 @@ const Contact = () => {
           variant: "destructive"
         });
       } else {
-        toast({
-          title: "¡Mensaje enviado!",
-          description: "Gracias por contactarnos. Te responderemos pronto.",
-        });
-        setFormData({ name: '', email: '', message: '' });
+        // Intentar enviar correo de confirmación al cliente
+        try {
+          const { data: emailResp, error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+            body: {
+              nombre_cliente: formData.name.trim(),
+              correo: formData.email.trim()
+            }
+          });
+
+          if (emailError) {
+            console.error('Error enviando correo de confirmación:', emailError);
+            toast({
+              title: "Mensaje enviado",
+              description: "Recibimos tu mensaje. No pudimos enviar el correo de confirmación, pero te contactaremos pronto.",
+            });
+          } else {
+            console.log('Correo de confirmación enviado:', emailResp);
+            toast({
+              title: "¡Mensaje enviado!",
+              description: "Hemos recibido tu mensaje y te enviamos un correo de confirmación.",
+            });
+          }
+        } catch (emailCatch) {
+          console.error('Excepción enviando correo de confirmación:', emailCatch);
+          toast({
+            title: "Mensaje enviado",
+            description: "Guardamos tu mensaje, pero no pudimos enviar el correo de confirmación.",
+          });
+        } finally {
+          setFormData({ name: '', email: '', message: '' });
+        }
       }
     } catch (error) {
       console.error('Error:', error);
