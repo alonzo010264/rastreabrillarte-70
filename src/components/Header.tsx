@@ -1,5 +1,4 @@
-
-import { Diamond } from "lucide-react";
+import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 
 const Header = () => {
   return (
@@ -7,7 +6,7 @@ const Header = () => {
       <div className="container mx-auto text-center">
         <div className="flex items-center justify-center mb-6 animate-scale-in">
           <img 
-            src="/lovable-uploads/9fddbd33-95e9-4a29-af18-6d93693beabb.png" 
+            src={brillarteLogo} 
             alt="BRILLARTE Logo" 
             className="h-24 w-auto transition-transform duration-300 hover:scale-110"
           />

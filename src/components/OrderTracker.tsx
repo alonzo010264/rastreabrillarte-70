@@ -1,17 +1,23 @@
-
-import { useState, useEffect } from "react";
-import { Search, Package } from "lucide-react";
+import { useState } from "react";
+import { Search, Package, HelpCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import OrderStatus from "./OrderStatus";
+import { toast } from "sonner";
 
 const OrderTracker = () => {
   const [orderCode, setOrderCode] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [orderFound, setOrderFound] = useState<any>(null);
   const [searchAttempted, setSearchAttempted] = useState(false);
+  const [showHelpForm, setShowHelpForm] = useState(false);
+  const [helpMessage, setHelpMessage] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [isSendingHelp, setIsSendingHelp] = useState(false);
 
   const handleSearch = async () => {
     if (!orderCode.trim()) return;
@@ -20,7 +26,6 @@ const OrderTracker = () => {
     setSearchAttempted(true);
     
     try {
-      // Buscar pedido en Supabase con información del estatus
       const { data: pedido, error } = await supabase
         .from('Pedidos')
         .select(`
@@ -36,7 +41,6 @@ const OrderTracker = () => {
         return;
       }
 
-      // Buscar historial de estatus con información de cada estatus
       const { data: historial, error: historialError } = await supabase
         .from('Historial_Estatus')
         .select(`
@@ -73,7 +77,6 @@ const OrderTracker = () => {
   };
 
   const formatCode = (value: string) => {
-    // Formato automático para B01-XXXXX
     let formatted = value.toUpperCase().replace(/[^B0-9]/g, '');
     if (formatted.startsWith('B') && formatted.length > 1) {
       if (formatted.length <= 3) {
@@ -82,13 +85,52 @@ const OrderTracker = () => {
         formatted = formatted.replace(/^B(\d{2})(\d*)/, 'B$1-$2');
       }
     }
-    return formatted.slice(0, 9); // B01-00000 = 9 caracteres
+    return formatted.slice(0, 9);
   };
 
   const handleNewSearch = () => {
     setOrderCode("");
     setOrderFound(null);
     setSearchAttempted(false);
+    setShowHelpForm(false);
+    setHelpMessage("");
+    setCustomerName("");
+    setCustomerEmail("");
+  };
+
+  const handleSendHelp = async () => {
+    if (!customerName.trim() || !customerEmail.trim() || !helpMessage.trim()) {
+      toast.error("Por favor completa todos los campos");
+      return;
+    }
+
+    setIsSendingHelp(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-order-tracking-help', {
+        body: {
+          codigo_pedido: orderCode,
+          nombre_cliente: customerName.trim(),
+          correo: customerEmail.trim(),
+          mensaje: helpMessage.trim()
+        }
+      });
+
+      if (error) {
+        console.error('Error enviando solicitud de ayuda:', error);
+        toast.error("Error al enviar tu consulta. Por favor intenta nuevamente.");
+      } else {
+        toast.success("¡Consulta enviada! Te contactaremos pronto a tu correo.");
+        setShowHelpForm(false);
+        setHelpMessage("");
+        setCustomerName("");
+        setCustomerEmail("");
+      }
+    } catch (error) {
+      console.error('Excepción enviando solicitud:', error);
+      toast.error("Error al enviar tu consulta.");
+    } finally {
+      setIsSendingHelp(false);
+    }
   };
 
   // Si encontramos un pedido, mostramos el estado
@@ -106,14 +148,90 @@ const OrderTracker = () => {
           statusHistory={orderFound.statusHistory}
         />
         
-        <div className="text-center">
-          <Button 
-            onClick={handleNewSearch}
-            className="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-xl transition-all duration-300"
-          >
-            Buscar Otro Pedido
-          </Button>
-        </div>
+        {!showHelpForm ? (
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={handleNewSearch}
+              className="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-xl transition-all duration-300"
+            >
+              Buscar Otro Pedido
+            </Button>
+            <Button 
+              onClick={() => setShowHelpForm(true)} 
+              variant="secondary"
+              className="flex items-center gap-2 py-2 px-6 rounded-xl"
+            >
+              <HelpCircle className="w-4 h-4" />
+              ¿Tienes algún problema?
+            </Button>
+          </div>
+        ) : (
+          <Card className="animate-fade-in border-2 border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-primary" />
+                Contáctanos
+              </CardTitle>
+              <CardDescription>
+                Cuéntanos tu problema y te responderemos pronto por correo
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Tu Nombre</label>
+                <Input
+                  placeholder="Ej: Juan Pérez"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Tu Email</label>
+                <Input
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Describe tu Problema</label>
+                <Textarea
+                  placeholder="Cuéntanos qué necesitas..."
+                  value={helpMessage}
+                  onChange={(e) => setHelpMessage(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button 
+                  onClick={handleSendHelp} 
+                  disabled={isSendingHelp}
+                  className="flex-1"
+                >
+                  {isSendingHelp ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Enviar Consulta"
+                  )}
+                </Button>
+                <Button 
+                  onClick={() => setShowHelpForm(false)} 
+                  variant="outline"
+                  disabled={isSendingHelp}
+                >
+                  Cancelar
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                Recibirás una respuesta en tu correo desde pedidos@brillarte.lat
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }

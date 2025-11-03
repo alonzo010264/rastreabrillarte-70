@@ -118,11 +118,12 @@ const OrderRequest = () => {
       if (orderError) throw orderError;
 
       // Enviar correo de confirmación con código de rastreo
-      const { error: emailError } = await supabase.functions.invoke('send-order-confirmation', {
+      const { error: emailError } = await supabase.functions.invoke('send-order-request-confirmation', {
         body: {
-          email: data.correo,
-          orderCode: orderCode,
-          customerName: data.nombre
+          nombre: data.nombre,
+          correo: data.correo,
+          codigo_pedido: orderCode,
+          tipo_servicio: data.tipo_servicio
         }
       });
 

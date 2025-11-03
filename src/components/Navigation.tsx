@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Diamond, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,8 +25,12 @@ const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <Diamond className="h-8 w-8 text-primary transition-transform group-hover:rotate-45" />
+          <Link to="/" className="flex items-center space-x-3 group">
+            <img 
+              src={brillarteLogo} 
+              alt="BRILLARTE Logo" 
+              className="h-10 w-10 object-contain transition-transform group-hover:scale-110 duration-300"
+            />
             <span className="font-light text-xl text-foreground">BRILLARTE</span>
           </Link>
 

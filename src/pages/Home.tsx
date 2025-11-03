@@ -1,9 +1,12 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Star, Clock, LogIn } from "lucide-react";
+import ProductGallery from "@/components/ProductGallery";
+import { Star, Clock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
+import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
+import teamWork from "@/assets/team-work.png";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -13,39 +16,57 @@ const Home = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="relative py-20 px-4 bg-gradient-to-br from-background to-muted overflow-hidden">
+      <section className="relative min-h-[80vh] flex items-center px-4 bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <Star className="absolute top-20 left-10 text-muted-foreground w-16 h-16 rotate-45 opacity-20 animate-fade-in" />
-          <Star className="absolute top-40 right-20 text-muted-foreground w-12 h-12 rotate-12 opacity-15 animate-fade-in animation-delay-200" />
-          <Star className="absolute bottom-60 left-20 text-muted-foreground w-20 h-20 -rotate-12 opacity-10 animate-fade-in animation-delay-300" />
-          <Star className="absolute bottom-20 right-10 text-muted-foreground w-14 h-14 rotate-45 opacity-20 animate-fade-in animation-delay-400" />
+          <Sparkles className="absolute top-20 left-10 text-primary/20 w-16 h-16 animate-pulse" style={{ animationDelay: "0s" }} />
+          <Sparkles className="absolute top-40 right-20 text-primary/15 w-12 h-12 animate-pulse" style={{ animationDelay: "1s" }} />
+          <Sparkles className="absolute bottom-60 left-20 text-primary/10 w-20 h-20 animate-pulse" style={{ animationDelay: "2s" }} />
+          <Sparkles className="absolute bottom-20 right-10 text-primary/20 w-14 h-14 animate-pulse" style={{ animationDelay: "1.5s" }} />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }} />
         </div>
         
-        <div className="container mx-auto text-center max-w-4xl relative z-10">
-          <div className="mb-8 animate-scale-in">
-            <img 
-              src="/assets/brillarte-logo.jpg" 
-              alt="BRILLARTE Logo" 
-              className="h-32 w-auto mx-auto mb-6 transition-transform duration-300 hover:scale-110"
-            />
+        <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
+          <div className="text-center md:text-left space-y-8">
+            <div className="animate-scale-in">
+              <img 
+                src={brillarteLogo} 
+                alt="BRILLARTE Logo" 
+                className="h-32 w-32 mx-auto md:mx-0 mb-6 transition-transform duration-300 hover:scale-110 hover:rotate-3"
+              />
+            </div>
+            <h1 className="text-5xl md:text-7xl font-light text-foreground mb-6 animate-fade-in">
+              BRILLARTE
+            </h1>
+            <p className="text-2xl md:text-3xl text-primary font-light animate-fade-in animation-delay-200">
+              El Arte de Brillar ✨
+            </p>
+            <p className="text-lg text-muted-foreground animate-fade-in animation-delay-300 leading-relaxed">
+              Descubre accesorios únicos y de calidad excepcional. 
+              Pulseras elegantes, aretes hermosos, monederos funcionales y mucho más para complementar tu estilo.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start animate-fade-in animation-delay-400">
+              <Button size="lg" className="text-lg px-8 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                <Link to="/pedir">Hacer Pedido</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild className="text-lg px-8 hover:scale-105 transition-all">
+                <Link to="/rastrear">Rastrear Pedido</Link>
+              </Button>
+            </div>
           </div>
-          <h1 className="text-5xl md:text-7xl font-light text-foreground mb-6 animate-fade-in">
-            BRILLARTE
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 animate-fade-in animation-delay-200">
-            El Arte de Brillar
-          </p>
-          <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-in animation-delay-300">
-            Descubre productos de calidad únicos que harán brillar tu estilo. 
-            Pulseras, aretes, monederos y mucho más.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in animation-delay-400">
-            <Button size="lg" className="text-lg px-8" onClick={() => navigate("/productos")}>
-              Explorar Productos
-            </Button>
-            <Button size="lg" variant="outline" asChild className="text-lg px-8">
-              <Link to="/rastrear">Rastrear Pedido</Link>
-            </Button>
+
+          <div className="animate-fade-in animation-delay-500 relative">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-500">
+              <img 
+                src={teamWork} 
+                alt="Equipo BRILLARTE" 
+                className="w-full h-auto object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
+            </div>
+            <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg animate-pulse">
+              <p className="text-sm font-medium">Calidad Garantizada ⭐</p>
+            </div>
           </div>
         </div>
       </section>
@@ -144,8 +165,11 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Galería de Productos */}
+      <ProductGallery />
+
       {/* Por qué elegirnos */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl md:text-5xl font-light text-foreground mb-6">
