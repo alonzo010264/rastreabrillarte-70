@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.send-confirmation-email]
 verify_jwt = false
+
+[functions.send-order-tracking-help]
+verify_jwt = false
+
+[functions.send-order-request-confirmation]
+verify_jwt = false
