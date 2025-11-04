@@ -105,41 +105,40 @@ const CancelNotifications = () => {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+      <div className="min-h-screen bg-background relative overflow-hidden">
         <Navigation />
         
-        {/* Decorative diamonds */}
         <div className="absolute inset-0 pointer-events-none">
-          <Diamond className="absolute top-20 left-10 text-gray-200 w-16 h-16 rotate-45 opacity-30" />
-          <Diamond className="absolute top-40 right-20 text-gray-200 w-12 h-12 rotate-12 opacity-20" />
-          <Diamond className="absolute bottom-60 left-20 text-gray-200 w-20 h-20 -rotate-12 opacity-25" />
-          <Diamond className="absolute bottom-20 right-10 text-gray-200 w-14 h-14 rotate-45 opacity-30" />
+          <Diamond className="absolute top-20 left-10 text-muted w-16 h-16 rotate-45 opacity-20" />
+          <Diamond className="absolute top-40 right-20 text-muted w-12 h-12 rotate-12 opacity-15" />
+          <Diamond className="absolute bottom-60 left-20 text-muted w-20 h-20 -rotate-12 opacity-20" />
+          <Diamond className="absolute bottom-20 right-10 text-muted w-14 h-14 rotate-45 opacity-20" />
         </div>
         
         <Header />
         
         <main className="container mx-auto px-4 py-8 max-w-2xl relative z-10">
           <div className="animate-fade-in">
-            <Card className="border-2 border-gray-200 shadow-lg">
+            <Card className="border-2 shadow-lg">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
-                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                  <h1 className="text-2xl font-bold mb-2">
                     ¡Notificaciones Canceladas!
                   </h1>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     Ya no recibirás notificaciones automáticas del estado de tus pedidos por correo electrónico.
                   </p>
                 </div>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <div className="bg-muted/50 border rounded-lg p-4 mb-6">
                   <div className="flex items-start space-x-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="w-5 h-5 text-foreground mt-0.5 flex-shrink-0" />
                     <div className="text-left">
-                      <p className="text-sm text-amber-800 font-medium mb-1">
+                      <p className="text-sm font-medium mb-1">
                         Importante: Mantente informado
                       </p>
-                      <p className="text-sm text-amber-700">
+                      <p className="text-sm text-muted-foreground">
                         Recuerda que deberás estar pendiente del estado de tus pedidos visitando nuestra página de 
                         rastreo de pedidos o contactándonos directamente.
                       </p>
@@ -175,45 +174,44 @@ const CancelNotifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-hidden">
       <Navigation />
       
-      {/* Decorative diamonds */}
       <div className="absolute inset-0 pointer-events-none">
-        <Diamond className="absolute top-20 left-10 text-gray-200 w-16 h-16 rotate-45 opacity-30" />
-        <Diamond className="absolute top-40 right-20 text-gray-200 w-12 h-12 rotate-12 opacity-20" />
-        <Diamond className="absolute bottom-60 left-20 text-gray-200 w-20 h-20 -rotate-12 opacity-25" />
-        <Diamond className="absolute bottom-20 right-10 text-gray-200 w-14 h-14 rotate-45 opacity-30" />
-        <Diamond className="absolute top-60 left-1/2 text-gray-200 w-10 h-10 rotate-45 opacity-15" />
-        <Diamond className="absolute bottom-40 right-1/3 text-gray-200 w-8 h-8 rotate-12 opacity-20" />
+        <Diamond className="absolute top-20 left-10 text-muted w-16 h-16 rotate-45 opacity-20" />
+        <Diamond className="absolute top-40 right-20 text-muted w-12 h-12 rotate-12 opacity-15" />
+        <Diamond className="absolute bottom-60 left-20 text-muted w-20 h-20 -rotate-12 opacity-20" />
+        <Diamond className="absolute bottom-20 right-10 text-muted w-14 h-14 rotate-45 opacity-20" />
+        <Diamond className="absolute top-60 left-1/2 text-muted w-10 h-10 rotate-45 opacity-10" />
+        <Diamond className="absolute bottom-40 right-1/3 text-muted w-8 h-8 rotate-12 opacity-15" />
       </div>
       
       <Header />
       
       <main className="container mx-auto px-4 py-8 max-w-2xl relative z-10">
         <div className="animate-fade-in">
-          <Card className="border-2 border-gray-200 shadow-lg">
+          <Card className="border-2 shadow-lg">
             <CardHeader className="text-center pb-6">
               <div className="mb-4">
-                <Mail className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <CardTitle className="text-2xl font-bold text-gray-900">
+                <Mail className="w-12 h-12 mx-auto mb-4" />
+                <CardTitle className="text-2xl font-bold">
                   Cancelar Notificaciones
                 </CardTitle>
-                <CardDescription className="text-gray-600 mt-2">
+                <CardDescription className="mt-2">
                   Cancela las notificaciones automáticas del estado de tus pedidos
                 </CardDescription>
               </div>
             </CardHeader>
             
             <CardContent className="p-6 pt-0">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="bg-muted/50 border rounded-lg p-4 mb-6">
                 <div className="flex items-start space-x-3">
-                  <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                   <div className="text-left">
-                    <p className="text-sm text-blue-800 font-medium mb-1">
+                    <p className="text-sm font-medium mb-1">
                       ¿Qué sucede al cancelar las notificaciones?
                     </p>
-                    <ul className="text-sm text-blue-700 space-y-1">
+                    <ul className="text-sm text-muted-foreground space-y-1">
                       <li>• Ya no recibirás emails cuando cambien los estados de tus pedidos</li>
                       <li>• Deberás revisar el estado manualmente en nuestra página de rastreo</li>
                       <li>• Puedes reactivar las notificaciones en cualquier momento</li>
@@ -225,7 +223,7 @@ const CancelNotifications = () => {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="email" className="block text-sm font-medium mb-2">
                     Correo Electrónico
                   </label>
                   <Input
@@ -238,7 +236,7 @@ const CancelNotifications = () => {
                     className="w-full"
                     disabled={isSubmitting}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Ingresa el correo con el que realizaste tus pedidos
                   </p>
                 </div>
@@ -246,18 +244,19 @@ const CancelNotifications = () => {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  variant="destructive"
+                  className="w-full"
                 >
                   {isSubmitting ? "Procesando..." : "Cancelar Notificaciones"}
                 </Button>
               </form>
 
-              <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="mt-6 pt-6 border-t">
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-muted-foreground mb-3">
                     ¿Necesitas ayuda? Contáctanos:
                   </p>
-                  <div className="space-y-1 text-sm text-gray-700">
+                  <div className="space-y-1 text-sm">
                     <p>📞 Teléfono: +1 849-262-9565</p>
                     <p>📱 WhatsApp: +1 849-262-9565</p>
                     <p>✉️ Email: info@brillarte.com</p>

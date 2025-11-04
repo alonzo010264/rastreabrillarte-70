@@ -492,6 +492,60 @@ export type Database = {
         }
         Relationships: []
       }
+      productos: {
+        Row: {
+          activo: boolean | null
+          cantidad_mayoreo: number | null
+          categoria: string | null
+          colores: string[] | null
+          created_at: string | null
+          descripcion: string | null
+          id: string
+          imagenes: string[] | null
+          nombre: string
+          precio: number
+          precio_mayoreo: number | null
+          stock: number | null
+          tallas: string[] | null
+          updated_at: string | null
+          videos: string[] | null
+        }
+        Insert: {
+          activo?: boolean | null
+          cantidad_mayoreo?: number | null
+          categoria?: string | null
+          colores?: string[] | null
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          imagenes?: string[] | null
+          nombre: string
+          precio: number
+          precio_mayoreo?: number | null
+          stock?: number | null
+          tallas?: string[] | null
+          updated_at?: string | null
+          videos?: string[] | null
+        }
+        Update: {
+          activo?: boolean | null
+          cantidad_mayoreo?: number | null
+          categoria?: string | null
+          colores?: string[] | null
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          imagenes?: string[] | null
+          nombre?: string
+          precio?: number
+          precio_mayoreo?: number | null
+          stock?: number | null
+          tallas?: string[] | null
+          updated_at?: string | null
+          videos?: string[] | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           codigo_membresia: string | null
