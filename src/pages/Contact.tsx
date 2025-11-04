@@ -9,7 +9,6 @@ import { Diamond, MessageSquare, Mail, Phone, MapPin, Clock, Instagram, Facebook
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Chatbot } from "@/components/Chatbot";
 import { AgentChat } from "@/components/AgentChat";
 
 const Contact = () => {
@@ -19,7 +18,6 @@ const Contact = () => {
     message: ""
   });
   const [loading, setLoading] = useState(false);
-  const [chatbotOpen, setChatbotOpen] = useState(false);
   const [agentChatOpen, setAgentChatOpen] = useState(false);
   const { toast } = useToast();
 
@@ -223,22 +221,14 @@ const Contact = () => {
                     </div>
                   </div>
                   
-                  <div className="pt-4 border-t space-y-3">
+                  <div className="pt-4 border-t">
                     <Button 
                       className="w-full" 
                       variant="default"
-                      onClick={() => setChatbotOpen(true)}
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Hablar con Nosotros (AI)
-                    </Button>
-                    <Button 
-                      className="w-full" 
-                      variant="outline"
                       onClick={() => setAgentChatOpen(true)}
                     >
-                      <Phone className="w-4 h-4 mr-2" />
-                      Hablar con Agente
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Hablar con Nosotros
                     </Button>
                   </div>
                 </CardContent>
@@ -308,7 +298,6 @@ const Contact = () => {
         </div>
       </div>
 
-      {chatbotOpen && <Chatbot onClose={() => setChatbotOpen(false)} />}
       {agentChatOpen && <AgentChat onClose={() => setAgentChatOpen(false)} />}
       <Footer />
     </div>
