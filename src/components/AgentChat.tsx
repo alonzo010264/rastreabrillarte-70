@@ -9,12 +9,23 @@ import { MessageSquare, X } from "lucide-react";
 
 const AGENTS = ["María", "Amanda", "Luis", "José"];
 
-export const AgentChat = () => {
+interface AgentChatProps {
+  onClose?: () => void;
+}
+
+export const AgentChat = ({ onClose }: AgentChatProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onClose) {
+      onClose();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +55,7 @@ export const AgentChat = () => {
 
       setEmail("");
       setMensaje("");
-      setIsOpen(false);
+      handleClose();
     } catch (error) {
       console.error("Error:", error);
       toast({
@@ -79,7 +90,7 @@ export const AgentChat = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
             >
               <X className="h-4 w-4" />
             </Button>
