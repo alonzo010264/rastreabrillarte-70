@@ -117,19 +117,34 @@ const OrderRequest = () => {
 
       if (orderError) throw orderError;
 
-      // Enviar correo de confirmación con código de rastreo
-      const { error: emailError } = await supabase.functions.invoke('send-order-request-confirmation', {
-        body: {
+      // Enviar correo de confirmación según el tipo de servicio
+      try {
+        const emailBody: any = {
           nombre: data.nombre,
           correo: data.correo,
           codigo_pedido: orderCode,
-          tipo_servicio: data.tipo_servicio
-        }
-      });
+          tipo_servicio: data.tipo_servicio,
+          descripcion: data.descripcion_articulo
+        };
 
-      if (emailError) {
-        console.error("Error enviando correo:", emailError);
-        // No lanzar error porque el pedido ya se creó exitosamente
+        if (data.tipo_servicio === 'envio') {
+          emailBody.direccion = data.direccion;
+          emailBody.numero_casa = data.numero_casa;
+          emailBody.sector = data.sector;
+          emailBody.provincia = data.provincia;
+          emailBody.referencias = data.referencias || '';
+          emailBody.telefono = data.telefono;
+        }
+
+        const { error: emailError } = await supabase.functions.invoke('send-order-request-confirmation', {
+          body: emailBody
+        });
+
+        if (emailError) {
+          console.error("Error enviando correo:", emailError);
+        }
+      } catch (emailException) {
+        console.error("Excepción enviando correo:", emailException);
       }
 
       toast({

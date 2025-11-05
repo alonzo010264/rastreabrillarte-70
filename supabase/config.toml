@@ -23,3 +23,9 @@ verify_jwt = false
 
 [functions.verify-pickup-request]
 verify_jwt = false
+
+[functions.send-newsletter-subscription]
+verify_jwt = false
+
+[functions.send-order-request-confirmation]
+verify_jwt = false

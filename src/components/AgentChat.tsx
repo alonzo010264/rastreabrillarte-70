@@ -84,7 +84,10 @@ export const AgentChat = ({ onClose }: AgentChatProps) => {
             <div>
               <h3 className="font-semibold text-lg">Hablar con Nosotros</h3>
               <p className="text-sm text-muted-foreground">
-                Agentes: {AGENTS.join(", ")}
+                Nuestros agentes capacitados: {AGENTS.join(", ")}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Te responderemos por correo con tu número de soporte
               </p>
             </div>
             <Button
