@@ -14,7 +14,7 @@ interface AgentChatProps {
 }
 
 export const AgentChat = ({ onClose }: AgentChatProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true); // Abierto por defecto cuando se invoca
   const [email, setEmail] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,36 +68,32 @@ export const AgentChat = ({ onClose }: AgentChatProps) => {
     }
   };
 
-  return (
-    <>
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg hover:scale-110 transition-transform z-50 bg-foreground text-background hover:bg-foreground/90"
-        size="icon"
-      >
-        <MessageSquare className="h-6 w-6" />
-      </Button>
+  if (!isOpen) return null;
 
-      {isOpen && (
-        <Card className="fixed bottom-24 right-6 w-96 p-6 shadow-2xl z-50 animate-scale-in border-2">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h3 className="font-semibold text-lg">Hablar con Nosotros</h3>
-              <p className="text-sm text-muted-foreground">
-                Nuestros agentes capacitados: {AGENTS.join(", ")}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Te responderemos por correo con tu número de soporte
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClose}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+  return (
+    <Card className="fixed bottom-6 right-6 w-[380px] max-w-[calc(100vw-2rem)] p-6 shadow-2xl z-50 animate-scale-in border-2 bg-background">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Hablar con Nosotros
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            👥 <strong>Agentes Humanos:</strong> {AGENTS.join(", ")}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Personas reales capacitadas para ayudarte
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleClose}
+          className="hover:bg-muted"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -123,15 +119,16 @@ export const AgentChat = ({ onClose }: AgentChatProps) => {
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Enviando..." : "Enviar Mensaje"}
+              {isSubmitting ? "Enviando..." : "Contactar Agente Humano"}
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              Te responderemos lo antes posible por correo electrónico
+              📧 Recibirás un correo con tu número de ticket
+            </p>
+            <p className="text-xs text-muted-foreground text-center">
+              Nuestros agentes humanos te contactarán pronto
             </p>
           </form>
         </Card>
-      )}
-    </>
   );
 };

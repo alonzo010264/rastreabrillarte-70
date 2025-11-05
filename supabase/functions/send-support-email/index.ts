@@ -44,20 +44,28 @@ const handler = async (req: Request): Promise<Response> => {
             <div class="container">
               <div class="header">
                 <h1>BRILLARTE</h1>
-                <p>Soporte al Cliente</p>
+                <p>Soporte con Agentes Humanos</p>
               </div>
               <div class="content">
                 <p>Hola,</p>
-                <p>Hemos recibido tu solicitud de soporte.</p>
+                <p><strong>👥 Hemos recibido tu mensaje. Un agente humano real está revisando tu solicitud.</strong></p>
                 <div class="ticket-number">Ticket #${supportNumber}</div>
                 <p><strong>Tu mensaje:</strong></p>
                 <p style="background: white; padding: 15px; border-left: 4px solid #000; margin: 15px 0;">
                   ${mensaje}
                 </p>
-                <p>En algunos momentos nuestros agentes te contactarán. Puedes esperar unos minutos o algunos días a que nuestros agentes especialistas estén disponibles.</p>
+                <h3>⏰ Tiempo de Respuesta</h3>
+                <p>Nuestros agentes humanos capacitados (María, Amanda, Luis, José) son <strong>personas reales</strong> que te contactarán en:</p>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                  <li>Unos minutos para consultas simples</li>
+                  <li>Algunos días para casos que requieren investigación especializada</li>
+                </ul>
+                <p style="background: #f8f8f8; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                  <strong>Nuestros agentes humanos especialistas</strong> están capacitados para anotar cada problema y resolver cualquier situación. Si no tienen la respuesta inmediata, investigarán a fondo para ayudarte.
+                </p>
                 <p>Si necesitas agregar más información, puedes responder directamente a este correo.</p>
-                <p>Gracias por tu paciencia.</p>
-                <p><strong>Equipo BRILLARTE</strong></p>
+                <p>Gracias por tu confianza.</p>
+                <p><strong>Equipo BRILLARTE</strong><br><em>Personas reales, atención humana</em></p>
               </div>
               <div class="footer">
                 <p>© 2025 BRILLARTE - Todos los derechos reservados</p>
