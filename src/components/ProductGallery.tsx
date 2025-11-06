@@ -50,7 +50,7 @@ const ProductGallery = () => {
             Nuestra Galería
           </h2>
           <p className="text-lg text-muted-foreground">
-            Descubre algunos de nuestros productos más populares ✨
+            Descubre algunos de nuestros productos más populares
           </p>
         </div>
 
@@ -156,7 +156,7 @@ const ProductGallery = () => {
             </a>
           </div>
           <p className="text-muted-foreground mt-4 text-sm">
-            ¿Te interesa alguno de nuestros productos? ¡Escríbenos! 💎
+            ¿Te interesa alguno de nuestros productos? ¡Escríbenos!
           </p>
         </div>
       </div>

@@ -60,7 +60,7 @@ export const ordersDatabase = {
         status: "Entregado",
         date: "2025-01-03",
         time: "12:30 PM",
-        description: "¡Pedido entregado exitosamente! Recibido por el cliente. Gracias por la propina ⚡✨🛍️",
+        description: "¡Pedido entregado exitosamente! Recibido por el cliente. Gracias por la propina",
         category: "shipping" as const
       }
     ]

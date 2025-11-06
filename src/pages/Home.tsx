@@ -47,7 +47,7 @@ const Home = () => {
               BRILLARTE
             </h1>
             <p className="text-2xl md:text-3xl text-primary font-light animate-fade-in animation-delay-200">
-              El Arte de Brillar ✨
+              El Arte de Brillar
             </p>
             <p className="text-lg text-muted-foreground animate-fade-in animation-delay-300 leading-relaxed">
               Descubre accesorios únicos y de calidad excepcional. 
@@ -203,7 +203,7 @@ const Home = () => {
               ¿Por Qué Elegirnos?
             </h2>
             <p className="text-lg text-muted-foreground mb-12">
-              Descubre las razones por las que miles de clientes confían en BRILLARTE ✨
+              Descubre las razones por las que miles de clientes confían en BRILLARTE
             </p>
           </div>
 
@@ -292,7 +292,7 @@ const Home = () => {
           <h2 className={`text-4xl md:text-5xl font-light mb-6 transition-all duration-1000 ${
             ctaVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
           }`}>
-            ¿Listo para Brillar? ✨
+            ¿Listo para Brillar?
           </h2>
           <p className={`text-xl opacity-90 mb-8 transition-all duration-1000 delay-200 ${
             ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'

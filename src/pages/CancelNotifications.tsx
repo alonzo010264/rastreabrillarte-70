@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Diamond, Mail, AlertCircle, CheckCircle } from "lucide-react";
+import { Diamond, Mail, AlertCircle, CheckCircle, Phone, MessageCircle } from "lucide-react";
 
 const CancelNotifications = () => {
   const [email, setEmail] = useState("");
@@ -257,9 +257,18 @@ const CancelNotifications = () => {
                     ¿Necesitas ayuda? Contáctanos:
                   </p>
                   <div className="space-y-1 text-sm">
-                    <p>📞 Teléfono: +1 849-262-9565</p>
-                    <p>📱 WhatsApp: +1 849-262-9565</p>
-                    <p>✉️ Email: info@brillarte.com</p>
+                    <p className="flex items-center justify-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Teléfono: +1 849-262-9565
+                    </p>
+                    <p className="flex items-center justify-center gap-2">
+                      <MessageCircle className="h-4 w-4" />
+                      WhatsApp: +1 849-262-9565
+                    </p>
+                    <p className="flex items-center justify-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email: info@brillarte.com
+                    </p>
                   </div>
                 </div>
               </div>

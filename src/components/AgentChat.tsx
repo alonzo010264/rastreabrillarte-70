@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, X } from "lucide-react";
+import { MessageSquare, X, Mail } from "lucide-react";
 
 const AGENTS = ["María", "Amanda", "Luis", "José"];
 
@@ -79,7 +79,7 @@ export const AgentChat = ({ onClose }: AgentChatProps) => {
             Hablar con Nosotros
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            👥 <strong>Agentes Humanos:</strong> {AGENTS.join(", ")}
+            <strong>Agentes Humanos:</strong> {AGENTS.join(", ")}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             Personas reales capacitadas para ayudarte
@@ -122,8 +122,9 @@ export const AgentChat = ({ onClose }: AgentChatProps) => {
               {isSubmitting ? "Enviando..." : "Contactar Agente Humano"}
             </Button>
 
-            <p className="text-xs text-muted-foreground text-center">
-              📧 Recibirás un correo con tu número de ticket
+            <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+              <Mail className="h-3 w-3" />
+              Recibirás un correo con tu número de ticket
             </p>
             <p className="text-xs text-muted-foreground text-center">
               Nuestros agentes humanos te contactarán pronto

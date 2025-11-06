@@ -1,7 +1,7 @@
 
 
-import { Clock, Instagram, MessageCircle, Phone, Truck, MapPin, Mail } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Clock, Truck, Phone, AlertTriangle, Instagram, MessageCircle, MapPin, Mail } from "lucide-react";
 
 const AttentionHours = () => {
   return (
@@ -72,7 +72,10 @@ const AttentionHours = () => {
 
       {/* Importante */}
       <Card className="bg-red-50 rounded-2xl shadow-sm p-6 border border-red-100 hover:shadow-md transition-all duration-300">
-        <h3 className="text-lg font-medium text-red-700 mb-3">⚠️ Importante</h3>
+        <h3 className="text-lg font-medium text-red-700 mb-3 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5" />
+          Importante
+        </h3>
         <p className="text-sm text-red-600">
           <strong>Nunca compartas</strong> tu código de pedido con otras personas por tu seguridad.
         </p>
