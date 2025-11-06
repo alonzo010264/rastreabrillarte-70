@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface StatusNotificationRequest {
   customerEmail: string;
+  customerName: string;
   orderCode: string;
   statusName: string;
   statusDescription: string;
@@ -21,7 +22,8 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { 
-      customerEmail, 
+      customerEmail,
+      customerName,
       orderCode, 
       statusName, 
       statusDescription 
@@ -58,6 +60,9 @@ const handler = async (req: Request): Promise<Response> => {
           
           <!-- Main Content -->
           <div style="padding: 40px 30px; background-color: #ffffff;">
+            <p style="color: #000000; margin: 0 0 20px 0; font-size: 16px;">
+              Hola ${customerName || 'Cliente'},
+            </p>
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold; text-align: center;">
               ${statusName === 'Entregado' ? '¡Pedido Entregado Exitosamente!' : '¡Tu pedido ha sido actualizado!'}
             </h2>
@@ -117,9 +122,9 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailData = {
-      from: "BRILLARTE <contacto@brillarte.lat>",
+      from: "BRILLARTE Pedidos <pedidos@brillarte.lat>",
       to: [customerEmail],
-      reply_to: "contacto@brillarte.lat",
+      reply_to: "pedidos@brillarte.lat",
       subject: subject,
       html: emailHtml,
     };

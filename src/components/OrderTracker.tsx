@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Package, HelpCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,46 @@ const OrderTracker = () => {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [isSendingHelp, setIsSendingHelp] = useState(false);
+
+  // Configurar realtime para actualizaciones automáticas
+  useEffect(() => {
+    if (!orderCode || !orderFound) return;
+
+    const channel = supabase
+      .channel('order-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'Pedidos',
+          filter: `Código de pedido=eq.${orderCode}`
+        },
+        () => {
+          console.log('Pedido actualizado, recargando...');
+          handleSearch();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'Historial_Estatus',
+          filter: `Código de pedido=eq.${orderCode}`
+        },
+        () => {
+          console.log('Nuevo estatus agregado, recargando...');
+          handleSearch();
+          toast.success('¡Tu pedido ha sido actualizado!');
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderCode, orderFound]);
 
   const handleSearch = async () => {
     if (!orderCode.trim()) return;

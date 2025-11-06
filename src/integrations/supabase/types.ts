@@ -335,6 +335,7 @@ export type Database = {
         Row: {
           Cliente: string
           "Código de pedido": string
+          Correo_cliente: string | null
           created_at: string | null
           estado: string | null
           Estatus_id: number | null
@@ -348,6 +349,7 @@ export type Database = {
         Insert: {
           Cliente: string
           "Código de pedido": string
+          Correo_cliente?: string | null
           created_at?: string | null
           estado?: string | null
           Estatus_id?: number | null
@@ -361,6 +363,7 @@ export type Database = {
         Update: {
           Cliente?: string
           "Código de pedido"?: string
+          Correo_cliente?: string | null
           created_at?: string | null
           estado?: string | null
           Estatus_id?: number | null

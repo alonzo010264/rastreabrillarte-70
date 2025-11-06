@@ -25,6 +25,7 @@ interface Pedido {
   Total: number;
   "Fecha_estimada_entrega": string;
   "Estatus_id": number;
+  "Correo_cliente"?: string;
   Notas?: string;
   Estatus?: Estatus;
 }
@@ -32,6 +33,7 @@ interface Pedido {
 const OrderManagement = () => {
   const [orderCode, setOrderCode] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
   const [statusId, setStatusId] = useState<number | null>(null);
   const [price, setPrice] = useState("");
   const [weight, setWeight] = useState("");
@@ -41,6 +43,7 @@ const OrderManagement = () => {
   const [loading, setLoading] = useState(false);
   const [existingOrders, setExistingOrders] = useState<Pedido[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Pedido | null>(null);
+  const [selectedOrderEmail, setSelectedOrderEmail] = useState("");
   const [newStatusId, setNewStatusId] = useState<number | null>(null);
   const [newDate, setNewDate] = useState("");
   const [description, setDescription] = useState("");
@@ -90,11 +93,25 @@ const OrderManagement = () => {
     return formatted.slice(0, 9);
   };
 
+  const validateEmail = (email: string) => {
+    const gmailRegex = /@(gmail|googlemail|hotmail|outlook|yahoo|icloud)\.(com|net|org|es)$/i;
+    return gmailRegex.test(email);
+  };
+
   const createOrder = async () => {
-    if (!orderCode || !customerName || !statusId || !price || !weight || !total || !estimatedDelivery) {
+    if (!orderCode || !customerName || !customerEmail || !statusId || !price || !weight || !total || !estimatedDelivery) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos obligatorios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!validateEmail(customerEmail)) {
+      toast({
+        title: "Error",
+        description: "Por favor ingresa un correo válido de Gmail, Outlook, Yahoo o iCloud",
         variant: "destructive"
       });
       return;
@@ -111,6 +128,7 @@ const OrderManagement = () => {
 
       const orderData = {
         'Cliente': customerName,
+        'Correo_cliente': customerEmail,
         'Estatus_id': statusId,
         'Precio': parseFloat(price),
         'Peso': parseFloat(weight),
@@ -143,15 +161,32 @@ const OrderManagement = () => {
 
         if (insertError) throw insertError;
 
+        // Obtener info del estatus para enviar correo
+        const status = statuses.find(s => s.id === statusId);
+        
+        // Enviar correo de notificación
+        if (status) {
+          await supabase.functions.invoke('send-status-notification', {
+            body: {
+              customerEmail: customerEmail,
+              customerName: customerName,
+              orderCode: orderCode,
+              statusName: status.nombre,
+              statusDescription: status.descripcion || 'Tu pedido ha sido creado.'
+            }
+          });
+        }
+
         toast({
           title: "¡Éxito!",
-          description: "Pedido creado correctamente"
+          description: "Pedido creado y correo enviado"
         });
       }
 
       // Limpiar formulario
       setOrderCode("");
       setCustomerName("");
+      setCustomerEmail("");
       setStatusId(null);
       setPrice("");
       setWeight("");
@@ -246,10 +281,19 @@ const OrderManagement = () => {
   };
 
   const updateOrderStatus = async () => {
-    if (!selectedOrder || !newStatusId) {
+    if (!selectedOrder || !newStatusId || !selectedOrderEmail) {
       toast({
         title: "Error",
-        description: "Selecciona un pedido y un nuevo estatus",
+        description: "Selecciona un pedido, un nuevo estatus e ingresa el correo del cliente",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!validateEmail(selectedOrderEmail)) {
+      toast({
+        title: "Error",
+        description: "Por favor ingresa un correo válido de Gmail, Outlook, Yahoo o iCloud",
         variant: "destructive"
       });
       return;
@@ -278,12 +322,27 @@ const OrderManagement = () => {
         .from('Historial_Estatus')
         .insert(historialData);
 
+      // Enviar notificación por correo
+      const status = statuses.find(s => s.id === newStatusId);
+      if (status) {
+        await supabase.functions.invoke('send-status-notification', {
+          body: {
+            customerEmail: selectedOrderEmail,
+            customerName: selectedOrder.Cliente,
+            orderCode: selectedOrder['Código de pedido'],
+            statusName: status.nombre,
+            statusDescription: description || status.descripcion || 'Tu pedido ha sido actualizado.'
+          }
+        });
+      }
+
       toast({
         title: "¡Éxito!",
-        description: "Estatus actualizado correctamente"
+        description: "Estatus actualizado y correo enviado"
       });
 
       setSelectedOrder(null);
+      setSelectedOrderEmail("");
       setNewStatusId(null);
       setNewDate("");
       setDescription("");
@@ -332,6 +391,17 @@ const OrderManagement = () => {
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
             />
+          </div>
+
+          <div>
+            <Label>Correo del Cliente *</Label>
+            <Input
+              type="email"
+              placeholder="cliente@gmail.com"
+              value={customerEmail}
+              onChange={(e) => setCustomerEmail(e.target.value)}
+            />
+            <p className="text-xs text-gray-500 mt-1">Debe ser Gmail, Outlook, Yahoo o iCloud</p>
           </div>
           
           <div>
@@ -428,6 +498,7 @@ const OrderManagement = () => {
             <Select value={selectedOrder?.['Código de pedido'] || ""} onValueChange={(value) => {
               const order = existingOrders.find(o => o['Código de pedido'] === value);
               setSelectedOrder(order || null);
+              setSelectedOrderEmail(order?.['Correo_cliente'] || "");
             }}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar pedido" />
@@ -457,6 +528,17 @@ const OrderManagement = () => {
               </SelectContent>
             </Select>
           </div>
+
+          <div>
+            <Label>Correo del Cliente *</Label>
+            <Input
+              type="email"
+              placeholder="cliente@gmail.com"
+              value={selectedOrderEmail}
+              onChange={(e) => setSelectedOrderEmail(e.target.value)}
+            />
+            <p className="text-xs text-gray-500 mt-1">Requerido para notificar el cambio de estatus</p>
+          </div>
           
           <div>
             <Label>Fecha y Hora (opcional)</Label>
@@ -477,8 +559,8 @@ const OrderManagement = () => {
           </div>
         </div>
         
-        <Button onClick={updateOrderStatus} disabled={loading || !selectedOrder || !newStatusId} className="mt-4">
-          Actualizar Estatus
+        <Button onClick={updateOrderStatus} disabled={loading || !selectedOrder || !newStatusId || !selectedOrderEmail} className="mt-4">
+          Actualizar Estatus y Notificar
         </Button>
       </Card>
 
