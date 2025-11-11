@@ -64,8 +64,11 @@ const handler = async (req: Request): Promise<Response> => {
               Hola ${customerName || 'Cliente'},
             </p>
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold; text-align: center;">
-              ${statusName === 'Entregado' ? '¡Pedido Entregado Exitosamente!' : '¡Tu pedido ha sido actualizado!'}
+              ${statusName === 'Entregado' ? '¡Pedido Entregado Exitosamente!' : 'Obtuvimos una actualización de tu pedido'}
             </h2>
+            ${statusName !== 'Entregado' ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
+              Pronto estará contigo
+            </p>` : ''}
             
             <div style="background-color: #f8f9fa; border-left: 4px solid #000000; padding: 20px; margin: 20px 0;">
               <h3 style="color: #000000; margin: 0 0 10px 0; font-size: 18px;">
@@ -84,8 +87,8 @@ const handler = async (req: Request): Promise<Response> => {
                   Por favor, revisa tu zona o confirma si fue entregado en tus manos.<br>
                   <strong>¡Gracias por elegirnos!</strong>
                  </p>`
-              : `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0;">
-                  Te mantendremos informado sobre cualquier cambio en el estado de tu pedido.
+              : `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
+                  Tu pedido está en proceso. Te notificaremos cualquier cambio adicional.
                  </p>`
             }
             
