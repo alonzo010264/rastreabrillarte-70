@@ -122,12 +122,18 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailData = {
-      from: "BRILLARTE Pedidos <pedidos@brillarte.lat>",
+      from: "BRILLARTE Pedidos <onboarding@resend.dev>",
       to: [customerEmail],
-      reply_to: "pedidos@brillarte.lat",
+      reply_to: "brillarte.oficial.ventas@gmail.com",
       subject: subject,
       html: emailHtml,
     };
+
+    console.log("Preparando envío de correo:", { 
+      to: customerEmail, 
+      orderCode, 
+      statusName 
+    });
 
     // Send email using Resend API
     const response = await fetch("https://api.resend.com/emails", {
