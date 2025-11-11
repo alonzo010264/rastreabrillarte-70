@@ -138,19 +138,73 @@ const handler = async (req: Request): Promise<Response> => {
       statusName 
     });
 
-    // Send email using Resend API
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(emailData),
-    });
+    // Send email using Resend API with fallback for testing mode
+    const sendResend = async (data: any) =>
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+    let response = await sendResend(emailData);
 
     if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`Error de Resend: ${response.status} - ${errorData}`);
+      const errorText = await response.text();
+      console.error("Primary send failed:", response.status, errorText);
+
+      // Fallback: Resend testing restriction (only to account email)
+      if (
+        response.status === 403 &&
+        errorText.includes("You can only send testing emails to your own email address")
+      ) {
+        const match = errorText.match(/\(([^(\s)]+@[^(\s)]+)\)/);
+        const allowedEmail = match?.[1] || Deno.env.get("RESEND_TEST_EMAIL");
+
+        if (allowedEmail) {
+          const fallbackHtml = emailHtml.replace(
+            "</body>",
+            `<div style="padding:12px 30px; font-size:12px; color:#666;">
+              Nota: Envío de prueba por restricciones de Resend. Destinatario previsto: ${customerEmail}
+            </div></body>`
+          );
+
+          const retryData = {
+            ...emailData,
+            from: "BRILLARTE Pedidos <onboarding@resend.dev>",
+            to: [allowedEmail],
+            subject: `${subject} (TEST)` ,
+            html: fallbackHtml,
+          };
+
+          const retry = await sendResend(retryData);
+          if (retry.ok) {
+            const retryJson = await retry.json();
+            console.log("Fallback test email sent:", retryJson);
+            return new Response(
+              JSON.stringify({
+                success: true,
+                message:
+                  "Email enviado en modo prueba al correo permitido por Resend. Verifica tu dominio para enviar a clientes.",
+                delivered_to: allowedEmail,
+                intended_recipient: customerEmail,
+              }),
+              {
+                status: 200,
+                headers: { "Content-Type": "application/json", ...corsHeaders },
+              }
+            );
+          }
+        }
+
+        throw new Error(
+          `Resend en modo prueba. Verifica un dominio y usa un remitente de ese dominio. Detalle: ${errorText}`
+        );
+      }
+
+      throw new Error(`Error de Resend: ${response.status} - ${errorText}`);
     }
 
     const emailResponse = await response.json();
