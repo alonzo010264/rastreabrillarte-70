@@ -12,6 +12,7 @@ interface StatusNotificationRequest {
   orderCode: string;
   statusName: string;
   statusDescription: string;
+  isNewOrder?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,7 +27,8 @@ const handler = async (req: Request): Promise<Response> => {
       customerName,
       orderCode, 
       statusName, 
-      statusDescription 
+      statusDescription,
+      isNewOrder = false
     }: StatusNotificationRequest = await req.json();
 
     console.log(`Sending status notification for order ${orderCode} to ${customerEmail}`);
@@ -36,7 +38,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY not found");
     }
 
-    const subject = `Actualización de tu pedido ${orderCode} - BRILLARTE`;
+    const subject = isNewOrder 
+      ? `¡Tu pedido ${orderCode} ha sido creado! - BRILLARTE`
+      : `Actualización de tu pedido ${orderCode} - BRILLARTE`;
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -64,10 +68,17 @@ const handler = async (req: Request): Promise<Response> => {
               Hola ${customerName || 'Cliente'},
             </p>
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold; text-align: center;">
-              ${statusName === 'Entregado' ? '¡Pedido Entregado Exitosamente!' : 'Obtuvimos una actualización de tu pedido'}
+              ${isNewOrder 
+                ? '¡Acabamos de Crear tu Pedido!' 
+                : statusName === 'Entregado' 
+                  ? '¡Pedido Entregado Exitosamente!' 
+                  : 'Obtuvimos una actualización de tu pedido'}
             </h2>
-            ${statusName !== 'Entregado' ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
+            ${!isNewOrder && statusName !== 'Entregado' ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
               Pronto estará contigo
+            </p>` : ''}
+            ${isNewOrder ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
+              Tu pedido ha sido registrado exitosamente
             </p>` : ''}
             
             <div style="background-color: #f8f9fa; border-left: 4px solid #000000; padding: 20px; margin: 20px 0;">
@@ -82,14 +93,19 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
             </div>
             
-            ${statusName === 'Entregado' 
+            ${isNewOrder
               ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
-                  Por favor, revisa tu zona o confirma si fue entregado en tus manos.<br>
-                  <strong>¡Gracias por elegirnos!</strong>
+                  Puedes rastrear tu pedido en cualquier momento usando el código <strong>${orderCode}</strong>.<br>
+                  Te notificaremos de cada actualización.
                  </p>`
-              : `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
-                  Tu pedido está en proceso. Te notificaremos cualquier cambio adicional.
-                 </p>`
+              : statusName === 'Entregado' 
+                ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
+                    Por favor, revisa tu zona o confirma si fue entregado en tus manos.<br>
+                    <strong>¡Gracias por elegirnos!</strong>
+                   </p>`
+                : `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
+                    Tu pedido está en proceso. Te notificaremos cualquier cambio adicional.
+                   </p>`
             }
             
             <!-- Action Button -->
@@ -125,9 +141,9 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailData = {
-      from: "BRILLARTE Pedidos <onboarding@resend.dev>",
+      from: "BRILLARTE Pedidos <pedidos@brillarte.lat>",
       to: [customerEmail],
-      reply_to: "brillarte.oficial.ventas@gmail.com",
+      reply_to: "pedidos@brillarte.lat",
       subject: subject,
       html: emailHtml,
     };

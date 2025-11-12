@@ -164,7 +164,7 @@ const OrderManagement = () => {
         // Obtener info del estatus para enviar correo
         const status = statuses.find(s => s.id === statusId);
         
-        // Enviar correo de notificación
+        // Enviar correo de notificación de creación de pedido
         if (status) {
           await supabase.functions.invoke('send-status-notification', {
             body: {
@@ -172,7 +172,8 @@ const OrderManagement = () => {
               customerName: customerName,
               orderCode: orderCode,
               statusName: status.nombre,
-              statusDescription: status.descripcion || 'Tu pedido ha sido creado.'
+              statusDescription: status.descripcion || 'Tu pedido ha sido creado.',
+              isNewOrder: true
             }
           });
         }
@@ -322,7 +323,7 @@ const OrderManagement = () => {
         .from('Historial_Estatus')
         .insert(historialData);
 
-      // Enviar notificación por correo
+      // Enviar notificación por correo de actualización
       const status = statuses.find(s => s.id === newStatusId);
       if (status) {
         await supabase.functions.invoke('send-status-notification', {
@@ -331,7 +332,8 @@ const OrderManagement = () => {
             customerName: selectedOrder.Cliente,
             orderCode: selectedOrder['Código de pedido'],
             statusName: status.nombre,
-            statusDescription: description || status.descripcion || 'Tu pedido ha sido actualizado.'
+            statusDescription: description || status.descripcion || 'Tu pedido ha sido actualizado.',
+            isNewOrder: false
           }
         });
       }
