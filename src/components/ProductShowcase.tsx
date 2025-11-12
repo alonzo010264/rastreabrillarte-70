@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Product {
   id: string;
@@ -15,11 +16,13 @@ interface Product {
   colores: string[];
   imagenes: string[];
   categoria: string;
+  stock: number;
 }
 
 export const ProductShowcase = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const { ref, isVisible } = useScrollAnimation();
+  const [currentImageIndex, setCurrentImageIndex] = useState<{[key: string]: number}>({});
 
   useEffect(() => {
     fetchProducts();
@@ -48,7 +51,27 @@ export const ProductShowcase = () => {
 
     if (!error && data) {
       setProducts(data);
+      // Initialize image indices
+      const indices: {[key: string]: number} = {};
+      data.forEach(product => {
+        indices[product.id] = 0;
+      });
+      setCurrentImageIndex(indices);
     }
+  };
+
+  const nextImage = (productId: string, imagesLength: number) => {
+    setCurrentImageIndex(prev => ({
+      ...prev,
+      [productId]: ((prev[productId] || 0) + 1) % imagesLength
+    }));
+  };
+
+  const prevImage = (productId: string, imagesLength: number) => {
+    setCurrentImageIndex(prev => ({
+      ...prev,
+      [productId]: ((prev[productId] || 0) - 1 + imagesLength) % imagesLength
+    }));
   };
 
   return (
@@ -72,11 +95,50 @@ export const ProductShowcase = () => {
               {product.imagenes && product.imagenes.length > 0 && (
                 <div className="relative h-64 overflow-hidden group">
                   <img
-                    src={product.imagenes[0]}
-                    alt={product.nombre}
+                    src={product.imagenes[currentImageIndex[product.id] || 0]}
+                    alt={`${product.nombre} - Imagen ${(currentImageIndex[product.id] || 0) + 1}`}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  
+                  {product.imagenes.length > 1 && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          prevImage(product.id, product.imagenes.length);
+                        }}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          nextImage(product.id, product.imagenes.length);
+                        }}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                        {product.imagenes.map((_, idx) => (
+                          <div
+                            key={idx}
+                            className={`h-1.5 w-1.5 rounded-full transition-all ${
+                              idx === (currentImageIndex[product.id] || 0)
+                                ? 'bg-white w-3'
+                                : 'bg-white/50'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
               
@@ -94,13 +156,25 @@ export const ProductShowcase = () => {
 
               <CardContent>
                 <div className="space-y-4">
+                  {product.stock === 0 && (
+                    <Badge variant="destructive" className="mb-2">
+                      Agotado
+                    </Badge>
+                  )}
                   <div>
-                    <p className="text-2xl font-bold">
-                      ${product.precio.toFixed(2)}
-                    </p>
-                    {product.precio_mayoreo && product.cantidad_mayoreo && (
-                      <p className="text-sm text-muted-foreground">
-                        ${product.precio_mayoreo.toFixed(2)} por {product.cantidad_mayoreo} unidades
+                    {product.precio_mayoreo && product.precio !== product.precio_mayoreo ? (
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold text-destructive">
+                          ${product.precio.toFixed(2)}
+                        </p>
+                        <p className="text-lg line-through text-muted-foreground">
+                          ${product.precio_mayoreo.toFixed(2)}
+                        </p>
+                        <Badge variant="secondary" className="ml-auto">Rebaja</Badge>
+                      </div>
+                    ) : (
+                      <p className="text-2xl font-bold">
+                        ${product.precio.toFixed(2)}
                       </p>
                     )}
                   </div>
