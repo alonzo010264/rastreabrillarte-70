@@ -67,11 +67,6 @@ const Footer = () => {
                   Políticas de Envío
                 </Link>
               </li>
-              <li>
-                <Link to="/cancel-notifications" className="text-gray-300 hover:text-white transition-colors">
-                  Cancelar Notificaciones
-                </Link>
-              </li>
             </ul>
           </div>
 

@@ -14,6 +14,7 @@ const Navigation = () => {
     { name: "Nosotros", href: "/nosotros" },
     { name: "Pedir", href: "/pedir" },
     { name: "Rastrear Pedidos", href: "/rastrear" },
+    { name: "Promociones", href: "https://giveaway.brillarte.lat/" },
     { name: "Preguntas Frecuentes", href: "/faq" },
     { name: "Contacto", href: "/contacto" },
   ];
@@ -36,20 +37,33 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                  isActive(item.href)
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground"
-                )}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigationItems.map((item) => {
+              const isExternal = item.href.startsWith('http');
+              return isExternal ? (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                >
+                  {item.name}
+                </a>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                    isActive(item.href)
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Mobile menu button */}
@@ -73,21 +87,35 @@ const Navigation = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border animate-fade-in">
             <div className="flex flex-col space-y-2">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={cn(
-                    "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                    isActive(item.href)
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  {item.name}
-                </Link>
-              ))}
+              {navigationItems.map((item) => {
+                const isExternal = item.href.startsWith('http');
+                return isExternal ? (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                  >
+                    {item.name}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={cn(
+                      "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                      isActive(item.href)
+                        ? "bg-accent text-accent-foreground"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
