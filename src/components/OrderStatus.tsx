@@ -1,5 +1,5 @@
 
-import { CheckCircle, Clock, Package, Truck, Home, AlertCircle, Plane } from "lucide-react";
+import { CheckCircle, Clock, Package, Truck, Home, AlertCircle, Plane, Building2, Warehouse } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
@@ -72,9 +72,21 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
   const getStatusIcon = (category: string, isCompleted: boolean, statusName?: string) => {
     const iconClass = `w-5 h-5 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`;
     
-    // Icono específico para "Embarcado"
+    // Iconos específicos por nombre de estatus
+    if (statusName === 'Pedido realizado') {
+      return <CheckCircle className={iconClass} />;
+    }
     if (statusName === 'Embarcado') {
       return <Plane className={iconClass} />;
+    }
+    if (statusName === 'En aduanas') {
+      return <Building2 className={iconClass} />;
+    }
+    if (statusName === 'Recibido en centro de distribución') {
+      return <Warehouse className={iconClass} />;
+    }
+    if (statusName === 'Listo para entregar') {
+      return <CheckCircle className={iconClass} />;
     }
     
     switch (category) {
@@ -94,18 +106,21 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
   const getStatusDescription = (statusName: string, category: string) => {
     // Descripciones específicas para cada estatus de Brillarte
     const descriptions: Record<string, string> = {
+      'Pedido realizado': 'Tu pedido ha sido realizado correctamente en nuestro sistema. ¡Gracias por tu confianza!',
       'Recibido': 'Hemos recibido tu pedido correctamente. Ahora comenzamos con el proceso para prepararlo con todo el cuidado que mereces.',
       'Confirmado': 'Tu pedido ha sido confirmado. Ya estamos listando los artículos necesarios o iniciando su creación para ti. A partir de aquí, no se puede cancelar el pedido.',
       'En Preparación': 'Tu pedido está siendo preparado cuidadosamente. En esta etapa, podemos estar fabricando el producto, revisando detalles y empacándolo. Puede tomar un poco más de tiempo, pero garantizamos que llegará impecable.',
       'Etiquetado': 'Tu pedido ya tiene puestas las etiquetas oficiales de Brillarte. Muy pronto será almacenado y alistado para entrega.',
       'Almacenado': 'Tu pedido está almacenado y esperando ser recogido por nuestros transportistas. Esto significa que ya está preparado para salir a su destino.',
-      'Listo para Entregar': 'Todo está listo. Uno de nuestros agentes de transporte pasará pronto a recoger tu pedido para llevarlo hasta ti.',
-      'En Ruta de Entrega': 'El transportista ya va en camino para entregarte tu pedido. Puede tardar un poco dependiendo de la cantidad de entregas del día y las rutas optimizadas.',
+      'Embarcado': 'Tu pedido ha sido embarcado y está en tránsito internacional. Pronto llegará a República Dominicana para continuar con el proceso de entrega.',
+      'En aduanas': 'Tu pedido está siendo revisado por las autoridades aduaneras. Este proceso es normal y puede tomar algunos días.',
+      'Recibido en centro de distribución': 'Tu pedido ha llegado a nuestro centro de distribución local y será procesado para entrega final.',
+      'Listo para entregar': 'Todo está listo. Uno de nuestros agentes de transporte pasará pronto a recoger tu pedido para llevarlo hasta ti.',
+      'En ruta de entrega': 'El transportista ya va en camino para entregarte tu pedido. Puede tardar un poco dependiendo de la cantidad de entregas del día y las rutas optimizadas.',
       'Entregado': 'Tu pedido fue entregado con éxito. En caso de alta demanda, este estado se actualiza tan pronto nuestro transportista lo confirma.',
       'Devuelto': 'El pedido fue devuelto por alguna razón y será recogido por nuestro agente transportista. Nos comunicaremos contigo para darte seguimiento.',
       'Cancelado': 'Tu pedido ha sido cancelado. No es posible cancelar un pedido si ya está confirmado o en preparación.',
       'En Revisión': 'Tu solicitud está siendo revisada por nuestro equipo. Te contactaremos lo más antes posible para atender tu caso y buscar la mejor solución.',
-      'Embarcado': 'Tu pedido ha sido embarcado y está en tránsito internacional. Pronto llegará a República Dominicana para continuar con el proceso de entrega.',
     };
 
     return descriptions[statusName] || 'Tu pedido está siendo procesado. Te notificaremos cuando haya actualizaciones.';
