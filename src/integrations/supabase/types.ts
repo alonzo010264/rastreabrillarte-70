@@ -38,6 +38,47 @@ export type Database = {
         }
         Relationships: []
       }
+      carrito: {
+        Row: {
+          cantidad: number
+          color: string | null
+          created_at: string | null
+          id: string
+          producto_id: string
+          talla: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cantidad?: number
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          producto_id: string
+          talla?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cantidad?: number
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          producto_id?: string
+          talla?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrito_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbot_conversations: {
         Row: {
           conversation_data: Json
@@ -189,6 +230,35 @@ export type Database = {
           orden?: number
         }
         Relationships: []
+      }
+      favoritos: {
+        Row: {
+          created_at: string | null
+          id: string
+          producto_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          producto_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          producto_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favoritos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       Historial_Estatus: {
         Row: {
@@ -503,6 +573,7 @@ export type Database = {
           colores: string[] | null
           created_at: string | null
           descripcion: string | null
+          destacado: boolean | null
           id: string
           imagenes: string[] | null
           nombre: string
@@ -520,6 +591,7 @@ export type Database = {
           colores?: string[] | null
           created_at?: string | null
           descripcion?: string | null
+          destacado?: boolean | null
           id?: string
           imagenes?: string[] | null
           nombre: string
@@ -537,6 +609,7 @@ export type Database = {
           colores?: string[] | null
           created_at?: string | null
           descripcion?: string | null
+          destacado?: boolean | null
           id?: string
           imagenes?: string[] | null
           nombre?: string
