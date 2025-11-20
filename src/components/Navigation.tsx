@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
+import { ShoppingCart } from "@/components/ShoppingCart";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -64,10 +65,26 @@ const Navigation = () => {
                 </Link>
               );
             })}
+            
+            {/* Cart and Favorites */}
+            <div className="flex items-center gap-1 ml-2 border-l pl-2">
+              <ShoppingCart />
+              <Button variant="ghost" size="icon" asChild>
+                <Link to="/favoritos">
+                  <Heart className="h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
+          {/* Mobile menu and actions */}
+          <div className="md:hidden flex items-center gap-2">
+            <ShoppingCart />
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/favoritos">
+                <Heart className="h-5 w-5" />
+              </Link>
+            </Button>
             <Button
               variant="ghost"
               size="icon"

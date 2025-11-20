@@ -28,6 +28,7 @@ import AdminProductos from "./pages/AdminProductos";
 import BrillartePedidos from "./pages/BrillartePedidos";
 import Promociones from "./pages/Promociones";
 import AdminPromociones from "./pages/AdminPromociones";
+import Favoritos from "./pages/Favoritos";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
           <Route path="/admin/promociones" element={<AdminPromociones />} />
           <Route path="/brillarte-pedidos" element={<BrillartePedidos />} />
           <Route path="/promociones" element={<Promociones />} />
+          <Route path="/favoritos" element={<Favoritos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

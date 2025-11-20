@@ -106,6 +106,48 @@ export type Database = {
         }
         Relationships: []
       }
+      codigos_descuento: {
+        Row: {
+          activo: boolean | null
+          codigo: string
+          created_at: string | null
+          descripcion: string | null
+          fecha_expiracion: string | null
+          fecha_inicio: string | null
+          id: string
+          porcentaje_descuento: number
+          updated_at: string | null
+          usos_actuales: number | null
+          usos_maximos: number | null
+        }
+        Insert: {
+          activo?: boolean | null
+          codigo: string
+          created_at?: string | null
+          descripcion?: string | null
+          fecha_expiracion?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          porcentaje_descuento: number
+          updated_at?: string | null
+          usos_actuales?: number | null
+          usos_maximos?: number | null
+        }
+        Update: {
+          activo?: boolean | null
+          codigo?: string
+          created_at?: string | null
+          descripcion?: string | null
+          fecha_expiracion?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          porcentaje_descuento?: number
+          updated_at?: string | null
+          usos_actuales?: number | null
+          usos_maximos?: number | null
+        }
+        Relationships: []
+      }
       contact_requests: {
         Row: {
           created_at: string | null
