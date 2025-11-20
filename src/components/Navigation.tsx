@@ -14,7 +14,7 @@ const Navigation = () => {
     { name: "Nosotros", href: "/nosotros" },
     { name: "Pedir", href: "/pedir" },
     { name: "Rastrear Pedidos", href: "/rastrear" },
-    { name: "Promociones", href: "https://giveaway.brillarte.lat/" },
+    { name: "Promociones", href: "/promociones" },
     { name: "Preguntas Frecuentes", href: "/faq" },
     { name: "Contacto", href: "/contacto" },
   ];

@@ -6,12 +6,13 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ImageUploadProps {
   onImageUpload: (imageUrl: string) => void;
+  currentImage?: string;
   disabled?: boolean;
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload, disabled = false }) => {
+const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload, currentImage, disabled = false }) => {
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(currentImage || null);
   const { toast } = useToast();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {

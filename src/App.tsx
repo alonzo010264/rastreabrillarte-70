@@ -26,6 +26,8 @@ import RegistroConfirmado from "./pages/RegistroConfirmado";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProductos from "./pages/AdminProductos";
 import BrillartePedidos from "./pages/BrillartePedidos";
+import Promociones from "./pages/Promociones";
+import AdminPromociones from "./pages/AdminPromociones";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +58,9 @@ const App = () => (
           <Route path="/mi-cuenta" element={<CustomerDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/admin/productos" element={<AdminProductos />} />
+          <Route path="/admin/promociones" element={<AdminPromociones />} />
           <Route path="/brillarte-pedidos" element={<BrillartePedidos />} />
+          <Route path="/promociones" element={<Promociones />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
