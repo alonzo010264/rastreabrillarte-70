@@ -401,6 +401,38 @@ export type Database = {
         }
         Relationships: []
       }
+      participaciones_promociones: {
+        Row: {
+          comentario: string | null
+          created_at: string | null
+          id: string
+          promocion_id: string
+          user_email: string
+        }
+        Insert: {
+          comentario?: string | null
+          created_at?: string | null
+          id?: string
+          promocion_id: string
+          user_email: string
+        }
+        Update: {
+          comentario?: string | null
+          created_at?: string | null
+          id?: string
+          promocion_id?: string
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participaciones_promociones_promocion_id_fkey"
+            columns: ["promocion_id"]
+            isOneToOne: false
+            referencedRelation: "promociones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Pedidos: {
         Row: {
           Cliente: string
@@ -664,6 +696,45 @@ export type Database = {
           telefono?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      promociones: {
+        Row: {
+          activa: boolean | null
+          created_at: string | null
+          descripcion: string
+          fecha_inicio: string | null
+          fecha_limite: string
+          id: string
+          imagen_url: string | null
+          instrucciones: string | null
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          activa?: boolean | null
+          created_at?: string | null
+          descripcion: string
+          fecha_inicio?: string | null
+          fecha_limite: string
+          id?: string
+          imagen_url?: string | null
+          instrucciones?: string | null
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          activa?: boolean | null
+          created_at?: string | null
+          descripcion?: string
+          fecha_inicio?: string | null
+          fecha_limite?: string
+          id?: string
+          imagen_url?: string | null
+          instrucciones?: string | null
+          titulo?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

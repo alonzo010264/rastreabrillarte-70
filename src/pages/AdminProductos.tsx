@@ -51,36 +51,8 @@ export default function AdminProductos() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAdmin();
+    loadProductos();
   }, []);
-
-  const checkAdmin = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-
-      if (roleData?.role !== 'admin') {
-        toast.error('No tienes permisos de administrador');
-        navigate('/');
-        return;
-      }
-
-      loadProductos();
-    } catch (error) {
-      console.error('Error checking admin:', error);
-      navigate('/login');
-    }
-  };
 
   const loadProductos = async () => {
     try {
