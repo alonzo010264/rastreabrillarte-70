@@ -24,6 +24,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import RegistroConfirmado from "./pages/RegistroConfirmado";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProductos from "./pages/AdminProductos";
 import BrillartePedidos from "./pages/BrillartePedidos";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => (
           <Route path="/registro-confirmado" element={<RegistroConfirmado />} />
           <Route path="/mi-cuenta" element={<CustomerDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/productos" element={<AdminProductos />} />
           <Route path="/brillarte-pedidos" element={<BrillartePedidos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

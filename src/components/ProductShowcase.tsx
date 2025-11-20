@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingBag, ChevronLeft, ChevronRight, Heart, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
@@ -17,16 +18,44 @@ interface Product {
   imagenes: string[];
   categoria: string;
   stock: number;
+  destacado: boolean | null;
 }
 
 export const ProductShowcase = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const { ref, isVisible } = useScrollAnimation();
   const [currentImageIndex, setCurrentImageIndex] = useState<{[key: string]: number}>({});
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    fetchProducts();
+    checkUser();
+  }, []);
 
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+    if (user) {
+      loadFavorites(user.id);
+    }
+    fetchProducts();
+  };
+
+  const loadFavorites = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('favoritos')
+        .select('producto_id')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      setFavorites(new Set(data?.map(f => f.producto_id) || []));
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    }
+  };
+
+  useEffect(() => {
     const channel = supabase
       .channel('productos-changes')
       .on('postgres_changes', 
@@ -47,6 +76,7 @@ export const ProductShowcase = () => {
       .from('productos')
       .select('*')
       .eq('activo', true)
+      .order('destacado', { ascending: false })
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -72,6 +102,63 @@ export const ProductShowcase = () => {
       ...prev,
       [productId]: ((prev[productId] || 0) - 1 + imagesLength) % imagesLength
     }));
+  };
+
+  const toggleFavorite = async (productId: string) => {
+    if (!user) {
+      toast.error('Debes iniciar sesión para guardar favoritos');
+      return;
+    }
+
+    try {
+      if (favorites.has(productId)) {
+        await supabase
+          .from('favoritos')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('producto_id', productId);
+        
+        setFavorites(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(productId);
+          return newSet;
+        });
+        toast.success('Eliminado de favoritos');
+      } else {
+        await supabase
+          .from('favoritos')
+          .insert({ user_id: user.id, producto_id: productId });
+        
+        setFavorites(prev => new Set(prev).add(productId));
+        toast.success('Agregado a favoritos');
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast.error('Error al actualizar favoritos');
+    }
+  };
+
+  const addToCart = async (product: Product) => {
+    if (!user) {
+      toast.error('Debes iniciar sesión para agregar al carrito');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('carrito')
+        .insert({
+          user_id: user.id,
+          producto_id: product.id,
+          cantidad: 1
+        });
+
+      if (error) throw error;
+      toast.success(`${product.nombre} agregado al carrito`);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Error al agregar al carrito');
+    }
   };
 
   return (
@@ -144,7 +231,12 @@ export const ProductShowcase = () => {
               
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{product.nombre}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-xl">{product.nombre}</CardTitle>
+                    {product.destacado && (
+                      <Badge variant="default" className="text-xs">⭐</Badge>
+                    )}
+                  </div>
                   {product.categoria && (
                     <Badge variant="secondary">{product.categoria}</Badge>
                   )}
@@ -184,13 +276,37 @@ export const ProductShowcase = () => {
                       <p className="text-sm font-medium mb-2">Colores disponibles:</p>
                       <div className="flex flex-wrap gap-2">
                         {product.colores.map((color, i) => (
-                          <Badge key={i} variant="outline" className="text-xs">
-                            {color}
-                          </Badge>
+                          <div
+                            key={i}
+                            className="w-8 h-8 rounded-full border-2 border-border shadow-sm"
+                            style={{ backgroundColor: color }}
+                            title={color}
+                          />
                         ))}
                       </div>
                     </div>
                   )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => toggleFavorite(product.id)}
+                      variant={favorites.has(product.id) ? "default" : "outline"}
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Heart className={`w-4 h-4 mr-1 ${favorites.has(product.id) ? 'fill-current' : ''}`} />
+                      {favorites.has(product.id) ? 'Favorito' : 'Me gusta'}
+                    </Button>
+                    <Button
+                      onClick={() => addToCart(product)}
+                      disabled={product.stock === 0}
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-1" />
+                      Agregar
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
