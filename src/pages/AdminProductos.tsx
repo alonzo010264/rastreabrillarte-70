@@ -10,8 +10,10 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { MultipleImageUpload } from "@/components/MultipleImageUpload";
 import { ColorPicker } from "@/components/ColorPicker";
+import { DiscountCodes } from "@/components/DiscountCodes";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Producto {
   id: string;
@@ -193,8 +195,16 @@ export default function AdminProductos() {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver
         </Button>
-        <h1 className="text-3xl font-bold">Administrar Productos</h1>
+        <h1 className="text-3xl font-bold">Administrar Productos y Promociones</h1>
       </div>
+
+      <Tabs defaultValue="productos" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="productos">Productos</TabsTrigger>
+          <TabsTrigger value="codigos">Códigos de Descuento</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="productos">
 
       {!showForm ? (
         <>
@@ -395,6 +405,12 @@ export default function AdminProductos() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="codigos">
+          <DiscountCodes />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
