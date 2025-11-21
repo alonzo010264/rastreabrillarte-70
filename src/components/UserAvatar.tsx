@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { User, CheckCircle } from "lucide-react";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 
 interface UserAvatarProps {
   size?: "sm" | "md" | "lg";
   showName?: boolean;
+  showVerified?: boolean;
 }
 
-export default function UserAvatar({ size = "md", showName = false }: UserAvatarProps) {
+export default function UserAvatar({ size = "md", showName = false, showVerified = true }: UserAvatarProps) {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -108,11 +109,25 @@ export default function UserAvatar({ size = "md", showName = false }: UserAvatar
   if (isAdmin) {
     return (
       <div className="flex items-center gap-2">
-        <Avatar className={sizeClasses[size]}>
-          <AvatarImage src={brillarteLogo} alt="Brillarte Admin" />
-          <AvatarFallback>BR</AvatarFallback>
-        </Avatar>
-        {showName && <span className="text-sm font-medium">Brillarte</span>}
+        <div className="relative">
+          <Avatar className={sizeClasses[size]}>
+            <AvatarImage src={brillarteLogo} alt="Brillarte Admin" />
+            <AvatarFallback>BR</AvatarFallback>
+          </Avatar>
+          {showVerified && profile?.verificado && (
+            <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
+              <CheckCircle className="w-4 h-4 text-primary fill-primary" />
+            </div>
+          )}
+        </div>
+        {showName && (
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-medium">Brillarte</span>
+            {showVerified && profile?.verificado && (
+              <CheckCircle className="w-4 h-4 text-primary fill-primary" />
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -124,17 +139,31 @@ export default function UserAvatar({ size = "md", showName = false }: UserAvatar
     
     return (
       <div className="flex items-center gap-2">
-        <Avatar className={sizeClasses[size]}>
-          <AvatarImage 
-            src={avatarUrlWithTimestamp} 
-            alt={profile.nombre_completo}
-            key={avatarUrlWithTimestamp} 
-          />
-          <AvatarFallback>
-            {profile.nombre_completo?.charAt(0).toUpperCase() || 'U'}
-          </AvatarFallback>
-        </Avatar>
-        {showName && <span className="text-sm">{profile.nombre_completo}</span>}
+        <div className="relative">
+          <Avatar className={sizeClasses[size]}>
+            <AvatarImage 
+              src={avatarUrlWithTimestamp} 
+              alt={profile.nombre_completo}
+              key={avatarUrlWithTimestamp} 
+            />
+            <AvatarFallback>
+              {profile.nombre_completo?.charAt(0).toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
+          {showVerified && profile?.verificado && (
+            <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
+              <CheckCircle className="w-4 h-4 text-primary fill-primary" />
+            </div>
+          )}
+        </div>
+        {showName && (
+          <div className="flex items-center gap-1">
+            <span className="text-sm">{profile.nombre_completo}</span>
+            {showVerified && profile?.verificado && (
+              <CheckCircle className="w-4 h-4 text-primary fill-primary" />
+            )}
+          </div>
+        )}
       </div>
     );
   }
