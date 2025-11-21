@@ -698,6 +698,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           codigo_membresia: string | null
           confirmado: boolean | null
           correo: string
@@ -712,6 +713,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_url?: string | null
           codigo_membresia?: string | null
           confirmado?: boolean | null
           correo: string
@@ -726,6 +728,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_url?: string | null
           codigo_membresia?: string | null
           confirmado?: boolean | null
           correo?: string
@@ -1049,6 +1052,13 @@ export type Database = {
         Returns: {
           role: Database["public"]["Enums"]["app_role"]
         }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

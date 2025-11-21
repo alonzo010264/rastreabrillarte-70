@@ -53,8 +53,15 @@ export default function Promociones() {
   };
 
   const handleParticipar = async (promocionId: string) => {
-    if (!email) {
-      toast.error('Por favor ingresa tu correo electrónico');
+    // Verificar autenticación
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error('Debes iniciar sesión para participar');
+      // Redirigir a login después de un momento
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1500);
       return;
     }
 
@@ -63,7 +70,7 @@ export default function Promociones() {
         .from('participaciones_promociones')
         .insert([{
           promocion_id: promocionId,
-          user_email: email,
+          user_email: user.email!,
           comentario: comentario || null,
         }]);
 
@@ -224,17 +231,6 @@ export default function Promociones() {
                         {participandoId === promocion.id ? (
                           <div className="space-y-3 mt-4 p-4 bg-primary/5 rounded-lg">
                             <div>
-                              <Label htmlFor={`email-${promocion.id}`}>Tu correo *</Label>
-                              <Input
-                                id={`email-${promocion.id}`}
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="tu@correo.com"
-                                required
-                              />
-                            </div>
-                            <div>
                               <Label htmlFor={`comentario-${promocion.id}`}>Comentario (opcional)</Label>
                               <Textarea
                                 id={`comentario-${promocion.id}`}
@@ -249,7 +245,7 @@ export default function Promociones() {
                                 onClick={() => handleParticipar(promocion.id)}
                                 className="flex-1"
                               >
-                                Confirmar
+                                Confirmar Participación
                               </Button>
                               <Button 
                                 variant="outline" 
