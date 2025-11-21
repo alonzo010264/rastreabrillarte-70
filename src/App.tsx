@@ -36,6 +36,7 @@ import AdminTarjetas from "./pages/AdminTarjetas";
 import AdminRoles from "./pages/AdminRoles";
 import AdminEmails from "./pages/AdminEmails";
 import AdminCuentas from "./pages/AdminCuentas";
+import AdminCuentaDetalle from "./pages/AdminCuentaDetalle";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/admin/roles" element={<AdminRoles />} />
           <Route path="/admin/emails" element={<AdminEmails />} />
           <Route path="/admin/cuentas" element={<AdminCuentas />} />
+          <Route path="/admin/cuenta/:userId" element={<AdminCuentaDetalle />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

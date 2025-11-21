@@ -244,6 +244,14 @@ const AdminCuentas = () => {
                           <Button
                             variant="outline"
                             size="icon"
+                            onClick={() => navigate(`/admin/cuenta/${profile.user_id}`)}
+                            title="Ver cuenta completa"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
                             onClick={() => {
                               setSelectedProfile(profile);
                               setShowAdjustBalanceDialog(true);
