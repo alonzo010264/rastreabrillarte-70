@@ -31,6 +31,7 @@ import AdminPromociones from "./pages/AdminPromociones";
 import Favoritos from "./pages/Favoritos";
 import Perfil from "./pages/Perfil";
 import PerfilPublico from "./pages/PerfilPublico";
+import TarjetasRegalo from "./pages/TarjetasRegalo";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
           <Route path="/promociones" element={<Promociones />} />
           <Route path="/favoritos" element={<Favoritos />} />
           <Route path="/perfil/:userId" element={<PerfilPublico />} />
+          <Route path="/tarjetas-regalo" element={<TarjetasRegalo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -1,22 +1,32 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import UserAvatar from "@/components/UserAvatar";
-import { Upload, LogOut, User as UserIcon, Mail, Phone, MapPin } from "lucide-react";
+import { MisPedidos } from "@/components/MisPedidos";
+import { MiSaldo } from "@/components/MiSaldo";
+import { Upload, LogOut, User as UserIcon, Mail, Phone, MapPin, Package, DollarSign } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Perfil() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [editingAddress, setEditingAddress] = useState(false);
+  const [newAddress, setNewAddress] = useState("");
+  const isBrillarteAccount = profile?.correo === 'oficial@brillarte.lat';
+  
+  const defaultTab = searchParams.get('tab') || 'perfil';
 
   useEffect(() => {
     checkUser();
@@ -170,6 +180,29 @@ export default function Perfil() {
     }
   };
 
+  const handleUpdateAddress = async () => {
+    if (!newAddress.trim()) {
+      toast.error("Por favor ingresa una dirección");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ direccion: newAddress })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setProfile({ ...profile, direccion: newAddress });
+      setEditingAddress(false);
+      toast.success("Dirección actualizada");
+    } catch (error) {
+      console.error('Error updating address:', error);
+      toast.error("Error al actualizar dirección");
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -186,7 +219,7 @@ export default function Perfil() {
     <>
       <Navigation />
       <div className="container mx-auto py-8 px-4 min-h-screen">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold">Mi Perfil</h1>
@@ -196,89 +229,163 @@ export default function Perfil() {
             </Button>
           </div>
 
-          {/* Avatar Card */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Foto de Perfil</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4">
-              <UserAvatar size="lg" />
-              
-              <div className="text-center">
-                <Label htmlFor="avatar-upload" className="cursor-pointer">
-                  <Button variant="outline" size="sm" disabled={uploading} asChild>
-                    <span>
-                      <Upload className="w-4 h-4 mr-2" />
-                      {uploading ? 'Subiendo...' : 'Cambiar Foto'}
-                    </span>
-                  </Button>
-                </Label>
-                <Input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  JPG, PNG o GIF. Máximo 2MB.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Profile Info Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Información Personal</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <UserIcon className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Nombre</p>
-                  <p className="font-medium">{profile?.nombre_completo}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Correo</p>
-                  <p className="font-medium">{profile?.correo}</p>
-                </div>
-              </div>
-
-              {profile?.telefono && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Teléfono</p>
-                    <p className="font-medium">{profile.telefono}</p>
-                  </div>
-                </div>
+          <Tabs defaultValue={defaultTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="perfil">
+                <UserIcon className="w-4 h-4 mr-2" />
+                Perfil
+              </TabsTrigger>
+              {!isBrillarteAccount && (
+                <>
+                  <TabsTrigger value="pedidos">
+                    <Package className="w-4 h-4 mr-2" />
+                    Mis Pedidos
+                  </TabsTrigger>
+                  <TabsTrigger value="saldo">
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Mi Saldo
+                  </TabsTrigger>
+                </>
               )}
+            </TabsList>
 
-              {profile?.direccion && (
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Dirección</p>
-                    <p className="font-medium">{profile.direccion}</p>
+            <TabsContent value="perfil" className="space-y-6">
+              {/* Avatar Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Foto de Perfil</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center gap-4">
+                  <UserAvatar size="lg" />
+                  
+                  <div className="text-center">
+                    <Label htmlFor="avatar-upload" className="cursor-pointer">
+                      <Button variant="outline" size="sm" disabled={uploading} asChild>
+                        <span>
+                          <Upload className="w-4 h-4 mr-2" />
+                          {uploading ? 'Subiendo...' : 'Cambiar Foto'}
+                        </span>
+                      </Button>
+                    </Label>
+                    <Input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      JPG, PNG o GIF. Máximo 2MB.
+                    </p>
                   </div>
-                </div>
-              )}
+                </CardContent>
+              </Card>
 
-              {profile?.codigo_membresia && (
-                <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Código de Membresía</p>
-                    <p className="font-bold text-primary">{profile.codigo_membresia}</p>
+              {/* Profile Info Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Información Personal</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <UserIcon className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Nombre</p>
+                      <p className="font-medium">{profile?.nombre_completo}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Correo</p>
+                      <p className="font-medium">{profile?.correo}</p>
+                    </div>
+                  </div>
+
+                  {profile?.telefono && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Teléfono</p>
+                        <p className="font-medium">{profile.telefono}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {!isBrillarteAccount && (
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 text-muted-foreground mt-1" />
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground mb-2">Dirección</p>
+                        {editingAddress ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={newAddress}
+                              onChange={(e) => setNewAddress(e.target.value)}
+                              placeholder="Ingresa tu dirección completa..."
+                              rows={3}
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={handleUpdateAddress}>
+                                Guardar
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => {
+                                  setEditingAddress(false);
+                                  setNewAddress("");
+                                }}
+                              >
+                                Cancelar
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="font-medium">{profile?.direccion || 'No especificada'}</p>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="mt-2"
+                              onClick={() => {
+                                setEditingAddress(true);
+                                setNewAddress(profile?.direccion || "");
+                              }}
+                            >
+                              {profile?.direccion ? 'Editar' : 'Agregar'} Dirección
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {profile?.codigo_membresia && (
+                    <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Código de Membresía</p>
+                        <p className="font-bold text-primary">{profile.codigo_membresia}</p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {!isBrillarteAccount && (
+              <>
+                <TabsContent value="pedidos">
+                  <MisPedidos />
+                </TabsContent>
+
+                <TabsContent value="saldo">
+                  <MiSaldo />
+                </TabsContent>
+              </>
+            )}
+          </Tabs>
         </div>
       </div>
       <Footer />
