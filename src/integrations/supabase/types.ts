@@ -700,44 +700,44 @@ export type Database = {
         Row: {
           codigo_membresia: string | null
           confirmado: boolean | null
-          correo: string | null
+          correo: string
           created_at: string | null
           direccion: string | null
           fecha_creacion: string | null
           id: string
-          nombre_completo: string | null
+          nombre_completo: string
           saldo: number | null
           telefono: string | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           codigo_membresia?: string | null
           confirmado?: boolean | null
-          correo?: string | null
+          correo: string
           created_at?: string | null
           direccion?: string | null
           fecha_creacion?: string | null
           id?: string
-          nombre_completo?: string | null
+          nombre_completo: string
           saldo?: number | null
           telefono?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           codigo_membresia?: string | null
           confirmado?: boolean | null
-          correo?: string | null
+          correo?: string
           created_at?: string | null
           direccion?: string | null
           fecha_creacion?: string | null
           id?: string
-          nombre_completo?: string | null
+          nombre_completo?: string
           saldo?: number | null
           telefono?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }

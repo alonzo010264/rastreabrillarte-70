@@ -59,7 +59,7 @@ const Register = () => {
           data: {
             nombre_completo: formData.nombre
           },
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/mi-cuenta`
         }
       });
 
@@ -67,10 +67,13 @@ const Register = () => {
 
       toast({
         title: "¡Registro exitoso!",
-        description: "Tu cuenta ha sido creada. Puedes iniciar sesión ahora."
+        description: "Tu cuenta ha sido creada. Redirigiendo..."
       });
 
-      navigate('/login');
+      // Pequeño delay antes de redirigir
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (error: any) {
       console.error('Error en registro:', error);
       toast({

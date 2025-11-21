@@ -53,7 +53,7 @@ const Login = () => {
         description: "Has iniciado sesión correctamente"
       });
 
-      navigate('/mi-cuenta');
+      navigate('/');
     } catch (error: any) {
       console.error('Error en login:', error);
       toast({
