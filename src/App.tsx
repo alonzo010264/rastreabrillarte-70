@@ -32,6 +32,7 @@ import Favoritos from "./pages/Favoritos";
 import Perfil from "./pages/Perfil";
 import PerfilPublico from "./pages/PerfilPublico";
 import TarjetasRegalo from "./pages/TarjetasRegalo";
+import AdminTarjetas from "./pages/AdminTarjetas";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
           <Route path="/favoritos" element={<Favoritos />} />
           <Route path="/perfil/:userId" element={<PerfilPublico />} />
           <Route path="/tarjetas-regalo" element={<TarjetasRegalo />} />
+          <Route path="/admin/tarjetas" element={<AdminTarjetas />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
