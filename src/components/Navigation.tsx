@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 import { ShoppingCart } from "@/components/ShoppingCart";
 import UserAvatar from "@/components/UserAvatar";
+import NotificationBell from "@/components/NotificationBell";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -80,8 +81,9 @@ const Navigation = () => {
               </div>
             )}
             
-            {/* User Account */}
-            <div className="ml-2 border-l pl-2">
+            {/* Notifications and User Account */}
+            <div className="ml-2 border-l pl-2 flex items-center gap-1">
+              <NotificationBell />
               <Button variant="ghost" size="icon" asChild>
                 <Link to="/perfil">
                   <UserAvatar size="sm" />
@@ -102,6 +104,7 @@ const Navigation = () => {
                 </Button>
               </>
             )}
+            <NotificationBell />
             <Button variant="ghost" size="icon" asChild>
               <Link to="/perfil">
                 <UserAvatar size="sm" />

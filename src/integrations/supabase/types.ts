@@ -376,9 +376,11 @@ export type Database = {
       }
       notifications: {
         Row: {
+          accion_url: string | null
           codigo_membresia: string | null
           created_at: string | null
           id: string
+          imagen_url: string | null
           leido: boolean | null
           mensaje: string
           tipo: string
@@ -386,9 +388,11 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          accion_url?: string | null
           codigo_membresia?: string | null
           created_at?: string | null
           id?: string
+          imagen_url?: string | null
           leido?: boolean | null
           mensaje: string
           tipo: string
@@ -396,9 +400,11 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          accion_url?: string | null
           codigo_membresia?: string | null
           created_at?: string | null
           id?: string
+          imagen_url?: string | null
           leido?: boolean | null
           mensaje?: string
           tipo?: string
@@ -448,6 +454,7 @@ export type Database = {
           comentario: string | null
           created_at: string | null
           id: string
+          menciones: string[] | null
           promocion_id: string
           user_email: string
         }
@@ -455,6 +462,7 @@ export type Database = {
           comentario?: string | null
           created_at?: string | null
           id?: string
+          menciones?: string[] | null
           promocion_id: string
           user_email: string
         }
@@ -462,6 +470,7 @@ export type Database = {
           comentario?: string | null
           created_at?: string | null
           id?: string
+          menciones?: string[] | null
           promocion_id?: string
           user_email?: string
         }
@@ -711,6 +720,7 @@ export type Database = {
           telefono: string | null
           updated_at: string | null
           user_id: string
+          verificado: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -726,6 +736,7 @@ export type Database = {
           telefono?: string | null
           updated_at?: string | null
           user_id: string
+          verificado?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -741,6 +752,7 @@ export type Database = {
           telefono?: string | null
           updated_at?: string | null
           user_id?: string
+          verificado?: boolean | null
         }
         Relationships: []
       }

@@ -87,12 +87,22 @@ export default function Promociones() {
     }
 
     try {
+      // Detectar menciones en el comentario (@usuario)
+      const mencionesRegex = /@(\w+)/g;
+      const menciones: string[] = [];
+      let match;
+      
+      while ((match = mencionesRegex.exec(comentario)) !== null) {
+        menciones.push(match[1]);
+      }
+
       const { error } = await supabase
         .from('participaciones_promociones')
         .insert([{
           promocion_id: promocionId,
           user_email: user.email!,
           comentario: comentario || null,
+          menciones: menciones.length > 0 ? menciones : null,
         }]);
 
       if (error) {
@@ -102,6 +112,27 @@ export default function Promociones() {
           throw error;
         }
         return;
+      }
+
+      // Si hay menciones, enviar notificaciones
+      if (menciones.length > 0) {
+        // Buscar usuarios mencionados (por nombre)
+        const { data: mencionados } = await supabase
+          .from('profiles')
+          .select('user_id, nombre_completo')
+          .ilike('nombre_completo', `%${menciones[0]}%`); // Simplificado para demo
+
+        if (mencionados && mencionados.length > 0) {
+          const notificaciones = mencionados.map(m => ({
+            user_id: m.user_id,
+            tipo: 'mencion',
+            titulo: '¡Te mencionaron!',
+            mensaje: `${user.email} te mencionó en una promoción: "${comentario.substring(0, 50)}..."`,
+            accion_url: '/promociones'
+          }));
+
+          await supabase.from('notifications').insert(notificaciones);
+        }
       }
 
       toast.success('¡Participación registrada exitosamente! 🎉');
@@ -252,14 +283,19 @@ export default function Promociones() {
                         {participandoId === promocion.id ? (
                           <div className="space-y-3 mt-4 p-4 bg-primary/5 rounded-lg">
                             <div>
-                              <Label htmlFor={`comentario-${promocion.id}`}>Comentario (opcional)</Label>
+                              <Label htmlFor={`comentario-${promocion.id}`}>
+                                Comentario (opcional)
+                              </Label>
                               <Textarea
                                 id={`comentario-${promocion.id}`}
                                 value={comentario}
                                 onChange={(e) => setComentario(e.target.value)}
-                                placeholder="Cuéntanos por qué quieres participar..."
+                                placeholder="Cuéntanos por qué quieres participar... Puedes mencionar @brillarte"
                                 rows={2}
                               />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Tip: Usa @brillarte para mencionar a la cuenta oficial
+                              </p>
                             </div>
                             <div className="flex gap-2">
                               <Button 

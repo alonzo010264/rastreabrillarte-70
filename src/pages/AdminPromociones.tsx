@@ -89,6 +89,8 @@ export default function AdminPromociones() {
         activa,
       };
 
+      let promocionId = editingId;
+
       if (editingId) {
         const { error } = await supabase
           .from('promociones')
@@ -98,12 +100,59 @@ export default function AdminPromociones() {
         if (error) throw error;
         toast.success('Promoción actualizada exitosamente');
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('promociones')
-          .insert([promocionData]);
+          .insert([promocionData])
+          .select()
+          .single();
 
         if (error) throw error;
+        promocionId = data.id;
         toast.success('Promoción creada exitosamente');
+
+        // Enviar notificación a todos los usuarios si la promoción está activa
+        if (activa) {
+          try {
+            // Generar mensaje con IA
+            const { data: aiResponse } = await supabase.functions.invoke('generate-promo-notification', {
+              body: { 
+                titulo, 
+                descripcion,
+                imagen_url: imagenUrl 
+              }
+            });
+
+            const mensajeIA = aiResponse?.mensaje || `🎉 Nueva promoción: ${titulo} - ¡Participa ahora!`;
+
+            // Obtener todos los perfiles
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('user_id, codigo_membresia');
+
+            if (profiles && profiles.length > 0) {
+              // Crear notificaciones para todos
+              const notifications = profiles.map(p => ({
+                user_id: p.user_id,
+                codigo_membresia: p.codigo_membresia,
+                tipo: 'promocion',
+                titulo: `🎁 ${titulo}`,
+                mensaje: mensajeIA,
+                imagen_url: imagenUrl || null,
+                accion_url: '/promociones'
+              }));
+
+              await supabase.from('notifications').insert(notifications);
+              
+              toast.success(`¡Notificación enviada a ${profiles.length} usuarios!`, {
+                duration: 4000
+              });
+            }
+          } catch (notifError) {
+            console.error('Error enviando notificaciones:', notifError);
+            // No fallar la creación de la promoción si falla la notificación
+            toast.info('Promoción creada, pero hubo un error al enviar notificaciones');
+          }
+        }
       }
 
       resetForm();

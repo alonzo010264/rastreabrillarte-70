@@ -30,6 +30,7 @@ import Promociones from "./pages/Promociones";
 import AdminPromociones from "./pages/AdminPromociones";
 import Favoritos from "./pages/Favoritos";
 import Perfil from "./pages/Perfil";
+import PerfilPublico from "./pages/PerfilPublico";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
           <Route path="/brillarte-pedidos" element={<BrillartePedidos />} />
           <Route path="/promociones" element={<Promociones />} />
           <Route path="/favoritos" element={<Favoritos />} />
+          <Route path="/perfil/:userId" element={<PerfilPublico />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
