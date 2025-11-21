@@ -13,14 +13,14 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
-    codigoMembresia: "",
+    email: "",
     password: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.codigoMembresia || !formData.password) {
+    if (!formData.email || !formData.password) {
       toast({
         title: "Campos requeridos",
         description: "Por favor completa todos los campos",
@@ -32,36 +32,8 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      // Buscar el correo asociado al código de membresía en registros_acceso
-      const { data: regData, error: regError } = await supabase
-        .from('registros_acceso')
-        .select('correo, nombre')
-        .eq('codigo_membresia', formData.codigoMembresia)
-        .maybeSingle();
-
-      if (regError) {
-        toast({
-          title: "Error",
-          description: "Error al buscar el código de membresía",
-          variant: "destructive"
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!regData) {
-        toast({
-          title: "Error",
-          description: "Código de membresía no encontrado",
-          variant: "destructive"
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Iniciar sesión con el correo encontrado
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: regData.correo,
+        email: formData.email,
         password: formData.password
       });
 
@@ -70,14 +42,14 @@ const Login = () => {
       // Guardar preferencia de "recordar sesión"
       if (rememberMe) {
         localStorage.setItem('brillarte_remember', 'true');
-        localStorage.setItem('brillarte_codigo', formData.codigoMembresia);
+        localStorage.setItem('brillarte_email', formData.email);
       } else {
         localStorage.removeItem('brillarte_remember');
-        localStorage.removeItem('brillarte_codigo');
+        localStorage.removeItem('brillarte_email');
       }
 
       toast({
-        title: `¡Bienvenido, ${regData.nombre}!`,
+        title: "¡Bienvenido!",
         description: "Has iniciado sesión correctamente"
       });
 
@@ -86,7 +58,7 @@ const Login = () => {
       console.error('Error en login:', error);
       toast({
         title: "Error",
-        description: "Código de membresía o contraseña incorrectos",
+        description: "Correo o contraseña incorrectos",
         variant: "destructive"
       });
     } finally {
@@ -105,21 +77,21 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-black mb-2">Código de Membresía</label>
+              <label className="block text-sm font-medium text-black mb-2">Correo Electrónico</label>
               <Input
-                type="text"
-                placeholder="B-123456"
-                value={formData.codigoMembresia}
-                onChange={(e) => setFormData(prev => ({ ...prev, codigoMembresia: e.target.value }))}
+                type="email"
+                placeholder="tu@correo.com"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-black mb-2">Contraseña Temporal</label>
+              <label className="block text-sm font-medium text-black mb-2">Contraseña</label>
               <Input
                 type="password"
-                placeholder="Tu contraseña temporal"
+                placeholder="Tu contraseña"
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
