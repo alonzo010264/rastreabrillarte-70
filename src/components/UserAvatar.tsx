@@ -23,7 +23,30 @@ export default function UserAvatar({ size = "md", showName = false }: UserAvatar
 
   useEffect(() => {
     checkUser();
-  }, []);
+
+    // Suscribirse a cambios en tiempo real del perfil
+    const channel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          // Si es el perfil del usuario actual, actualizar
+          if (payload.new.user_id === user?.id) {
+            setProfile(payload.new);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const checkUser = async () => {
     try {
@@ -96,10 +119,17 @@ export default function UserAvatar({ size = "md", showName = false }: UserAvatar
 
   // Regular user with avatar
   if (profile?.avatar_url) {
+    // Agregar timestamp para evitar caché del navegador
+    const avatarUrlWithTimestamp = `${profile.avatar_url}?t=${new Date().getTime()}`;
+    
     return (
       <div className="flex items-center gap-2">
         <Avatar className={sizeClasses[size]}>
-          <AvatarImage src={profile.avatar_url} alt={profile.nombre_completo} />
+          <AvatarImage 
+            src={avatarUrlWithTimestamp} 
+            alt={profile.nombre_completo}
+            key={avatarUrlWithTimestamp} 
+          />
           <AvatarFallback>
             {profile.nombre_completo?.charAt(0).toUpperCase() || 'U'}
           </AvatarFallback>

@@ -30,6 +30,30 @@ const Favoritos = () => {
 
   useEffect(() => {
     checkUserAndLoadFavorites();
+
+    // Suscribirse a cambios en tiempo real de favoritos
+    const channel = supabase
+      .channel('favorites-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'favoritos'
+        },
+        async () => {
+          // Recargar favoritos cuando hay cambios
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await loadFavorites(user.id);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const checkUserAndLoadFavorites = async () => {

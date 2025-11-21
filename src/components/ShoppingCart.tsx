@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart as CartIcon, Trash2, Plus, Minus, Tag } from "lucide-react";
 import { toast } from "sonner";
+import { useRealtimeCart } from "@/hooks/useRealtimeCart";
 
 interface CartItem {
   id: string;
@@ -32,6 +33,7 @@ export const ShoppingCart = () => {
   const [codigoInput, setCodigoInput] = useState("");
   const [descuentoAplicado, setDescuentoAplicado] = useState<CodigoDescuento | null>(null);
   const [loading, setLoading] = useState(false);
+  const itemCount = useRealtimeCart(); // Hook para contador en tiempo real
 
   const loadCart = async () => {
     try {
@@ -64,6 +66,27 @@ export const ShoppingCart = () => {
 
   useEffect(() => {
     loadCart();
+
+    // Suscribirse a cambios en tiempo real del carrito
+    const channel = supabase
+      .channel('cart-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'carrito'
+        },
+        () => {
+          // Recargar carrito cuando hay cambios
+          loadCart();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const updateQuantity = async (itemId: string, newQuantity: number) => {
@@ -136,8 +159,6 @@ export const ShoppingCart = () => {
     : 0;
 
   const total = subtotal - descuento;
-
-  const itemCount = cartItems.reduce((sum, item) => sum + item.cantidad, 0);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
