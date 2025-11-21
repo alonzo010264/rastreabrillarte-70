@@ -31,6 +31,27 @@ export default function Promociones() {
 
   useEffect(() => {
     loadPromociones();
+
+    // Suscribirse a cambios en tiempo real de participaciones
+    const channel = supabase
+      .channel('participaciones-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'participaciones_promociones'
+        },
+        () => {
+          // Opcional: mostrar notificación cuando hay nueva participación
+          console.log('Nueva participación registrada');
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadPromociones = async () => {

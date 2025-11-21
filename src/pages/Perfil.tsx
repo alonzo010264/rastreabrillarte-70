@@ -20,7 +20,31 @@ export default function Perfil() {
 
   useEffect(() => {
     checkUser();
-  }, []);
+
+    // Suscribirse a cambios en tiempo real del perfil
+    const channel = supabase
+      .channel('profile-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          // Si es el perfil del usuario actual, actualizar
+          if (user && payload.new.user_id === user.id) {
+            setProfile(payload.new);
+            toast.success('Perfil actualizado');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const checkUser = async () => {
     try {
@@ -79,13 +103,20 @@ export default function Perfil() {
 
       setUploading(true);
 
+      // Crear URL temporal para mostrar la imagen inmediatamente
+      const tempUrl = URL.createObjectURL(file);
+      
+      // Actualizar el perfil localmente primero para feedback inmediato
+      setProfile((prev: any) => ({ ...prev, avatar_url: tempUrl }));
+      toast.success('Subiendo imagen...');
+
       // Subir imagen a storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
 
       // Eliminar avatar anterior si existe
-      if (profile?.avatar_url) {
-        const oldPath = profile.avatar_url.split('/avatars/')[1];
+      if (profile?.avatar_url && profile.avatar_url.includes('avatars/')) {
+        const oldPath = profile.avatar_url.split('/avatars/')[1]?.split('?')[0];
         if (oldPath) {
           await supabase.storage
             .from('avatars')
@@ -112,11 +143,17 @@ export default function Perfil() {
 
       if (updateError) throw updateError;
 
+      // Limpiar URL temporal
+      URL.revokeObjectURL(tempUrl);
+      
       toast.success('Foto de perfil actualizada');
-      checkUser(); // Recargar perfil
+      
+      // Realtime se encargará de actualizar automáticamente
     } catch (error) {
       console.error('Error uploading avatar:', error);
       toast.error('Error al subir foto de perfil');
+      // Recargar perfil en caso de error
+      checkUser();
     } finally {
       setUploading(false);
     }
