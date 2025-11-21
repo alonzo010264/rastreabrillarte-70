@@ -132,7 +132,7 @@ export default function PerfilPublico() {
                     <img 
                       src={verificadoIcon} 
                       alt="Verificado" 
-                      className="absolute -bottom-1 -right-1 w-8 h-8"
+                      className="absolute -bottom-1 -right-1 w-10 h-10"
                     />
                   )}
                 </div>
@@ -144,7 +144,7 @@ export default function PerfilPublico() {
                       <img 
                         src={verificadoIcon} 
                         alt="Verificado" 
-                        className="w-6 h-6"
+                        className="w-7 h-7"
                       />
                     )}
                   </div>
