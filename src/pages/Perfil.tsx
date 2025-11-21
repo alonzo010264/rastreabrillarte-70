@@ -12,8 +12,9 @@ import Footer from "@/components/Footer";
 import UserAvatar from "@/components/UserAvatar";
 import { MisPedidos } from "@/components/MisPedidos";
 import { MiSaldo } from "@/components/MiSaldo";
-import { Upload, LogOut, User as UserIcon, Mail, Phone, MapPin, Package, DollarSign } from "lucide-react";
+import { Upload, LogOut, User as UserIcon, Mail, Phone, MapPin, Package, DollarSign, Ticket } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import TicketSupport from "@/components/TicketSupport";
 
 export default function Perfil() {
   const navigate = useNavigate();
@@ -230,7 +231,7 @@ export default function Perfil() {
           </div>
 
           <Tabs defaultValue={defaultTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="perfil">
                 <UserIcon className="w-4 h-4 mr-2" />
                 Perfil
@@ -244,6 +245,10 @@ export default function Perfil() {
                   <TabsTrigger value="saldo">
                     <DollarSign className="w-4 h-4 mr-2" />
                     Mi Saldo
+                  </TabsTrigger>
+                  <TabsTrigger value="tickets">
+                    <Ticket className="w-4 h-4 mr-2" />
+                    Tickets
                   </TabsTrigger>
                 </>
               )}
@@ -382,6 +387,10 @@ export default function Perfil() {
 
                 <TabsContent value="saldo">
                   <MiSaldo />
+                </TabsContent>
+
+                <TabsContent value="tickets">
+                  <TicketSupport userId={user.id} codigoMembresia={profile?.codigo_membresia || ''} />
                 </TabsContent>
               </>
             )}
