@@ -603,6 +603,51 @@ export type Database = {
         }
         Relationships: []
       }
+      pedidos_online: {
+        Row: {
+          codigo_pedido: string
+          created_at: string | null
+          descuento: number | null
+          direccion_envio: string
+          estado: string
+          factura_url: string | null
+          id: string
+          items: Json
+          subtotal: number
+          total: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          codigo_pedido: string
+          created_at?: string | null
+          descuento?: number | null
+          direccion_envio: string
+          estado?: string
+          factura_url?: string | null
+          id?: string
+          items: Json
+          subtotal: number
+          total: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          codigo_pedido?: string
+          created_at?: string | null
+          descuento?: number | null
+          direccion_envio?: string
+          estado?: string
+          factura_url?: string | null
+          id?: string
+          items?: Json
+          subtotal?: number
+          total?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       pedidos_registro: {
         Row: {
           codigo_membresia: string
@@ -997,6 +1042,42 @@ export type Database = {
           },
         ]
       }
+      tarjetas_regalo: {
+        Row: {
+          codigo: string
+          created_at: string | null
+          diseno: Json
+          fecha_canje: string | null
+          id: string
+          imagen_url: string | null
+          monto: number
+          usado: boolean | null
+          user_id_canjeado: string | null
+        }
+        Insert: {
+          codigo: string
+          created_at?: string | null
+          diseno: Json
+          fecha_canje?: string | null
+          id?: string
+          imagen_url?: string | null
+          monto: number
+          usado?: boolean | null
+          user_id_canjeado?: string | null
+        }
+        Update: {
+          codigo?: string
+          created_at?: string | null
+          diseno?: Json
+          fecha_canje?: string | null
+          id?: string
+          imagen_url?: string | null
+          monto?: number
+          usado?: boolean | null
+          user_id_canjeado?: string | null
+        }
+        Relationships: []
+      }
       tickets_ayuda: {
         Row: {
           asunto: string
@@ -1033,6 +1114,42 @@ export type Database = {
         }
         Relationships: []
       }
+      transacciones_creditos: {
+        Row: {
+          admin_id: string | null
+          concepto: string
+          created_at: string | null
+          id: string
+          monto: number
+          saldo_anterior: number
+          saldo_nuevo: number
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          concepto: string
+          created_at?: string | null
+          id?: string
+          monto: number
+          saldo_anterior: number
+          saldo_nuevo: number
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          concepto?: string
+          created_at?: string | null
+          id?: string
+          monto?: number
+          saldo_anterior?: number
+          saldo_nuevo?: number
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1059,6 +1176,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_order_code: { Args: never; Returns: string }
       get_user_role: {
         Args: { input_user_id: string }
         Returns: {
@@ -1071,6 +1189,16 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      update_user_balance: {
+        Args: {
+          p_admin_id?: string
+          p_concepto: string
+          p_monto: number
+          p_tipo: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

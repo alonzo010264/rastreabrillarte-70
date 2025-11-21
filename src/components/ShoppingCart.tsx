@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart as CartIcon, Trash2, Plus, Minus, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { useRealtimeCart } from "@/hooks/useRealtimeCart";
+import { Checkout } from "@/components/Checkout";
 
 interface CartItem {
   id: string;
@@ -310,9 +311,18 @@ export const ShoppingCart = () => {
                 </div>
               </div>
 
-              <Button className="w-full" size="lg">
-                Proceder al Pago
-              </Button>
+              <Checkout
+                cartItems={cartItems}
+                subtotal={subtotal}
+                descuento={descuento}
+                total={total}
+                codigoDescuento={descuentoAplicado?.codigo}
+                onSuccess={() => {
+                  setIsOpen(false);
+                  setDescuentoAplicado(null);
+                  setCodigoInput("");
+                }}
+              />
             </>
           )}
         </div>
