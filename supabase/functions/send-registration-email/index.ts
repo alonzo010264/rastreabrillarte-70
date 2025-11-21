@@ -34,7 +34,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY not found");
     }
 
-    const subject = `¡Bienvenido a BRILLARTE! - Tus Datos de Acceso`;
+    const subject = `¡Bienvenido a la Familia BRILLARTE! ✨`;
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -59,55 +59,26 @@ const handler = async (req: Request): Promise<Response> => {
           <!-- Main Content -->
           <div style="padding: 40px 30px; background-color: #ffffff;">
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 28px; font-weight: bold; text-align: center;">
-              ¡Bienvenido, ${nombre}!
+              ¡Bienvenido a la Familia BRILLARTE, ${nombre}! 🎉
             </h2>
             
-            <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0;">
-              Gracias por unirte a la familia BRILLARTE. Tu cuenta ha sido creada exitosamente.
+            <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
+              Estamos emocionados de tenerte con nosotros. Tu cuenta ha sido creada exitosamente y ahora eres parte de nuestra comunidad especial.
             </p>
 
             <!-- Beneficios -->
             <div style="background-color: #f8f9fa; border-left: 4px solid #000000; padding: 20px; margin: 30px 0;">
               <h3 style="color: #000000; margin: 0 0 15px 0; font-size: 18px;">
-                Beneficios de tu cuenta:
+                🌟 Disfruta de estos beneficios:
               </h3>
               <ul style="color: #666666; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
-                <li>🚀 Notificaciones rápidas sobre tus pedidos</li>
-                <li>📦 Gestión de todos tus pedidos en un solo lugar</li>
-                <li>🎁 Acumulación de saldo para canjes</li>
-                <li>⚡ Cambios de dirección más rápidos</li>
-                <li>🔔 Alertas sobre noticias y promociones</li>
-                <li>💼 Soporte prioritario</li>
+                <li>🎁 Acceso a promociones y sorteos exclusivos</li>
+                <li>🛍️ Compras rápidas y seguras con tu carrito de compras</li>
+                <li>❤️ Guarda tus productos favoritos</li>
+                <li>🔔 Recibe notificaciones de nuevos productos y ofertas</li>
+                <li>👤 Perfil personalizado con foto</li>
+                <li>⚡ Atención prioritaria</li>
               </ul>
-            </div>
-            
-            <!-- Credenciales -->
-            <div style="background-color: #000000; color: #ffffff; padding: 30px; border-radius: 10px; margin: 30px 0; text-align: center;">
-              <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: bold;">
-                Tus Datos de Acceso
-              </h3>
-              
-              <div style="background-color: #ffffff; color: #000000; padding: 20px; border-radius: 8px; margin: 15px 0;">
-                <p style="margin: 0 0 10px 0; font-size: 14px; color: #666666; text-transform: uppercase; letter-spacing: 1px;">
-                  Código de Membresía
-                </p>
-                <p style="margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 2px;">
-                  ${codigo}
-                </p>
-              </div>
-              
-              <div style="background-color: #ffffff; color: #000000; padding: 20px; border-radius: 8px; margin: 15px 0;">
-                <p style="margin: 0 0 10px 0; font-size: 14px; color: #666666; text-transform: uppercase; letter-spacing: 1px;">
-                  Contraseña Temporal
-                </p>
-                <p style="margin: 0; font-size: 20px; font-weight: bold; font-family: monospace;">
-                  ${password}
-                </p>
-              </div>
-
-              <p style="color: #cccccc; font-size: 13px; margin: 20px 0 0 0; line-height: 1.5;">
-                ⚠️ Guarda estos datos en un lugar seguro. Te recomendamos cambiar tu contraseña después del primer inicio de sesión.
-              </p>
             </div>
 
             <!-- Action Button -->
@@ -119,7 +90,8 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
-              Estamos emocionados de tenerte con nosotros. ¡Bienvenido a la excelencia!
+              ¡Gracias por confiar en nosotros! 💎<br>
+              Bienvenido a la excelencia.
             </p>
           </div>
           
