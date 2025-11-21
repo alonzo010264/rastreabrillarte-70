@@ -16,7 +16,11 @@ import {
   User,
   LogOut,
   ShoppingBag,
-  Settings
+  Settings,
+  Shield,
+  Mail,
+  Ticket,
+  Users
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -70,6 +74,26 @@ export const AdminMenu = () => {
         <DropdownMenuItem onClick={() => navigate('/brillarte-pedidos')}>
           <ShoppingBag className="mr-2 h-4 w-4" />
           Ver Pedidos
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate('/admin/roles')}>
+          <Shield className="mr-2 h-4 w-4" />
+          Roles y Seguridad
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate('/admin/emails')}>
+          <Mail className="mr-2 h-4 w-4" />
+          Correos Enviados
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate('/admin/tickets')}>
+          <Ticket className="mr-2 h-4 w-4" />
+          Gestionar Tickets
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate('/admin/cuentas')}>
+          <Users className="mr-2 h-4 w-4" />
+          Gestionar Cuentas
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

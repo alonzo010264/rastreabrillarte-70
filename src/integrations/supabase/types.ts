@@ -243,6 +243,36 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          asunto: string
+          contenido: string
+          created_at: string | null
+          destinatario: string
+          estado: string | null
+          id: string
+          tipo: string
+        }
+        Insert: {
+          asunto: string
+          contenido: string
+          created_at?: string | null
+          destinatario: string
+          estado?: string | null
+          id?: string
+          tipo: string
+        }
+        Update: {
+          asunto?: string
+          contenido?: string
+          created_at?: string | null
+          destinatario?: string
+          estado?: string | null
+          id?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
       Estatus: {
         Row: {
           activo: boolean
@@ -1150,6 +1180,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_bans: {
+        Row: {
+          activo: boolean | null
+          admin_id: string | null
+          created_at: string | null
+          duracion_horas: number | null
+          duracion_tipo: string
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          id: string
+          razon: string
+          user_id: string
+        }
+        Insert: {
+          activo?: boolean | null
+          admin_id?: string | null
+          created_at?: string | null
+          duracion_horas?: number | null
+          duracion_tipo: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          razon: string
+          user_id: string
+        }
+        Update: {
+          activo?: boolean | null
+          admin_id?: string | null
+          created_at?: string | null
+          duracion_horas?: number | null
+          duracion_tipo?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          razon?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1190,6 +1259,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_banned: { Args: { check_user_id: string }; Returns: boolean }
       update_user_balance: {
         Args: {
           p_admin_id?: string

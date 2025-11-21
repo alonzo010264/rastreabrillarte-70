@@ -33,6 +33,9 @@ import Perfil from "./pages/Perfil";
 import PerfilPublico from "./pages/PerfilPublico";
 import TarjetasRegalo from "./pages/TarjetasRegalo";
 import AdminTarjetas from "./pages/AdminTarjetas";
+import AdminRoles from "./pages/AdminRoles";
+import AdminEmails from "./pages/AdminEmails";
+import AdminCuentas from "./pages/AdminCuentas";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +74,9 @@ const App = () => (
           <Route path="/perfil/:userId" element={<PerfilPublico />} />
           <Route path="/tarjetas-regalo" element={<TarjetasRegalo />} />
           <Route path="/admin/tarjetas" element={<AdminTarjetas />} />
+          <Route path="/admin/roles" element={<AdminRoles />} />
+          <Route path="/admin/emails" element={<AdminEmails />} />
+          <Route path="/admin/cuentas" element={<AdminCuentas />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
