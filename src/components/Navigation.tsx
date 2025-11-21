@@ -5,6 +5,7 @@ import { Menu, X, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 import { ShoppingCart } from "@/components/ShoppingCart";
+import UserAvatar from "@/components/UserAvatar";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,6 +22,7 @@ const Navigation = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+  const isProductsPage = location.pathname === '/productos';
 
   return (
     <nav className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
@@ -66,12 +68,23 @@ const Navigation = () => {
               );
             })}
             
-            {/* Cart and Favorites */}
-            <div className="flex items-center gap-1 ml-2 border-l pl-2">
-              <ShoppingCart />
+            {/* Cart and Favorites - Only on products page */}
+            {isProductsPage && (
+              <div className="flex items-center gap-1 ml-2 border-l pl-2">
+                <ShoppingCart />
+                <Button variant="ghost" size="icon" asChild>
+                  <Link to="/favoritos">
+                    <Heart className="h-5 w-5" />
+                  </Link>
+                </Button>
+              </div>
+            )}
+            
+            {/* User Account */}
+            <div className="ml-2 border-l pl-2">
               <Button variant="ghost" size="icon" asChild>
-                <Link to="/favoritos">
-                  <Heart className="h-5 w-5" />
+                <Link to="/perfil">
+                  <UserAvatar size="sm" />
                 </Link>
               </Button>
             </div>
@@ -79,10 +92,19 @@ const Navigation = () => {
 
           {/* Mobile menu and actions */}
           <div className="md:hidden flex items-center gap-2">
-            <ShoppingCart />
+            {isProductsPage && (
+              <>
+                <ShoppingCart />
+                <Button variant="ghost" size="icon" asChild>
+                  <Link to="/favoritos">
+                    <Heart className="h-5 w-5" />
+                  </Link>
+                </Button>
+              </>
+            )}
             <Button variant="ghost" size="icon" asChild>
-              <Link to="/favoritos">
-                <Heart className="h-5 w-5" />
+              <Link to="/perfil">
+                <UserAvatar size="sm" />
               </Link>
             </Button>
             <Button
