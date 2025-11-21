@@ -143,10 +143,21 @@ export default function Perfil() {
 
       if (updateError) throw updateError;
 
+      // Refrescar el perfil para obtener la última versión
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+      }
+
       // Limpiar URL temporal
       URL.revokeObjectURL(tempUrl);
       
-      toast.success('Foto de perfil actualizada');
+      toast.success('¡Foto de perfil actualizada! Todos pueden verla ahora 🎉');
       
       // Realtime se encargará de actualizar automáticamente
     } catch (error) {
