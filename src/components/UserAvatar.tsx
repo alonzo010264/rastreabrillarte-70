@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, CheckCircle } from "lucide-react";
+import { User } from "lucide-react";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
+import verificadoIcon from "@/assets/verificado-icon.png";
 
 interface UserAvatarProps {
   size?: "sm" | "md" | "lg";
   showName?: boolean;
   showVerified?: boolean;
+  userId?: string; // Para poder mostrar avatar de otros usuarios
 }
 
-export default function UserAvatar({ size = "md", showName = false, showVerified = true }: UserAvatarProps) {
+export default function UserAvatar({ size = "md", showName = false, showVerified = true, userId }: UserAvatarProps) {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -22,32 +24,73 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
     lg: "h-16 w-16"
   };
 
-  useEffect(() => {
-    checkUser();
+  const badgeSizeClasses = {
+    sm: "w-3 h-3",
+    md: "w-4 h-4",
+    lg: "w-6 h-6"
+  };
 
-    // Suscribirse a cambios en tiempo real del perfil
-    const channel = supabase
-      .channel('profile-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          // Si es el perfil del usuario actual, actualizar
-          if (payload.new.user_id === user?.id) {
+  useEffect(() => {
+    if (userId) {
+      // Si se proporciona userId, cargar ese perfil específico
+      loadUserProfile(userId);
+    } else {
+      // Si no, cargar el usuario actual
+      checkUser();
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId && user?.id) {
+      // Solo suscribirse a cambios si es el usuario actual
+      const channel = supabase
+        .channel(`profile-changes-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Profile updated in real-time:', payload.new);
             setProfile(payload.new);
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user?.id, userId]);
+
+  const loadUserProfile = async (targetUserId: string) => {
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', targetUserId)
+        .single();
+      
+      setProfile(profileData);
+
+      // Check if admin
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', targetUserId)
+        .eq('role', 'admin')
+        .single();
+
+      setIsAdmin(!!roleData);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const checkUser = async () => {
     try {
@@ -55,24 +98,7 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
       setUser(user);
 
       if (user) {
-        // Get profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-        
-        setProfile(profileData);
-
-        // Check if admin
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .single();
-
-        setIsAdmin(!!roleData);
+        await loadUserProfile(user.id);
       }
     } catch (error) {
       console.error('Error checking user:', error);
@@ -115,16 +141,22 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
             <AvatarFallback>BR</AvatarFallback>
           </Avatar>
           {showVerified && profile?.verificado && (
-            <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
-              <CheckCircle className="w-4 h-4 text-primary fill-primary" />
-            </div>
+            <img 
+              src={verificadoIcon} 
+              alt="Verificado" 
+              className={`absolute -bottom-0.5 -right-0.5 ${badgeSizeClasses[size]}`}
+            />
           )}
         </div>
         {showName && (
           <div className="flex items-center gap-1">
             <span className="text-sm font-medium">Brillarte</span>
             {showVerified && profile?.verificado && (
-              <CheckCircle className="w-4 h-4 text-primary fill-primary" />
+              <img 
+                src={verificadoIcon} 
+                alt="Verificado" 
+                className={badgeSizeClasses[size]}
+              />
             )}
           </div>
         )}
@@ -144,23 +176,30 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
             <AvatarImage 
               src={avatarUrlWithTimestamp} 
               alt={profile.nombre_completo}
-              key={avatarUrlWithTimestamp} 
+              key={avatarUrlWithTimestamp}
+              className="object-cover"
             />
             <AvatarFallback>
               {profile.nombre_completo?.charAt(0).toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
           {showVerified && profile?.verificado && (
-            <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
-              <CheckCircle className="w-4 h-4 text-primary fill-primary" />
-            </div>
+            <img 
+              src={verificadoIcon} 
+              alt="Verificado" 
+              className={`absolute -bottom-0.5 -right-0.5 ${badgeSizeClasses[size]}`}
+            />
           )}
         </div>
         {showName && (
           <div className="flex items-center gap-1">
             <span className="text-sm">{profile.nombre_completo}</span>
             {showVerified && profile?.verificado && (
-              <CheckCircle className="w-4 h-4 text-primary fill-primary" />
+              <img 
+                src={verificadoIcon} 
+                alt="Verificado" 
+                className={badgeSizeClasses[size]}
+              />
             )}
           </div>
         )}
