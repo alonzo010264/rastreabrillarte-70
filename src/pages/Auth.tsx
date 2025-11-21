@@ -74,6 +74,20 @@ const Auth = () => {
       if (error) throw error;
 
       if (data.user) {
+        // Verificar si el usuario está baneado
+        const { data: isBanned } = await supabase.rpc('is_user_banned', { check_user_id: data.user.id });
+        
+        if (isBanned) {
+          // Si está baneado, cerrar sesión inmediatamente
+          await supabase.auth.signOut();
+          toast({
+            title: 'Cuenta suspendida',
+            description: 'Tu cuenta ha sido suspendida. Contacta a soporte para más información.',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
         // Asegurar que el perfil y rol existan para este usuario
         const uid = data.user.id;
         const email = data.user.email!;
