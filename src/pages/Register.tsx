@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, LogIn, Gift, Bell, Package, Zap } from "lucide-react";
+import { UserPlus, LogIn } from "lucide-react";
 import Navigation from "@/components/Navigation";
 
 const Register = () => {
@@ -14,15 +14,15 @@ const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
-    apellido: "",
     correo: "",
-    direccion: ""
+    password: "",
+    confirmPassword: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nombre || !formData.apellido || !formData.correo || !formData.direccion) {
+    if (!formData.nombre || !formData.correo || !formData.password || !formData.confirmPassword) {
       toast({
         title: "Campos requeridos",
         description: "Por favor completa todos los campos",
@@ -31,50 +31,46 @@ const Register = () => {
       return;
     }
 
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Las contraseñas no coinciden",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "La contraseña debe tener al menos 6 caracteres",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Generar código de membresía único
-      const codigo = await generarCodigoMembresia();
-      
-      // Generar contraseña aleatoria
-      const password = generarPassword();
-
-      // Crear usuario en Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.correo,
-        password: password,
+        password: formData.password,
         options: {
           data: {
-            nombre_completo: `${formData.nombre} ${formData.apellido}`,
-            codigo_membresia: codigo
+            nombre_completo: formData.nombre
           },
-          emailRedirectTo: `${window.location.origin}/registro-confirmado`
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
       if (authError) throw authError;
 
-      // Enviar correo con credenciales (esto también registrará en registros_acceso automáticamente)
-      const { error: emailError } = await supabase.functions.invoke('send-registration-email', {
-        body: {
-          email: formData.correo,
-          nombre: formData.nombre,
-          codigo: codigo,
-          password: password
-        }
-      });
-
-      if (emailError) {
-        console.error('Error al enviar email de registro:', emailError);
-      }
-
       toast({
         title: "¡Registro exitoso!",
-        description: "Revisa tu correo para confirmar tu cuenta"
+        description: "Tu cuenta ha sido creada. Puedes iniciar sesión ahora."
       });
 
-      navigate('/registro-confirmado');
+      navigate('/login');
     } catch (error: any) {
       console.error('Error en registro:', error);
       toast({
@@ -87,35 +83,6 @@ const Register = () => {
     }
   };
 
-  const generarCodigoMembresia = async (): Promise<string> => {
-    let codigo = '';
-    let existe = true;
-    
-    while (existe) {
-      const numero = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-      codigo = `B-${numero}`;
-      
-      const { data } = await supabase
-        .from('profiles')
-        .select('codigo_membresia')
-        .eq('codigo_membresia', codigo)
-        .single();
-      
-      existe = !!data;
-    }
-    
-    return codigo;
-  };
-
-  const generarPassword = (): string => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let password = '';
-    for (let i = 0; i < 10; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-  };
-
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Navigation />
@@ -125,79 +92,59 @@ const Register = () => {
           {/* Header */}
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-black mb-1">Únete a BRILLARTE</h1>
-            <p className="text-sm text-gray-600">Crea tu cuenta y disfruta de beneficios exclusivos</p>
-          </div>
-
-          {/* Beneficios compactos */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-center">
-              <Zap className="mx-auto mb-1 text-black" size={20} />
-              <p className="text-xs font-medium text-black">Notificaciones</p>
-            </div>
-            
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-center">
-              <Package className="mx-auto mb-1 text-black" size={20} />
-              <p className="text-xs font-medium text-black">Pedidos</p>
-            </div>
-            
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-center">
-              <Gift className="mx-auto mb-1 text-black" size={20} />
-              <p className="text-xs font-medium text-black">Saldo</p>
-            </div>
+            <p className="text-sm text-gray-600">Crea tu cuenta para ver tus pedidos</p>
           </div>
 
           {/* Formulario */}
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-black mb-1">Nombre</label>
-                <Input
-                  type="text"
-                  placeholder="Tu nombre"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
-                  className="rounded-lg border-gray-300 focus:border-black focus:ring-black h-9 text-sm"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-xs font-medium text-black mb-1">Apellido</label>
-                <Input
-                  type="text"
-                  placeholder="Tu apellido"
-                  value={formData.apellido}
-                  onChange={(e) => setFormData(prev => ({ ...prev, apellido: e.target.value }))}
-                  className="rounded-lg border-gray-300 focus:border-black focus:ring-black h-9 text-sm"
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">Nombre Completo</label>
+              <Input
+                type="text"
+                placeholder="Tu nombre completo"
+                value={formData.nombre}
+                onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
+                className="rounded-lg border-gray-300 focus:border-black focus:ring-black"
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-black mb-1">Correo Electrónico</label>
+              <label className="block text-sm font-medium text-black mb-2">Correo Electrónico</label>
               <Input
                 type="email"
                 placeholder="tu@correo.com"
                 value={formData.correo}
                 onChange={(e) => setFormData(prev => ({ ...prev, correo: e.target.value }))}
-                className="rounded-lg border-gray-300 focus:border-black focus:ring-black h-9 text-sm"
+                className="rounded-lg border-gray-300 focus:border-black focus:ring-black"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-black mb-1">Dirección de Envío</label>
+              <label className="block text-sm font-medium text-black mb-2">Contraseña</label>
               <Input
-                type="text"
-                placeholder="Calle, sector, ciudad"
-                value={formData.direccion}
-                onChange={(e) => setFormData(prev => ({ ...prev, direccion: e.target.value }))}
-                className="rounded-lg border-gray-300 focus:border-black focus:ring-black h-9 text-sm"
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={formData.password}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                className="rounded-lg border-gray-300 focus:border-black focus:ring-black"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">Confirmar Contraseña</label>
+              <Input
+                type="password"
+                placeholder="Confirma tu contraseña"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                className="rounded-lg border-gray-300 focus:border-black focus:ring-black"
               />
             </div>
 
             <Button 
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-black text-white hover:bg-gray-800 rounded-lg py-4 text-sm font-medium"
+              className="w-full bg-black text-white hover:bg-gray-800 rounded-lg py-5 text-base font-medium"
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">
@@ -214,14 +161,14 @@ const Register = () => {
           </form>
 
           {/* Login Link */}
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-600 mb-2">¿Ya tienes una cuenta?</p>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600 mb-3">¿Ya tienes una cuenta?</p>
             <Button 
               variant="outline"
               onClick={() => navigate('/login')}
-              className="w-full bg-white text-black border-2 border-black hover:bg-black hover:text-white rounded-lg text-sm"
+              className="w-full bg-white text-black border-2 border-black hover:bg-black hover:text-white rounded-lg"
             >
-              <LogIn className="mr-2" size={16} />
+              <LogIn className="mr-2" size={18} />
               Iniciar Sesión
             </Button>
           </div>
