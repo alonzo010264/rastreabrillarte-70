@@ -38,3 +38,9 @@ verify_jwt = false
 
 [functions.send-credit-notification]
 verify_jwt = false
+
+[functions.community-ai-responder]
+verify_jwt = false
+
+[functions.notify-brillarte-new-post]
+verify_jwt = false
