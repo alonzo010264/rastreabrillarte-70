@@ -102,7 +102,7 @@ const Navigation = () => {
             {/* Cart and Favorites - Only on products page */}
             {isProductsPage && (
               <div className="flex items-center gap-1 ml-2 border-l pl-2">
-                <div className="relative">
+                <div className="relative" data-cart-icon>
                   <ShoppingCart />
                   {cartCount > 0 && (
                     <Badge 
@@ -113,7 +113,7 @@ const Navigation = () => {
                     </Badge>
                   )}
                 </div>
-                <Button variant="ghost" size="icon" asChild className="relative">
+                <Button variant="ghost" size="icon" asChild className="relative" data-favorites-icon>
                   <Link to="/favoritos">
                     <Heart className="h-5 w-5" />
                     {favoritesCount > 0 && (
@@ -148,7 +148,7 @@ const Navigation = () => {
           <div className="md:hidden flex items-center gap-2">
             {isProductsPage && (
               <>
-                <div className="relative">
+                <div className="relative" data-cart-icon>
                   <ShoppingCart />
                   {cartCount > 0 && (
                     <Badge 
@@ -159,7 +159,7 @@ const Navigation = () => {
                     </Badge>
                   )}
                 </div>
-                <Button variant="ghost" size="icon" asChild className="relative">
+                <Button variant="ghost" size="icon" asChild className="relative" data-favorites-icon>
                   <Link to="/favoritos">
                     <Heart className="h-5 w-5" />
                     {favoritesCount > 0 && (
