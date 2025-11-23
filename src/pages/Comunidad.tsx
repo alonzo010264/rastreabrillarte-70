@@ -181,21 +181,23 @@ const Comunidad = () => {
 
       if (error) throw error;
 
-      // Notify Brillarte account
+      // Notify Brillarte account (skip if it's the official account posting)
       await supabase.functions.invoke('notify-brillarte-new-post', {
         body: {
           postId: post.id,
           userName: userProfile?.nombre_completo || 'Usuario',
-          contenido: newPost
+          contenido: newPost,
+          userEmail: userProfile?.correo
         }
       });
 
-      // Trigger AI response if it's a question
-      if (newPost.includes('?')) {
+      // Trigger AI response if it's a question (skip for official account)
+      if (newPost.includes('?') && userProfile?.correo !== 'oficial@brillarte.lat') {
         supabase.functions.invoke('community-ai-responder', {
           body: {
             postId: post.id,
-            contenido: newPost
+            contenido: newPost,
+            userEmail: userProfile?.correo
           }
         });
       }
@@ -203,7 +205,7 @@ const Comunidad = () => {
       setNewPost('');
       toast({
         title: 'Publicación creada',
-        description: newPost.includes('?') ? 'La IA responderá en unos minutos' : 'Tu publicación se ha compartido'
+        description: 'Tu publicación se ha compartido'
       });
 
     } catch (error: any) {
@@ -377,10 +379,7 @@ const Comunidad = () => {
                   onChange={(e) => setNewPost(e.target.value)}
                   className="min-h-24 resize-none"
                 />
-                <div className="flex justify-between items-center">
-                  <p className="text-xs text-muted-foreground">
-                    Usa "?" para hacer preguntas y recibir respuestas de IA
-                  </p>
+                <div className="flex justify-end">
                   <Button 
                     onClick={handleCreatePost}
                     disabled={!newPost.trim()}
