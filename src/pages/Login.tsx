@@ -39,6 +39,40 @@ const Login = () => {
 
       if (error) throw error;
 
+      // Verificar si el usuario está suspendido
+      const { data: banData } = await supabase
+        .from('user_bans')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .eq('activo', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (banData) {
+        // Verificar si la suspensión sigue activa
+        if (banData.duracion_tipo === 'permanente' || 
+            (banData.fecha_fin && new Date(banData.fecha_fin) > new Date())) {
+          
+          // Cerrar sesión inmediatamente
+          await supabase.auth.signOut();
+          
+          const mensajeSuspension = banData.duracion_tipo === 'permanente' 
+            ? 'Tu cuenta ha sido suspendida permanentemente.'
+            : `Tu cuenta está suspendida hasta el ${new Date(banData.fecha_fin).toLocaleString('es-MX')}.`;
+          
+          toast({
+            title: "Cuenta Suspendida",
+            description: `${mensajeSuspension}\n\nMotivo: ${banData.razon}`,
+            variant: "destructive",
+            duration: 10000
+          });
+          
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       // Guardar preferencia de "recordar sesión"
       if (rememberMe) {
         localStorage.setItem('brillarte_remember', 'true');

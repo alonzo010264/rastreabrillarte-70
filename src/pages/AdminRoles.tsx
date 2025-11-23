@@ -102,12 +102,18 @@ const AdminRoles = () => {
       // Buscar el usuario por email
       const { data: profile } = await supabase
         .from('profiles')
-        .select('user_id')
+        .select('user_id, verificado, nombre_completo')
         .eq('correo', email)
         .single();
 
       if (!profile) {
         toast.error('Usuario no encontrado');
+        return;
+      }
+
+      // Verificar que el usuario esté verificado
+      if (!profile.verificado) {
+        toast.error(`${profile.nombre_completo} debe tener su cuenta verificada para recibir roles especiales. Verifica la cuenta primero en Gestión de Cuentas.`);
         return;
       }
 
@@ -121,7 +127,7 @@ const AdminRoles = () => {
 
       if (error) throw error;
 
-      toast.success(`Rol ${selectedRole} asignado correctamente`);
+      toast.success(`Rol ${selectedRole} asignado correctamente a ${profile.nombre_completo}`);
       setEmail("");
       loadUserRoles();
     } catch (error: any) {
@@ -191,7 +197,7 @@ const AdminRoles = () => {
                 Asignar Nuevo Rol
               </CardTitle>
               <CardDescription>
-                Otorga permisos de administrador o moderador a usuarios registrados
+                Otorga permisos de administrador o moderador a usuarios registrados y verificados
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
