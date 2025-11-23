@@ -144,7 +144,7 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
             <img 
               src={verificadoIcon} 
               alt="Verificado" 
-              className={`absolute -bottom-0.5 -right-0.5 ${badgeSizeClasses[size]}`}
+              className={`absolute -bottom-0.5 -right-0.5 ${badgeSizeClasses[size]} object-contain`}
             />
           )}
         </div>
@@ -155,7 +155,7 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
               <img 
                 src={verificadoIcon} 
                 alt="Verificado" 
-                className={badgeSizeClasses[size]}
+                className={`${badgeSizeClasses[size]} object-contain`}
               />
             )}
           </div>
@@ -187,7 +187,7 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
             <img 
               src={verificadoIcon} 
               alt="Verificado" 
-              className={`absolute -bottom-0.5 -right-0.5 ${badgeSizeClasses[size]}`}
+              className={`absolute -bottom-0.5 -right-0.5 ${badgeSizeClasses[size]} object-contain`}
             />
           )}
         </div>
@@ -198,7 +198,7 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
               <img 
                 src={verificadoIcon} 
                 alt="Verificado" 
-                className={badgeSizeClasses[size]}
+                className={`${badgeSizeClasses[size]} object-contain`}
               />
             )}
           </div>

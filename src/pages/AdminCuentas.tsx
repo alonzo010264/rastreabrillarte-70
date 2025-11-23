@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, Search, Ban, DollarSign, Trash2, Eye } from "lucide-react";
+import { Users, Search, Ban, DollarSign, Trash2, Eye, ShieldCheck, XCircle } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import {
@@ -33,6 +33,14 @@ interface Profile {
   created_at: string;
 }
 
+interface UserBan {
+  id: string;
+  razon: string;
+  duracion_tipo: string;
+  fecha_fin: string | null;
+  activo: boolean;
+}
+
 const AdminCuentas = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -42,6 +50,7 @@ const AdminCuentas = () => {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [showBanDialog, setShowBanDialog] = useState(false);
   const [showAdjustBalanceDialog, setShowAdjustBalanceDialog] = useState(false);
+  const [userBans, setUserBans] = useState<Record<string, UserBan>>({});
   const [banInfo, setBanInfo] = useState({
     razon: "",
     duracion_tipo: "temporal",
@@ -97,6 +106,22 @@ const AdminCuentas = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      // Cargar suspensiones activas
+      const { data: bansData } = await supabase
+        .from('user_bans')
+        .select('*')
+        .eq('activo', true);
+      
+      const bansMap: Record<string, UserBan> = {};
+      bansData?.forEach(ban => {
+        if (ban.duracion_tipo === 'permanente' || 
+            (ban.fecha_fin && new Date(ban.fecha_fin) > new Date())) {
+          bansMap[ban.user_id] = ban;
+        }
+      });
+      
+      setUserBans(bansMap);
       setProfiles(data || []);
       setFilteredProfiles(data || []);
     } catch (error) {
@@ -137,10 +162,11 @@ const AdminCuentas = () => {
 
       if (error) throw error;
 
-      toast.success('Usuario baneado correctamente');
+      toast.success('Usuario suspendido correctamente');
       setShowBanDialog(false);
       setBanInfo({ razon: "", duracion_tipo: "temporal", duracion_horas: 24 });
       setSelectedProfile(null);
+      loadProfiles();
     } catch (error) {
       console.error('Error banning user:', error);
       toast.error('Error al banear usuario');
@@ -177,6 +203,41 @@ const AdminCuentas = () => {
     } catch (error) {
       console.error('Error adjusting balance:', error);
       toast.error('Error al ajustar saldo');
+    }
+  };
+
+  const handleRemoveBan = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_bans')
+        .update({ activo: false })
+        .eq('user_id', userId)
+        .eq('activo', true);
+
+      if (error) throw error;
+
+      toast.success('Suspensión removida correctamente');
+      loadProfiles();
+    } catch (error) {
+      console.error('Error removing ban:', error);
+      toast.error('Error al remover suspensión');
+    }
+  };
+
+  const handleToggleVerification = async (profile: Profile) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ verificado: !profile.verificado })
+        .eq('user_id', profile.user_id);
+
+      if (error) throw error;
+
+      toast.success(`Cuenta ${!profile.verificado ? 'verificada' : 'desverificada'} correctamente`);
+      loadProfiles();
+    } catch (error) {
+      console.error('Error toggling verification:', error);
+      toast.error('Error al cambiar verificación');
     }
   };
 
@@ -225,6 +286,7 @@ const AdminCuentas = () => {
                     <TableHead>Correo</TableHead>
                     <TableHead>Saldo</TableHead>
                     <TableHead>Estado</TableHead>
+                    <TableHead>Suspensión</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -239,6 +301,17 @@ const AdminCuentas = () => {
                           {profile.verificado ? 'Verificado' : 'Sin verificar'}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        {userBans[profile.user_id] ? (
+                          <Badge variant="destructive">
+                            {userBans[profile.user_id].duracion_tipo === 'permanente' 
+                              ? 'Permanente' 
+                              : `Hasta ${new Date(userBans[profile.user_id].fecha_fin!).toLocaleDateString('es-MX')}`}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Sin suspensión</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -252,23 +325,44 @@ const AdminCuentas = () => {
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => {
-                              setSelectedProfile(profile);
-                              setShowAdjustBalanceDialog(true);
-                            }}
+                            onClick={() => handleToggleVerification(profile)}
+                            title={profile.verificado ? "Quitar verificación" : "Verificar cuenta"}
                           >
-                            <DollarSign className="h-4 w-4" />
+                            <ShieldCheck className={`h-4 w-4 ${profile.verificado ? 'text-green-600' : 'text-gray-400'}`} />
                           </Button>
                           <Button
                             variant="outline"
                             size="icon"
                             onClick={() => {
                               setSelectedProfile(profile);
-                              setShowBanDialog(true);
+                              setShowAdjustBalanceDialog(true);
                             }}
+                            title="Ajustar saldo"
                           >
-                            <Ban className="h-4 w-4 text-destructive" />
+                            <DollarSign className="h-4 w-4" />
                           </Button>
+                          {userBans[profile.user_id] ? (
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleRemoveBan(profile.user_id)}
+                              title="Quitar suspensión"
+                            >
+                              <XCircle className="h-4 w-4 text-green-600" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedProfile(profile);
+                                setShowBanDialog(true);
+                              }}
+                              title="Suspender cuenta"
+                            >
+                              <Ban className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
