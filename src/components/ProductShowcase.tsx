@@ -113,29 +113,37 @@ export const ProductShowcase = () => {
   };
 
   const triggerFlyAnimation = (buttonElement: HTMLElement, type: 'cart' | 'favorite') => {
-    const buttonRect = buttonElement.getBoundingClientRect();
-    const targetElement = document.querySelector(
-      type === 'cart' ? '.shopping-cart-trigger' : 'a[href="/favoritos"]'
-    );
-    
-    if (!targetElement) return;
-    
-    const targetRect = targetElement.getBoundingClientRect();
-    
-    const flyingItem = {
-      id: Date.now().toString(),
-      startPos: {
-        x: buttonRect.left + buttonRect.width / 2,
-        y: buttonRect.top + buttonRect.height / 2
-      },
-      endPos: {
-        x: targetRect.left + targetRect.width / 2,
-        y: targetRect.top + targetRect.height / 2
-      },
-      type
-    };
-    
-    setFlyingItems(prev => [...prev, flyingItem]);
+    try {
+      const buttonRect = buttonElement.getBoundingClientRect();
+      const targetElement = document.querySelector(
+        type === 'cart' ? '[data-cart-icon]' : '[data-favorites-icon]'
+      );
+      
+      if (!targetElement) {
+        console.log(`Target element not found for ${type}`);
+        return;
+      }
+      
+      const targetRect = targetElement.getBoundingClientRect();
+      
+      const flyingItem = {
+        id: Date.now().toString(),
+        startPos: {
+          x: buttonRect.left + buttonRect.width / 2,
+          y: buttonRect.top + buttonRect.height / 2
+        },
+        endPos: {
+          x: targetRect.left + targetRect.width / 2,
+          y: targetRect.top + targetRect.height / 2
+        },
+        type
+      };
+      
+      setFlyingItems(prev => [...prev, flyingItem]);
+    } catch (error) {
+      // Silently fail - animation is optional
+      console.log('Animation skipped:', error);
+    }
   };
 
   const removeFlyingItem = (id: string) => {
@@ -163,17 +171,25 @@ export const ProductShowcase = () => {
         });
         toast.success('Eliminado de favoritos');
       } else {
-        await supabase
+        const { error } = await supabase
           .from('favoritos')
           .insert({ user_id: user.id, producto_id: productId });
         
+        if (error) throw error;
+        
         setFavorites(prev => new Set(prev).add(productId));
         triggerFlyAnimation(event.currentTarget, 'favorite');
-        toast.success('Agregado a favoritos');
+        toast.success('✨ Agregado a favoritos');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error toggling favorite:', error);
-      toast.error('Error al actualizar favoritos');
+      // Si es error de duplicado, significa que ya estaba agregado
+      if (error?.code === '23505') {
+        toast.success('✨ Agregado a favoritos');
+        setFavorites(prev => new Set(prev).add(productId));
+      } else {
+        toast.error('Error al actualizar favoritos');
+      }
     }
   };
 
@@ -193,10 +209,37 @@ export const ProductShowcase = () => {
         });
 
       if (error) throw error;
+      
+      // Trigger animation (optional - won't break if it fails)
       triggerFlyAnimation(event.currentTarget, 'cart');
-      toast.success(`${product.nombre} agregado al carrito`);
-    } catch (error) {
+      
+      toast.success(`🛒 ${product.nombre} agregado al carrito`);
+    } catch (error: any) {
       console.error('Error adding to cart:', error);
+      // Si es error de duplicado, actualizar cantidad
+      if (error?.code === '23505') {
+        try {
+          const { data: existing } = await supabase
+            .from('carrito')
+            .select('id, cantidad')
+            .eq('user_id', user.id)
+            .eq('producto_id', product.id)
+            .single();
+          
+          if (existing) {
+            await supabase
+              .from('carrito')
+              .update({ cantidad: existing.cantidad + 1 })
+              .eq('id', existing.id);
+            
+            triggerFlyAnimation(event.currentTarget, 'cart');
+            toast.success(`🛒 ${product.nombre} agregado al carrito`);
+            return;
+          }
+        } catch (updateError) {
+          console.error('Error updating cart:', updateError);
+        }
+      }
       toast.error('Error al agregar al carrito');
     }
   };
