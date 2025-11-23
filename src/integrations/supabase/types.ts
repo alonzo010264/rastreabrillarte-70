@@ -371,6 +371,35 @@ export type Database = {
           },
         ]
       }
+      likes_comunidad: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_comunidad_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_comunidad"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       noticias: {
         Row: {
           activo: boolean | null
@@ -723,6 +752,36 @@ export type Database = {
         }
         Relationships: []
       }
+      posts_comunidad: {
+        Row: {
+          contenido: string
+          created_at: string
+          es_pregunta: boolean | null
+          id: string
+          respondido_por_ia: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contenido: string
+          created_at?: string
+          es_pregunta?: boolean | null
+          id?: string
+          respondido_por_ia?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contenido?: string
+          created_at?: string
+          es_pregunta?: boolean | null
+          id?: string
+          respondido_por_ia?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       productos: {
         Row: {
           activo: boolean | null
@@ -908,6 +967,41 @@ export type Database = {
           ultima_modificacion?: string | null
         }
         Relationships: []
+      }
+      respuestas_comunidad: {
+        Row: {
+          contenido: string
+          created_at: string
+          es_ia: boolean | null
+          id: string
+          post_id: string
+          user_id: string | null
+        }
+        Insert: {
+          contenido: string
+          created_at?: string
+          es_ia?: boolean | null
+          id?: string
+          post_id: string
+          user_id?: string | null
+        }
+        Update: {
+          contenido?: string
+          created_at?: string
+          es_ia?: boolean | null
+          id?: string
+          post_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "respuestas_comunidad_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_comunidad"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       respuestas_tickets: {
         Row: {
