@@ -6,6 +6,8 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { ShoppingBag, ChevronLeft, ChevronRight, Heart, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { FlyingItem } from "@/components/FlyingItem";
+import { createPortal } from "react-dom";
 
 interface Product {
   id: string;
@@ -27,6 +29,12 @@ export const ProductShowcase = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState<{[key: string]: number}>({});
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [user, setUser] = useState<any>(null);
+  const [flyingItems, setFlyingItems] = useState<Array<{
+    id: string;
+    startPos: { x: number; y: number };
+    endPos: { x: number; y: number };
+    type: 'cart' | 'favorite';
+  }>>([]);
 
   useEffect(() => {
     checkUser();
@@ -104,7 +112,37 @@ export const ProductShowcase = () => {
     }));
   };
 
-  const toggleFavorite = async (productId: string) => {
+  const triggerFlyAnimation = (buttonElement: HTMLElement, type: 'cart' | 'favorite') => {
+    const buttonRect = buttonElement.getBoundingClientRect();
+    const targetElement = document.querySelector(
+      type === 'cart' ? '.shopping-cart-trigger' : 'a[href="/favoritos"]'
+    );
+    
+    if (!targetElement) return;
+    
+    const targetRect = targetElement.getBoundingClientRect();
+    
+    const flyingItem = {
+      id: Date.now().toString(),
+      startPos: {
+        x: buttonRect.left + buttonRect.width / 2,
+        y: buttonRect.top + buttonRect.height / 2
+      },
+      endPos: {
+        x: targetRect.left + targetRect.width / 2,
+        y: targetRect.top + targetRect.height / 2
+      },
+      type
+    };
+    
+    setFlyingItems(prev => [...prev, flyingItem]);
+  };
+
+  const removeFlyingItem = (id: string) => {
+    setFlyingItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const toggleFavorite = async (productId: string, event: React.MouseEvent<HTMLButtonElement>) => {
     if (!user) {
       toast.error('Debes iniciar sesión para guardar favoritos');
       return;
@@ -130,6 +168,7 @@ export const ProductShowcase = () => {
           .insert({ user_id: user.id, producto_id: productId });
         
         setFavorites(prev => new Set(prev).add(productId));
+        triggerFlyAnimation(event.currentTarget, 'favorite');
         toast.success('Agregado a favoritos');
       }
     } catch (error) {
@@ -138,7 +177,7 @@ export const ProductShowcase = () => {
     }
   };
 
-  const addToCart = async (product: Product) => {
+  const addToCart = async (product: Product, event: React.MouseEvent<HTMLButtonElement>) => {
     if (!user) {
       toast.error('Debes iniciar sesión para agregar al carrito');
       return;
@@ -154,6 +193,7 @@ export const ProductShowcase = () => {
         });
 
       if (error) throw error;
+      triggerFlyAnimation(event.currentTarget, 'cart');
       toast.success(`${product.nombre} agregado al carrito`);
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -162,7 +202,20 @@ export const ProductShowcase = () => {
   };
 
   return (
-    <div className="py-16 bg-muted/30" ref={ref}>
+    <>
+      {flyingItems.map(item => 
+        createPortal(
+          <FlyingItem
+            key={item.id}
+            startPosition={item.startPos}
+            endPosition={item.endPos}
+            type={item.type}
+            onComplete={() => removeFlyingItem(item.id)}
+          />,
+          document.body
+        )
+      )}
+      <div className="py-16 bg-muted/30" ref={ref}>
       <div className="container mx-auto px-4">
         <div className={`text-center mb-12 ${isVisible ? 'animate-on-scroll' : 'opacity-0'}`}>
           <ShoppingBag className="w-16 h-16 mx-auto mb-4" />
@@ -289,7 +342,7 @@ export const ProductShowcase = () => {
 
                   <div className="flex gap-2">
                     <Button
-                      onClick={() => toggleFavorite(product.id)}
+                      onClick={(e) => toggleFavorite(product.id, e)}
                       variant={favorites.has(product.id) ? "default" : "outline"}
                       size="sm"
                       className="flex-1"
@@ -298,7 +351,7 @@ export const ProductShowcase = () => {
                       {favorites.has(product.id) ? 'Favorito' : 'Me gusta'}
                     </Button>
                     <Button
-                      onClick={() => addToCart(product)}
+                      onClick={(e) => addToCart(product, e)}
                       disabled={product.stock === 0}
                       size="sm"
                       className="flex-1"
@@ -322,5 +375,6 @@ export const ProductShowcase = () => {
         )}
       </div>
     </div>
+    </>
   );
 };

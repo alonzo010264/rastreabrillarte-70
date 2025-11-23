@@ -10,11 +10,16 @@ import NotificationBell from "@/components/NotificationBell";
 import { AdminMenu } from "@/components/AdminMenu";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeCart } from "@/hooks/useRealtimeCart";
+import { useRealtimeFavorites } from "@/hooks/useRealtimeFavorites";
+import { Badge } from "@/components/ui/badge";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
+  const cartCount = useRealtimeCart();
+  const favoritesCount = useRealtimeFavorites();
 
   useEffect(() => {
     checkAdmin();
@@ -97,10 +102,28 @@ const Navigation = () => {
             {/* Cart and Favorites - Only on products page */}
             {isProductsPage && (
               <div className="flex items-center gap-1 ml-2 border-l pl-2">
-                <ShoppingCart />
-                <Button variant="ghost" size="icon" asChild>
+                <div className="relative">
+                  <ShoppingCart />
+                  {cartCount > 0 && (
+                    <Badge 
+                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                      variant="destructive"
+                    >
+                      {cartCount}
+                    </Badge>
+                  )}
+                </div>
+                <Button variant="ghost" size="icon" asChild className="relative">
                   <Link to="/favoritos">
                     <Heart className="h-5 w-5" />
+                    {favoritesCount > 0 && (
+                      <Badge 
+                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                        variant="destructive"
+                      >
+                        {favoritesCount}
+                      </Badge>
+                    )}
                   </Link>
                 </Button>
               </div>
@@ -125,10 +148,28 @@ const Navigation = () => {
           <div className="md:hidden flex items-center gap-2">
             {isProductsPage && (
               <>
-                <ShoppingCart />
-                <Button variant="ghost" size="icon" asChild>
+                <div className="relative">
+                  <ShoppingCart />
+                  {cartCount > 0 && (
+                    <Badge 
+                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                      variant="destructive"
+                    >
+                      {cartCount}
+                    </Badge>
+                  )}
+                </div>
+                <Button variant="ghost" size="icon" asChild className="relative">
                   <Link to="/favoritos">
                     <Heart className="h-5 w-5" />
+                    {favoritesCount > 0 && (
+                      <Badge 
+                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                        variant="destructive"
+                      >
+                        {favoritesCount}
+                      </Badge>
+                    )}
                   </Link>
                 </Button>
               </>

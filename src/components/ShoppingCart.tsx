@@ -164,7 +164,7 @@ export const ShoppingCart = () => {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative shopping-cart-trigger">
           <CartIcon className="h-5 w-5" />
           {itemCount > 0 && (
             <Badge 
