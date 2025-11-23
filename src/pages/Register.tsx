@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, LogIn } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import Navigation from "@/components/Navigation";
 
 const Register = () => {
@@ -86,6 +87,26 @@ const Register = () => {
     }
   };
 
+  const handleGoogleSignup = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Error en registro con Google:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo registrar con Google",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Navigation />
@@ -162,6 +183,25 @@ const Register = () => {
               )}
             </Button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">O regístrate con</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleGoogleSignup}
+            className="w-full rounded-lg border-2 border-gray-300 py-5 mb-6 hover:bg-gray-50"
+          >
+            <FcGoogle className="mr-2" size={24} />
+            Registrarse con Google
+          </Button>
 
           {/* Login Link */}
           <div className="mt-6 text-center">
