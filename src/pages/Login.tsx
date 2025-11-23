@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn, UserPlus } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -101,25 +100,6 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`
-        }
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      console.error('Error en login con Google:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo iniciar sesión con Google",
-        variant: "destructive"
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -193,16 +173,6 @@ const Login = () => {
               <span className="px-2 bg-white text-gray-500">O continúa con</span>
             </div>
           </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleGoogleLogin}
-            className="w-full rounded-xl border-2 border-gray-300 py-6 mb-6 hover:bg-gray-50"
-          >
-            <FcGoogle className="mr-2" size={24} />
-            Continuar con Google
-          </Button>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600 mb-3">¿No tienes una cuenta?</p>
