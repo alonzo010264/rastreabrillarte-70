@@ -18,9 +18,18 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { postId, contenido } = await req.json();
+    const { postId, contenido, userEmail } = await req.json();
 
     console.log('Processing AI response for post:', postId);
+
+    // Don't respond if it's from BRILLARTE official account
+    if (userEmail === 'oficial@brillarte.lat') {
+      console.log('Skipping AI response for official BRILLARTE account');
+      return new Response(
+        JSON.stringify({ success: true, message: 'Official account post, no AI response needed' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Wait 2 minutes before responding
     await new Promise(resolve => setTimeout(resolve, 120000));
@@ -37,7 +46,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "Eres un asistente útil de BRILLARTE, una tienda de accesorios y joyería. Responde de manera amable, concisa y profesional a las preguntas de la comunidad. Si no sabes algo, recomienda contactar al equipo de soporte."
+            content: "Eres un miembro activo de la comunidad BRILLARTE con experiencia en accesorios y joyería. Responde de forma natural, breve (máximo 2-3 oraciones), amigable y directa. NO uses emojis. Habla como una persona real que ayuda a otros en la comunidad. Si no sabes algo con certeza, sugiere contactar al equipo."
           },
           {
             role: "user",

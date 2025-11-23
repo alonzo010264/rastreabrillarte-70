@@ -14,12 +14,20 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { postId, userName, contenido } = await req.json();
+    const { postId, userName, contenido, userEmail } = await req.json();
 
     console.log('Notifying Brillarte about new post:', postId);
+
+    // Don't notify if post is from official BRILLARTE account
+    if (userEmail === 'oficial@brillarte.lat') {
+      console.log('Skipping notification for official BRILLARTE account post');
+      return new Response(
+        JSON.stringify({ success: true, message: 'Official account post, no notification needed' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get Brillarte admin user
     const { data: adminProfile } = await supabase
