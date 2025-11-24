@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Send, Sparkles } from 'lucide-react';
+import { Heart, MessageCircle, Send, Sparkles, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
 
 interface Post {
   id: string;
@@ -22,6 +23,7 @@ interface Post {
     nombre_completo: string;
     avatar_url: string | null;
     verificado: boolean;
+    correo: string;
   };
   likes_count?: number;
   user_liked?: boolean;
@@ -38,6 +40,7 @@ interface Respuesta {
     nombre_completo: string;
     avatar_url: string | null;
     verificado: boolean;
+    correo: string;
   };
 }
 
@@ -87,7 +90,7 @@ const Comunidad = () => {
             // Get profile data
             const { data: profileData } = await supabase
               .from('profiles')
-              .select('nombre_completo, avatar_url, verificado')
+              .select('nombre_completo, avatar_url, verificado, correo')
               .eq('user_id', post.user_id)
               .single();
 
@@ -113,7 +116,7 @@ const Comunidad = () => {
 
             return {
               ...post,
-              profiles: profileData || { nombre_completo: 'Usuario', avatar_url: null, verificado: false },
+              profiles: profileData || { nombre_completo: 'Usuario', avatar_url: null, verificado: false, correo: '' },
               likes_count: likesCount || 0,
               user_liked: !!userLike,
               respuestas_count: respuestasCount || 0
@@ -259,18 +262,18 @@ const Comunidad = () => {
           if (resp.user_id) {
             const { data: profileData } = await supabase
               .from('profiles')
-              .select('nombre_completo, avatar_url, verificado')
+              .select('nombre_completo, avatar_url, verificado, correo')
               .eq('user_id', resp.user_id)
               .single();
 
             return {
               ...resp,
-              profiles: profileData || { nombre_completo: 'Usuario', avatar_url: null, verificado: false }
+              profiles: profileData || { nombre_completo: 'Usuario', avatar_url: null, verificado: false, correo: '' }
             };
           }
           return {
             ...resp,
-            profiles: { nombre_completo: 'IA', avatar_url: null, verificado: false }
+            profiles: { nombre_completo: 'IA', avatar_url: null, verificado: false, correo: '' }
           };
         })
       );
@@ -315,6 +318,32 @@ const Comunidad = () => {
       toast({
         title: 'Error',
         description: 'No se pudo enviar la respuesta',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('posts_comunidad')
+        .delete()
+        .eq('id', postId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Publicación eliminada',
+        description: 'Tu publicación se ha eliminado correctamente'
+      });
+    } catch (error: any) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar la publicación',
         variant: 'destructive'
       });
     }
@@ -394,26 +423,39 @@ const Comunidad = () => {
 
           {/* Posts List */}
           <div className="space-y-4">
-            {posts.map((post) => (
-              <Card key={post.id} className="p-6">
+          {posts.map((post) => {
+            const isOfficialAccount = post.profiles?.correo === 'oficial@brillarte.lat';
+            const isOwnPost = user?.id === post.user_id;
+            
+            return (
+              <Card key={post.id} className={`p-6 ${isOfficialAccount ? 'border-2 border-primary/20 bg-primary/5' : ''}`}>
                 <div className="flex gap-4">
-                  <Avatar>
-                    <AvatarImage src={post.profiles?.avatar_url || undefined} />
-                    <AvatarFallback>
-                      {post.profiles?.nombre_completo?.[0] || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Link to={`/perfil-publico/${post.user_id}`}>
+                    <Avatar className={`cursor-pointer hover:opacity-80 transition ${isOfficialAccount ? 'ring-2 ring-primary' : ''}`}>
+                      <AvatarImage src={post.profiles?.avatar_url || undefined} />
+                      <AvatarFallback className={isOfficialAccount ? 'bg-primary text-primary-foreground' : ''}>
+                        {post.profiles?.nombre_completo?.[0] || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
                   <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">
-                        {post.profiles?.nombre_completo}
-                      </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Link to={`/perfil-publico/${post.user_id}`} className="hover:underline">
+                        <span className={`font-semibold ${isOfficialAccount ? 'text-primary' : ''}`}>
+                          {post.profiles?.nombre_completo}
+                        </span>
+                      </Link>
                       {post.profiles?.verificado && (
-                        <img 
-                          src="/assets/star-icon.png" 
-                          alt="Verificado" 
-                          className="w-4 h-4"
-                        />
+                        <div className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
+                          <img 
+                            src="/assets/star-icon.png" 
+                            alt="Verificado" 
+                            className="w-4 h-4"
+                          />
+                          {isOfficialAccount && (
+                            <span className="text-xs font-medium text-primary">Oficial</span>
+                          )}
+                        </div>
                       )}
                       <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(post.created_at), { 
@@ -425,6 +467,16 @@ const Comunidad = () => {
                         <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
                           Pregunta
                         </span>
+                      )}
+                      {isOwnPost && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeletePost(post.id)}
+                          className="ml-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       )}
                     </div>
                     <p className="text-foreground whitespace-pre-wrap">{post.contenido}</p>
@@ -452,43 +504,60 @@ const Comunidad = () => {
                     {/* Respuestas Section */}
                     {expandedPost === post.id && (
                       <div className="mt-4 space-y-4 pl-4 border-l-2 border-border">
-                        {respuestas[post.id]?.map((resp) => (
-                          <div key={resp.id} className="flex gap-3">
-                            {resp.es_ia ? (
-                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Sparkles className="w-4 h-4 text-primary" />
+                        {respuestas[post.id]?.map((resp) => {
+                          const isRespOfficialAccount = resp.profiles?.correo === 'oficial@brillarte.lat';
+                          
+                          return (
+                            <div key={resp.id} className="flex gap-3">
+                              {resp.es_ia ? (
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                  <Sparkles className="w-4 h-4 text-primary" />
+                                </div>
+                              ) : (
+                                <Link to={`/perfil-publico/${resp.user_id}`}>
+                                  <Avatar className={`w-8 h-8 cursor-pointer hover:opacity-80 transition flex-shrink-0 ${isRespOfficialAccount ? 'ring-2 ring-primary' : ''}`}>
+                                    <AvatarImage src={resp.profiles?.avatar_url || undefined} />
+                                    <AvatarFallback className={`text-xs ${isRespOfficialAccount ? 'bg-primary text-primary-foreground' : ''}`}>
+                                      {resp.profiles?.nombre_completo?.[0] || 'U'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </Link>
+                              )}
+                              <div className="flex-1 space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {!resp.es_ia ? (
+                                    <Link to={`/perfil-publico/${resp.user_id}`} className="hover:underline">
+                                      <span className={`text-sm font-semibold ${isRespOfficialAccount ? 'text-primary' : ''}`}>
+                                        {resp.profiles?.nombre_completo}
+                                      </span>
+                                    </Link>
+                                  ) : (
+                                    <span className="text-sm font-semibold">Asistente IA</span>
+                                  )}
+                                  {resp.profiles?.verificado && !resp.es_ia && (
+                                    <div className="flex items-center gap-1 bg-primary/10 px-1.5 py-0.5 rounded-full">
+                                      <img 
+                                        src="/assets/star-icon.png" 
+                                        alt="Verificado" 
+                                        className="w-3 h-3"
+                                      />
+                                      {isRespOfficialAccount && (
+                                        <span className="text-xs font-medium text-primary">Oficial</span>
+                                      )}
+                                    </div>
+                                  )}
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatDistanceToNow(new Date(resp.created_at), { 
+                                      addSuffix: true, 
+                                      locale: es 
+                                    })}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-foreground">{resp.contenido}</p>
                               </div>
-                            ) : (
-                              <Avatar className="w-8 h-8">
-                                <AvatarImage src={resp.profiles?.avatar_url || undefined} />
-                                <AvatarFallback className="text-xs">
-                                  {resp.profiles?.nombre_completo?.[0] || 'U'}
-                                </AvatarFallback>
-                              </Avatar>
-                            )}
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold">
-                                  {resp.es_ia ? 'Asistente IA' : resp.profiles?.nombre_completo}
-                                </span>
-                                {resp.profiles?.verificado && !resp.es_ia && (
-                                  <img 
-                                    src="/assets/star-icon.png" 
-                                    alt="Verificado" 
-                                    className="w-3 h-3"
-                                  />
-                                )}
-                                <span className="text-xs text-muted-foreground">
-                                  {formatDistanceToNow(new Date(resp.created_at), { 
-                                    addSuffix: true, 
-                                    locale: es 
-                                  })}
-                                </span>
-                              </div>
-                              <p className="text-sm text-foreground">{resp.contenido}</p>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
 
                         {/* New Response Input */}
                         <div className="flex gap-3 pt-2">
@@ -522,7 +591,8 @@ const Comunidad = () => {
                   </div>
                 </div>
               </Card>
-            ))}
+            );
+          })}
           </div>
 
           {posts.length === 0 && (
