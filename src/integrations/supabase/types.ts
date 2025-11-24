@@ -1343,10 +1343,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_agents: {
+        Row: {
+          activo: boolean | null
+          created_at: string | null
+          id: string
+          identificador: string | null
+          nombre: string
+          user_id: string | null
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string | null
+          id?: string
+          identificador?: string | null
+          nombre: string
+          user_id?: string | null
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string | null
+          id?: string
+          identificador?: string | null
+          nombre?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tickets_ayuda: {
         Row: {
+          agente_asignado_id: string | null
           asunto: string
           categoria: string | null
+          codigo_membresia: string | null
           created_at: string | null
           descripcion: string
           estado: string
@@ -1356,8 +1385,10 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          agente_asignado_id?: string | null
           asunto: string
           categoria?: string | null
+          codigo_membresia?: string | null
           created_at?: string | null
           descripcion: string
           estado?: string
@@ -1367,8 +1398,10 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          agente_asignado_id?: string | null
           asunto?: string
           categoria?: string | null
+          codigo_membresia?: string | null
           created_at?: string | null
           descripcion?: string
           estado?: string

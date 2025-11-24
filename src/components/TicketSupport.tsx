@@ -108,7 +108,7 @@ const TicketSupport = ({ userId, codigoMembresia }: TicketSupportProps) => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { data: ticketData, error } = await supabase
         .from('tickets_ayuda')
         .insert({
           user_id: userId,
@@ -117,13 +117,23 @@ const TicketSupport = ({ userId, codigoMembresia }: TicketSupportProps) => {
           descripcion: newTicketForm.descripcion,
           prioridad: newTicketForm.prioridad,
           estado: 'abierto'
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      // Llamar a la función de respuesta automática de IA
+      await supabase.functions.invoke('ticket-ai-response', {
+        body: { 
+          ticketId: ticketData.id,
+          userId: userId
+        }
+      });
+
       toast({
         title: "Ticket creado",
-        description: "Tu solicitud de ayuda ha sido enviada"
+        description: "Tu solicitud ha sido enviada. Recibirás una respuesta pronto."
       });
 
       setNewTicketForm({
@@ -132,7 +142,11 @@ const TicketSupport = ({ userId, codigoMembresia }: TicketSupportProps) => {
         prioridad: "media"
       });
       setIsCreating(false);
-      await loadTickets();
+      
+      // Esperar un momento antes de recargar para que se guarde la respuesta de IA
+      setTimeout(() => {
+        loadTickets();
+      }, 1000);
     } catch (error) {
       console.error('Error creating ticket:', error);
       toast({

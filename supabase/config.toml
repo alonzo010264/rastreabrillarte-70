@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.notify-brillarte-new-post]
 verify_jwt = false
+
+[functions.ticket-ai-response]
+verify_jwt = false

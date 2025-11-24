@@ -39,6 +39,8 @@ import AdminCuentas from "./pages/AdminCuentas";
 import AdminCuentaDetalle from "./pages/AdminCuentaDetalle";
 import Comunidad from "./pages/Comunidad";
 import Mensajes from "./pages/Mensajes";
+import AdminTickets from "./pages/AdminTickets";
+import AdminVerificaciones from "./pages/AdminVerificaciones";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +83,8 @@ const App = () => (
           <Route path="/admin/emails" element={<AdminEmails />} />
           <Route path="/admin/cuentas" element={<AdminCuentas />} />
           <Route path="/admin/cuenta/:userId" element={<AdminCuentaDetalle />} />
+          <Route path="/admin/tickets" element={<AdminTickets />} />
+          <Route path="/admin/verificaciones" element={<AdminVerificaciones />} />
           <Route path="/comunidad" element={<Comunidad />} />
           <Route path="/mensajes" element={<Mensajes />} />
           <Route path="/perfil-publico/:userId" element={<PerfilPublico />} />
