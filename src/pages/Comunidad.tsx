@@ -11,6 +11,7 @@ import { Heart, MessageCircle, Send, Sparkles, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
+import verificadoIcon from '@/assets/verificado-icon.png';
 
 interface Post {
   id: string;
@@ -84,7 +85,7 @@ const Comunidad = () => {
 
       if (error) throw error;
 
-      if (postsData && user) {
+      if (postsData) {
         const postsWithDetails = await Promise.all(
           postsData.map(async (post) => {
             // Get profile data
@@ -100,13 +101,17 @@ const Comunidad = () => {
               .select('*', { count: 'exact', head: true })
               .eq('post_id', post.id);
 
-            // Check if user liked
-            const { data: userLike } = await supabase
-              .from('likes_comunidad')
-              .select('id')
-              .eq('post_id', post.id)
-              .eq('user_id', user.id)
-              .single();
+            // Check if user liked (only if user is logged in)
+            let userLike = null;
+            if (user) {
+              const { data } = await supabase
+                .from('likes_comunidad')
+                .select('id')
+                .eq('post_id', post.id)
+                .eq('user_id', user.id)
+                .single();
+              userLike = data;
+            }
 
             // Get responses count
             const { count: respuestasCount } = await supabase
@@ -448,7 +453,7 @@ const Comunidad = () => {
                       {post.profiles?.verificado && (
                         <div className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
                           <img 
-                            src="/assets/star-icon.png" 
+                            src={verificadoIcon} 
                             alt="Verificado" 
                             className="w-4 h-4"
                           />
@@ -537,7 +542,7 @@ const Comunidad = () => {
                                   {resp.profiles?.verificado && !resp.es_ia && (
                                     <div className="flex items-center gap-1 bg-primary/10 px-1.5 py-0.5 rounded-full">
                                       <img 
-                                        src="/assets/star-icon.png" 
+                                        src={verificadoIcon} 
                                         alt="Verificado" 
                                         className="w-3 h-3"
                                       />
