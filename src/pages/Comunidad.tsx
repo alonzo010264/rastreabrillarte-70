@@ -43,6 +43,8 @@ interface Respuesta {
     verificado: boolean;
     correo: string;
   };
+  likes_count?: number;
+  user_liked?: boolean;
 }
 
 const Comunidad = () => {
@@ -159,6 +161,15 @@ const Comunidad = () => {
       )
       .on(
         'postgres_changes',
+        { event: '*', schema: 'public', table: 'likes_respuestas_comunidad' },
+        (payload) => {
+          if (expandedPost) {
+            loadRespuestas(expandedPost);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'respuestas_comunidad' },
         (payload) => {
           if (expandedPost) {
@@ -264,21 +275,40 @@ const Comunidad = () => {
       // Get profile data for each response
       const respuestasWithProfiles = await Promise.all(
         (data || []).map(async (resp) => {
+          let profileData = null;
+          
           if (resp.user_id) {
-            const { data: profileData } = await supabase
+            const { data } = await supabase
               .from('profiles')
               .select('nombre_completo, avatar_url, verificado, correo')
               .eq('user_id', resp.user_id)
               .single();
-
-            return {
-              ...resp,
-              profiles: profileData || { nombre_completo: 'Usuario', avatar_url: null, verificado: false, correo: '' }
-            };
+            profileData = data;
           }
+
+          // Get likes count for response
+          const { count: likesCount } = await supabase
+            .from('likes_respuestas_comunidad')
+            .select('*', { count: 'exact', head: true })
+            .eq('respuesta_id', resp.id);
+
+          // Check if user liked (only if user is logged in)
+          let userLike = null;
+          if (user && resp.user_id) {
+            const { data } = await supabase
+              .from('likes_respuestas_comunidad')
+              .select('id')
+              .eq('respuesta_id', resp.id)
+              .eq('user_id', user.id)
+              .single();
+            userLike = data;
+          }
+
           return {
             ...resp,
-            profiles: { nombre_completo: 'IA', avatar_url: null, verificado: false, correo: '' }
+            profiles: profileData || { nombre_completo: resp.es_ia ? 'IA' : 'Usuario', avatar_url: null, verificado: false, correo: '' },
+            likes_count: likesCount || 0,
+            user_liked: !!userLike
           };
         })
       );
@@ -286,6 +316,36 @@ const Comunidad = () => {
       setRespuestas(prev => ({ ...prev, [postId]: respuestasWithProfiles }));
     } catch (error) {
       console.error('Error loading responses:', error);
+    }
+  };
+
+  const handleLikeRespuesta = async (respuestaId: string, postId: string) => {
+    if (!user) return;
+
+    try {
+      const respuesta = respuestas[postId]?.find(r => r.id === respuestaId);
+      
+      if (respuesta?.user_liked) {
+        await supabase
+          .from('likes_respuestas_comunidad')
+          .delete()
+          .eq('respuesta_id', respuestaId)
+          .eq('user_id', user.id);
+      } else {
+        await supabase
+          .from('likes_respuestas_comunidad')
+          .insert({
+            respuesta_id: respuestaId,
+            user_id: user.id
+          });
+      }
+    } catch (error: any) {
+      console.error('Error toggling like on response:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo dar like a la respuesta',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -557,12 +617,26 @@ const Comunidad = () => {
                                       locale: es 
                                     })}
                                   </span>
-                                </div>
-                                <p className="text-sm text-foreground">{resp.contenido}</p>
-                              </div>
-                            </div>
-                          );
-                        })}
+                                 </div>
+                                 <p className="text-sm text-foreground">{resp.contenido}</p>
+                                 {!resp.es_ia && (
+                                   <div className="flex items-center gap-2 mt-2">
+                                     <Button
+                                       variant="ghost"
+                                       size="sm"
+                                       onClick={() => handleLikeRespuesta(resp.id, post.id)}
+                                       className={resp.user_liked ? 'text-red-500' : ''}
+                                       disabled={!user}
+                                     >
+                                       <Heart className={`w-3 h-3 mr-1 ${resp.user_liked ? 'fill-current' : ''}`} />
+                                       {resp.likes_count || 0}
+                                     </Button>
+                                   </div>
+                                 )}
+                               </div>
+                             </div>
+                           );
+                         })}
 
                         {/* New Response Input */}
                         <div className="flex gap-3 pt-2">

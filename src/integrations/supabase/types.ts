@@ -468,6 +468,35 @@ export type Database = {
           },
         ]
       }
+      likes_respuestas_comunidad: {
+        Row: {
+          created_at: string
+          id: string
+          respuesta_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          respuesta_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          respuesta_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_respuestas_comunidad_respuesta_id_fkey"
+            columns: ["respuesta_id"]
+            isOneToOne: false
+            referencedRelation: "respuestas_comunidad"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string | null
