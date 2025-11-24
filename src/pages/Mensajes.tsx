@@ -12,6 +12,22 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import verificadoIcon from '@/assets/verificado-icon.png';
 
+interface Message {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string | null;
+  image_url: string | null;
+  tipo: 'text' | 'image' | 'credito' | 'cupon';
+  metadata: any;
+  created_at: string;
+  profiles?: {
+    nombre_completo: string;
+    avatar_url: string | null;
+    verificado: boolean;
+  };
+}
+
 const Mensajes = () => {
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState<any>(null);
@@ -34,7 +50,9 @@ const Mensajes = () => {
   }, []);
 
   const checkUser = async () => {
+    console.log('Verificando usuario autenticado...');
     const { data: { user } } = await supabase.auth.getUser();
+    console.log('Usuario autenticado:', user?.id);
     setUser(user);
 
     if (user) {
@@ -43,14 +61,17 @@ const Mensajes = () => {
         .select('*')
         .eq('user_id', user.id)
         .single();
+      console.log('Perfil del usuario:', profile);
       setUserProfile(profile);
     }
   };
 
   useEffect(() => {
     const initConversation = async () => {
-      if (targetUserId && user?.id) {
+      if (targetUserId && user?.id && !loading) {
+        console.log('Iniciando conversación con usuario:', targetUserId);
         const convId = await getOrCreateConversation(targetUserId);
+        console.log('ID de conversación obtenido:', convId);
         if (convId) {
           setCurrentConversation(convId);
         }
@@ -58,7 +79,7 @@ const Mensajes = () => {
     };
 
     initConversation();
-  }, [targetUserId, user, getOrCreateConversation, setCurrentConversation]);
+  }, [targetUserId, user, loading, getOrCreateConversation, setCurrentConversation]);
 
   if (!user) {
     return (

@@ -105,6 +105,7 @@ export const useChat = (userId: string | null) => {
   // Cargar mensajes de una conversación
   const loadMessages = useCallback(async (conversationId: string) => {
     try {
+      console.log('Cargando mensajes de conversación:', conversationId);
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -112,6 +113,8 @@ export const useChat = (userId: string | null) => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
+
+      console.log('Mensajes encontrados:', data?.length || 0);
 
       // Obtener perfiles de los remitentes
       const messagesWithProfiles = await Promise.all(
@@ -138,9 +141,14 @@ export const useChat = (userId: string | null) => {
 
   // Crear o obtener conversación con otro usuario
   const getOrCreateConversation = useCallback(async (otherUserId: string) => {
-    if (!userId) return null;
+    if (!userId) {
+      console.log('No hay usuario autenticado');
+      return null;
+    }
 
     try {
+      console.log('Buscando conversación entre', userId, 'y', otherUserId);
+      
       // Buscar si ya existe una conversación entre estos usuarios
       const { data: myParticipations } = await supabase
         .from('conversation_participants')
@@ -158,9 +166,11 @@ export const useChat = (userId: string | null) => {
       const sharedConvId = myConvIds.find(id => theirConvIds.includes(id));
 
       if (sharedConvId) {
+        console.log('Conversación existente encontrada:', sharedConvId);
         return sharedConvId;
       }
 
+      console.log('Creando nueva conversación');
       // Crear nueva conversación
       const { data: newConv, error: convError } = await supabase
         .from('conversations')
@@ -169,6 +179,8 @@ export const useChat = (userId: string | null) => {
         .single();
 
       if (convError) throw convError;
+
+      console.log('Nueva conversación creada:', newConv.id);
 
       // Agregar participantes
       const { error: participantsError } = await supabase
@@ -179,6 +191,8 @@ export const useChat = (userId: string | null) => {
         ]);
 
       if (participantsError) throw participantsError;
+
+      console.log('Participantes agregados a la conversación');
 
       await loadConversations();
       return newConv.id;
@@ -204,6 +218,7 @@ export const useChat = (userId: string | null) => {
     if (!userId) return;
 
     try {
+      console.log('Enviando mensaje a conversación:', conversationId);
       const { error } = await supabase
         .from('messages')
         .insert({
@@ -216,6 +231,7 @@ export const useChat = (userId: string | null) => {
         });
 
       if (error) throw error;
+      console.log('Mensaje enviado correctamente');
     } catch (error: any) {
       console.error('Error sending message:', error);
       toast({
@@ -260,6 +276,8 @@ export const useChat = (userId: string | null) => {
   useEffect(() => {
     if (!currentConversation) return;
 
+    console.log('Suscribiendo a mensajes de conversación:', currentConversation);
+
     const channel = supabase
       .channel(`messages:${currentConversation}`)
       .on(
@@ -271,6 +289,7 @@ export const useChat = (userId: string | null) => {
           filter: `conversation_id=eq.${currentConversation}`
         },
         async (payload) => {
+          console.log('Nuevo mensaje recibido en tiempo real:', payload);
           const { data: profile } = await supabase
             .from('profiles')
             .select('nombre_completo, avatar_url, verificado')
@@ -280,9 +299,12 @@ export const useChat = (userId: string | null) => {
           setMessages(prev => [...prev, { ...payload.new, profiles: profile } as Message]);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Estado de suscripción a mensajes:', status);
+      });
 
     return () => {
+      console.log('Desuscribiendo de mensajes de conversación:', currentConversation);
       supabase.removeChannel(channel);
     };
   }, [currentConversation]);
@@ -290,6 +312,8 @@ export const useChat = (userId: string | null) => {
   // Suscribirse a cambios en conversaciones
   useEffect(() => {
     if (!userId) return;
+
+    console.log('Suscribiendo a cambios en conversaciones');
 
     const channel = supabase
       .channel('conversations-changes')
@@ -301,12 +325,28 @@ export const useChat = (userId: string | null) => {
           table: 'conversations'
         },
         () => {
+          console.log('Cambio detectado en conversaciones, recargando...');
           loadConversations();
         }
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          console.log('Nuevo mensaje detectado, recargando conversaciones...');
+          loadConversations();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Estado de suscripción a conversaciones:', status);
+      });
 
     return () => {
+      console.log('Desuscribiendo de cambios en conversaciones');
       supabase.removeChannel(channel);
     };
   }, [userId, loadConversations]);
