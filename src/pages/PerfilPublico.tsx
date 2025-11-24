@@ -79,6 +79,15 @@ export default function PerfilPublico() {
   const loadFollowStats = async () => {
     if (!userId) return;
 
+    // Verificar si es la cuenta oficial primero
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('correo')
+      .eq('user_id', userId)
+      .single();
+
+    const isOfficialBrillarte = profileData?.correo === 'oficial@brillarte.lat';
+
     // Cargar seguidores
     const { count: followersCount } = await supabase
       .from('follows')
@@ -86,7 +95,6 @@ export default function PerfilPublico() {
       .eq('following_id', userId);
 
     // Si es la cuenta oficial, siempre mostrar 700 seguidores
-    const isOfficialBrillarte = profile?.correo === 'oficial@brillarte.lat';
     setFollowersCount(isOfficialBrillarte ? 700 : (followersCount || 0));
 
     // Cargar siguiendo

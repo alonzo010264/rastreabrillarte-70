@@ -31,8 +31,8 @@ serve(async (req) => {
       );
     }
 
-    // Wait 2 minutes before responding
-    await new Promise(resolve => setTimeout(resolve, 120000));
+    // Wait 30 seconds before responding
+    await new Promise(resolve => setTimeout(resolve, 30000));
 
     // Generate AI response
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
