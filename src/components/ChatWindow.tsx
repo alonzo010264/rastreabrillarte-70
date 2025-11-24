@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Image as ImageIcon, Gift, Tag, X } from 'lucide-react';
+import { Send, Image as ImageIcon, Gift, Tag, X, Shield } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -55,6 +55,7 @@ export const ChatWindow = ({
   const [uploading, setUploading] = useState(false);
   const [showCreditDialog, setShowCreditDialog] = useState(false);
   const [showCuponDialog, setShowCuponDialog] = useState(false);
+  const [showVerifyDialog, setShowVerifyDialog] = useState(false);
   const [creditAmount, setCreditAmount] = useState('');
   const [creditReason, setCreditReason] = useState('');
   const [cuponCode, setCuponCode] = useState('');
@@ -164,6 +165,32 @@ export const ChatWindow = ({
     setShowCuponDialog(false);
   };
 
+  const handleVerifyUser = async () => {
+    try {
+      await supabase
+        .from('profiles')
+        .update({ verificado: true })
+        .eq('user_id', otherUser.id);
+
+      toast({
+        title: 'Usuario verificado',
+        description: `${otherUser.nombre_completo} ahora tiene la insignia de verificación`
+      });
+
+      setShowVerifyDialog(false);
+      
+      // Reload page to show updated verification status
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Error verifying user:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo verificar al usuario',
+        variant: 'destructive'
+      });
+    }
+  };
+
   return (
     <Card className="flex flex-col h-[600px]">
       {/* Header */}
@@ -176,10 +203,23 @@ export const ChatWindow = ({
           <div className="flex items-center gap-2">
             <h3 className="font-semibold">{otherUser.nombre_completo}</h3>
             {otherUser.verificado && (
-              <img src={verificadoIcon} alt="Verificado" className="w-4 h-4" />
+              <div className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
+                <img src={verificadoIcon} alt="Verificado" className="w-4 h-4" />
+                <span className="text-xs font-medium text-primary">Cuenta verificada</span>
+              </div>
             )}
           </div>
         </div>
+        {isOfficialAccount && !otherUser.verificado && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowVerifyDialog(true)}
+          >
+            <Shield className="w-4 h-4 mr-1" />
+            Verificar
+          </Button>
+        )}
       </div>
 
       {/* Messages */}
@@ -317,6 +357,26 @@ export const ChatWindow = ({
                     </div>
                     <Button onClick={handleSendCupon} className="w-full">
                       Enviar Cupón
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Verificar Usuario</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      ¿Deseas otorgar la insignia de verificación a {otherUser.nombre_completo}?
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      El usuario tendrá la insignia "Cuenta verificada" en su perfil y publicaciones.
+                    </p>
+                    <Button onClick={handleVerifyUser} className="w-full">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Verificar Usuario
                     </Button>
                   </div>
                 </DialogContent>
