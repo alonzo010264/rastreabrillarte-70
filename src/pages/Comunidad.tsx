@@ -210,8 +210,8 @@ const Comunidad = () => {
         }
       });
 
-      // Trigger AI response if it's a question (skip for official account)
-      if (newPost.includes('?') && userProfile?.correo !== 'oficial@brillarte.lat') {
+      // Trigger AI response for all posts (skip for official account)
+      if (userProfile?.correo !== 'oficial@brillarte.lat') {
         supabase.functions.invoke('community-ai-responder', {
           body: {
             postId: post.id,
