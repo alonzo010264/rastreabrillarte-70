@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar, UserPlus, UserCheck, MessageCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
@@ -13,10 +13,12 @@ import verificadoIcon from "@/assets/verificado-icon.png";
 
 interface PublicProfile {
   id: string;
+  user_id: string;
   nombre_completo: string;
   avatar_url: string | null;
   verificado: boolean;
   fecha_creacion: string;
+  correo: string;
 }
 
 export default function PerfilPublico() {
@@ -24,8 +26,13 @@ export default function PerfilPublico() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   useEffect(() => {
+    checkCurrentUser();
     loadPublicProfile();
 
     // Suscribirse a cambios en tiempo real del perfil
@@ -45,6 +52,17 @@ export default function PerfilPublico() {
             setProfile(payload.new as PublicProfile);
           }
         )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'follows'
+          },
+          () => {
+            loadFollowStats();
+          }
+        )
         .subscribe();
 
       return () => {
@@ -52,6 +70,45 @@ export default function PerfilPublico() {
       };
     }
   }, [userId]);
+
+  const checkCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUser(user);
+  };
+
+  const loadFollowStats = async () => {
+    if (!userId) return;
+
+    // Cargar seguidores
+    const { count: followersCount } = await supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('following_id', userId);
+
+    // Si es la cuenta oficial, siempre mostrar 700 seguidores
+    const isOfficialBrillarte = profile?.correo === 'oficial@brillarte.lat';
+    setFollowersCount(isOfficialBrillarte ? 700 : (followersCount || 0));
+
+    // Cargar siguiendo
+    const { count: followingCount } = await supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('follower_id', userId);
+
+    setFollowingCount(followingCount || 0);
+
+    // Verificar si el usuario actual sigue a este perfil
+    if (currentUser) {
+      const { data } = await supabase
+        .from('follows')
+        .select('id')
+        .eq('follower_id', currentUser.id)
+        .eq('following_id', userId)
+        .single();
+
+      setIsFollowing(!!data);
+    }
+  };
 
   const loadPublicProfile = async () => {
     if (!userId) {
@@ -63,7 +120,7 @@ export default function PerfilPublico() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, nombre_completo, avatar_url, verificado, fecha_creacion')
+        .select('id, user_id, nombre_completo, avatar_url, verificado, fecha_creacion, correo')
         .eq('user_id', userId)
         .single();
 
@@ -76,6 +133,7 @@ export default function PerfilPublico() {
       }
 
       setProfile(data);
+      await loadFollowStats();
     } catch (error) {
       console.error('Error loading profile:', error);
       toast.error('Error al cargar perfil');
@@ -83,6 +141,53 @@ export default function PerfilPublico() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser) {
+      toast.error('Debes iniciar sesión para seguir usuarios');
+      navigate('/login');
+      return;
+    }
+
+    if (!userId) return;
+
+    try {
+      if (isFollowing) {
+        await supabase
+          .from('follows')
+          .delete()
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', userId);
+
+        toast.success('Has dejado de seguir a este usuario');
+      } else {
+        await supabase
+          .from('follows')
+          .insert({
+            follower_id: currentUser.id,
+            following_id: userId
+          });
+
+        toast.success('Ahora sigues a este usuario');
+      }
+
+      setIsFollowing(!isFollowing);
+      await loadFollowStats();
+    } catch (error: any) {
+      console.error('Error toggling follow:', error);
+      toast.error('No se pudo realizar la acción');
+    }
+  };
+
+  const handleMessage = () => {
+    if (!currentUser) {
+      toast.error('Debes iniciar sesión para enviar mensajes');
+      navigate('/login');
+      return;
+    }
+
+    navigate(`/mensajes?userId=${userId}`);
   };
 
   if (loading) {
@@ -153,6 +258,49 @@ export default function PerfilPublico() {
             </CardHeader>
 
             <CardContent className="mt-6 space-y-4">
+              {/* Estadísticas de seguimiento */}
+              <div className="flex justify-center gap-8 pb-4 border-b">
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{followersCount}</p>
+                  <p className="text-sm text-muted-foreground">Seguidores</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{followingCount}</p>
+                  <p className="text-sm text-muted-foreground">Siguiendo</p>
+                </div>
+              </div>
+
+              {/* Botones de acción */}
+              {currentUser && currentUser.id !== userId && (
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleFollow}
+                    variant={isFollowing ? 'outline' : 'default'}
+                    className="flex-1"
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Siguiendo
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Seguir
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={handleMessage}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Mensaje
+                  </Button>
+                </div>
+              )}
+
               <div className="flex items-center gap-3 text-muted-foreground">
                 <Calendar className="w-5 h-5" />
                 <span>
@@ -174,7 +322,9 @@ export default function PerfilPublico() {
                     <div>
                       <h3 className="font-semibold mb-1">Cuenta Verificada</h3>
                       <p className="text-sm text-muted-foreground">
-                        Esta es una cuenta oficial verificada de Brillarte.
+                        {profile.correo === 'oficial@brillarte.lat' 
+                          ? 'Esta es la cuenta oficial de BRILLARTE.'
+                          : 'Esta es una cuenta verificada de Brillarte.'}
                       </p>
                     </div>
                   </div>
