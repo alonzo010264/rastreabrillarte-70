@@ -91,6 +91,11 @@ export const AdminMenu = () => {
           Gestionar Tickets
         </DropdownMenuItem>
 
+        <DropdownMenuItem onClick={() => navigate('/admin/verificaciones')}>
+          <Shield className="mr-2 h-4 w-4" />
+          Verificaciones y Agentes
+        </DropdownMenuItem>
+
         <DropdownMenuItem onClick={() => navigate('/admin/cuentas')}>
           <Users className="mr-2 h-4 w-4" />
           Gestionar Cuentas
