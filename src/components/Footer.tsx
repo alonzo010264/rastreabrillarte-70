@@ -1,6 +1,7 @@
 
 import { Diamond, Heart, Instagram, Facebook, Twitter, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+import brillarteLogoFooter from "@/assets/brillarte-logo-footer-optimized.webp";
 
 const Footer = () => {
   return (
@@ -11,8 +12,10 @@ const Footer = () => {
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
               <img 
-                src="/lovable-uploads/9fddbd33-95e9-4a29-af18-6d93693beabb.png" 
-                alt="BRILLARTE" 
+                src={brillarteLogoFooter}
+                alt="BRILLARTE"
+                width="64"
+                height="64"
                 className="h-16 w-auto"
               />
             </div>

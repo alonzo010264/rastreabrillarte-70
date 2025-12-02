@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { useScrollAnimation, useParallax } from "@/hooks/useScrollAnimation";
-import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
-import teamWork from "@/assets/team-work.png";
+import brillarteLogo from "@/assets/brillarte-logo-new-optimized.webp";
+import teamWork from "@/assets/team-work-optimized.webp";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -40,6 +40,8 @@ const Home = () => {
               <img 
                 src={brillarteLogo} 
                 alt="BRILLARTE Logo" 
+                width="128"
+                height="128"
                 className="h-32 w-32 mx-auto md:mx-0 mb-6 transition-transform duration-300 hover:scale-110 hover:rotate-3"
               />
             </div>
@@ -68,7 +70,9 @@ const Home = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
               <img 
                 src={teamWork} 
-                alt="Equipo BRILLARTE" 
+                alt="Equipo BRILLARTE"
+                width="800"
+                height="533"
                 className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />

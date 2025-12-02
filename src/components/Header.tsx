@@ -1,4 +1,4 @@
-import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
+import brillarteLogo from "@/assets/brillarte-logo-new-optimized.webp";
 
 const Header = () => {
   return (
@@ -7,7 +7,9 @@ const Header = () => {
         <div className="flex items-center justify-center mb-6 animate-scale-in">
           <img 
             src={brillarteLogo} 
-            alt="BRILLARTE Logo" 
+            alt="BRILLARTE Logo"
+            width="96"
+            height="96"
             className="h-24 w-auto transition-transform duration-300 hover:scale-110"
           />
         </div>
