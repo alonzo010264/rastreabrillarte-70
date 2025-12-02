@@ -232,6 +232,39 @@ export const useChat = (userId: string | null) => {
 
       if (error) throw error;
       console.log('Mensaje enviado correctamente');
+
+      // Verificar si es conversación con la cuenta oficial y activar respuesta de IA
+      if (content && tipo === 'text') {
+        // Obtener el otro participante
+        const { data: participants } = await supabase
+          .from('conversation_participants')
+          .select('user_id')
+          .eq('conversation_id', conversationId)
+          .neq('user_id', userId);
+
+        if (participants && participants.length > 0) {
+          const otherUserId = participants[0].user_id;
+          
+          // Verificar si el otro usuario es la cuenta oficial
+          const { data: otherProfile } = await supabase
+            .from('profiles')
+            .select('correo')
+            .eq('user_id', otherUserId)
+            .single();
+
+          if (otherProfile?.correo === 'oficial@brillarte.lat') {
+            console.log('Mensaje a cuenta oficial, activando IA...');
+            // Llamar al edge function para respuesta de IA (en background)
+            supabase.functions.invoke('chat-ai-responder', {
+              body: {
+                conversationId,
+                messageContent: content,
+                senderUserId: userId
+              }
+            }).catch(err => console.error('Error invoking AI responder:', err));
+          }
+        }
+      }
     } catch (error: any) {
       console.error('Error sending message:', error);
       toast({
