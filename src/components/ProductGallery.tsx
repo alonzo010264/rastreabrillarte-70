@@ -4,12 +4,19 @@ import { Sparkles } from "lucide-react";
 import margarita from "@/assets/productos/margarita.jpg";
 import aretes from "@/assets/productos/aretes-flores.webp";
 import pulseras from "@/assets/productos/pulseras-mariposas.webp";
+import floresCrochetRojas from "@/assets/productos/flores-crochet-rojas.png";
+import bouquetCrochetColores from "@/assets/productos/bouquet-crochet-colores.png";
+import aretesMargaritas from "@/assets/productos/aretes-margaritas-colores.png";
 
 const ProductGallery = () => {
   const { ref: titleRef, isVisible: titleVisible } = useScrollAnimation(0.2);
   const { ref: grid1Ref, isVisible: grid1Visible } = useScrollAnimation(0.1);
   const { ref: grid2Ref, isVisible: grid2Visible } = useScrollAnimation(0.1);
   const { ref: grid3Ref, isVisible: grid3Visible } = useScrollAnimation(0.1);
+  const { ref: grid4Ref, isVisible: grid4Visible } = useScrollAnimation(0.1);
+  const { ref: grid5Ref, isVisible: grid5Visible } = useScrollAnimation(0.1);
+  const { ref: grid6Ref, isVisible: grid6Visible } = useScrollAnimation(0.1);
+
   const products = [
     {
       id: 1,
@@ -29,7 +36,37 @@ const ProductGallery = () => {
       image: pulseras,
       description: "Colección de pulseras tejidas con mariposas",
     },
+    {
+      id: 4,
+      name: "Flores Crochet Rojas",
+      image: floresCrochetRojas,
+      description: "Hermosas flores tejidas a crochet en color rojo intenso",
+    },
+    {
+      id: 5,
+      name: "Bouquet Crochet Colores",
+      image: bouquetCrochetColores,
+      description: "Ramo de flores multicolor tejido a mano con amor",
+    },
+    {
+      id: 6,
+      name: "Aretes Margaritas Colores",
+      image: aretesMargaritas,
+      description: "Set de aretes de margaritas en varios colores vibrantes",
+    },
   ];
+
+  const gridRefs = [
+    { ref: grid1Ref, isVisible: grid1Visible, animation: 'opacity-0 -translate-x-10', animationActive: 'opacity-100 translate-x-0' },
+    { ref: grid2Ref, isVisible: grid2Visible, animation: 'opacity-0 translate-y-10', animationActive: 'opacity-100 translate-y-0' },
+    { ref: grid3Ref, isVisible: grid3Visible, animation: 'opacity-0 translate-x-10', animationActive: 'opacity-100 translate-x-0' },
+    { ref: grid4Ref, isVisible: grid4Visible, animation: 'opacity-0 translate-x-10', animationActive: 'opacity-100 translate-x-0' },
+    { ref: grid5Ref, isVisible: grid5Visible, animation: 'opacity-0 -translate-y-10', animationActive: 'opacity-100 translate-y-0' },
+    { ref: grid6Ref, isVisible: grid6Visible, animation: 'opacity-0 -translate-x-10', animationActive: 'opacity-100 translate-x-0' },
+  ];
+
+  const hoverRotations = ['group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-2', ''];
+  const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-pink-500/20', 'from-purple-500/20', 'from-amber-500/20'];
 
   return (
     <section className="py-20 px-4 bg-background relative overflow-hidden">
@@ -37,6 +74,7 @@ const ProductGallery = () => {
       <div className="absolute inset-0 pointer-events-none">
         <Sparkles className="absolute top-20 right-10 text-primary/10 w-20 h-20 animate-float" />
         <Sparkles className="absolute bottom-40 left-10 text-primary/10 w-16 h-16 animate-float" style={{ animationDelay: "1s" }} />
+        <Sparkles className="absolute top-1/2 right-1/4 text-primary/10 w-12 h-12 animate-float" style={{ animationDelay: "2s" }} />
       </div>
 
       <div className="container mx-auto max-w-6xl relative z-10">
@@ -55,95 +93,39 @@ const ProductGallery = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          <div
-            ref={grid1Ref}
-            className={`transition-all duration-1000 ${
-              grid1Visible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
-            }`}
-          >
-            <Card className="group overflow-hidden hover-lift cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all duration-500">
-              <CardContent className="p-0">
-                <div className="relative overflow-hidden aspect-square">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-                  <img
-                    src={products[0].image}
-                    alt={products[0].name}
-                    width="400"
-                    height="400"
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-125 group-hover:rotate-3"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
-                    <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5" />
-                      {products[0].name}
-                    </h3>
-                    <p className="text-sm opacity-90">{products[0].description}</p>
+          {products.map((product, index) => (
+            <div
+              key={product.id}
+              ref={gridRefs[index].ref}
+              className={`transition-all duration-1000 ${index > 0 ? `delay-${(index % 3) * 200}` : ''} ${
+                gridRefs[index].isVisible ? gridRefs[index].animationActive : gridRefs[index].animation
+              }`}
+              style={{ transitionDelay: `${(index % 3) * 150}ms` }}
+            >
+              <Card className="group overflow-hidden hover-lift cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all duration-500">
+                <CardContent className="p-0">
+                  <div className="relative overflow-hidden aspect-square">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${gradientColors[index]} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10`} />
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      width="400"
+                      height="400"
+                      className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-125 ${hoverRotations[index]}`}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
+                      <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 animate-pulse" />
+                        {product.name}
+                      </h3>
+                      <p className="text-sm opacity-90">{product.description}</p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div
-            ref={grid2Ref}
-            className={`transition-all duration-1000 delay-200 ${
-              grid2Visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-          >
-            <Card className="group overflow-hidden hover-lift cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all duration-500">
-              <CardContent className="p-0">
-                <div className="relative overflow-hidden aspect-square">
-                  <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-                  <img
-                    src={products[1].image}
-                    alt={products[1].name}
-                    width="400"
-                    height="400"
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-125"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
-                    <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5" />
-                      {products[1].name}
-                    </h3>
-                    <p className="text-sm opacity-90">{products[1].description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div
-            ref={grid3Ref}
-            className={`transition-all duration-1000 delay-400 ${
-              grid3Visible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
-            }`}
-          >
-            <Card className="group overflow-hidden hover-lift cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all duration-500">
-              <CardContent className="p-0">
-                <div className="relative overflow-hidden aspect-square">
-                  <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-                  <img
-                    src={products[2].image}
-                    alt={products[2].name}
-                    width="400"
-                    height="400"
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-125 group-hover:-rotate-3"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
-                    <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5" />
-                      {products[2].name}
-                    </h3>
-                    <p className="text-sm opacity-90">{products[2].description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
+          ))}
         </div>
 
         <div className="text-center mt-16">
