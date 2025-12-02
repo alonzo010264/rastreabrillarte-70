@@ -73,6 +73,7 @@ const Home = () => {
                 alt="Equipo BRILLARTE"
                 width="800"
                 height="533"
+                fetchPriority="high"
                 className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
