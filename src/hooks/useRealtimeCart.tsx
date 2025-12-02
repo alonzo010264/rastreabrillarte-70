@@ -1,45 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useRealtimeCart = () => {
   const [itemCount, setItemCount] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadCartCount();
+  const loadCartCount = useCallback(async (uid: string | null) => {
+    if (!uid) {
+      setItemCount(0);
+      return;
+    }
 
-    // Suscribirse a cambios en tiempo real
-    const channel = supabase
-      .channel('cart-count')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'carrito'
-        },
-        () => {
-          loadCartCount();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const loadCartCount = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setItemCount(0);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('carrito')
         .select('cantidad')
-        .eq('user_id', user.id);
+        .eq('user_id', uid);
 
       if (error) throw error;
 
@@ -49,7 +25,53 @@ export const useRealtimeCart = () => {
       console.error('Error loading cart count:', error);
       setItemCount(0);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const initUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+      loadCartCount(user?.id || null);
+    };
+
+    initUser();
+
+    // Escuchar cambios de auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      const newUserId = session?.user?.id || null;
+      setUserId(newUserId);
+      loadCartCount(newUserId);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [loadCartCount]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    // Suscribirse a cambios en tiempo real del carrito del usuario
+    const channel = supabase
+      .channel(`cart-count-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'carrito',
+          filter: `user_id=eq.${userId}`
+        },
+        () => {
+          loadCartCount(userId);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, loadCartCount]);
 
   return itemCount;
 };

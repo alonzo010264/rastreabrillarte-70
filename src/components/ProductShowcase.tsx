@@ -21,6 +21,8 @@ interface Product {
   categoria: string;
   stock: number;
   destacado: boolean | null;
+  disponible: boolean | null;
+  fecha_lanzamiento: string | null;
 }
 
 export const ProductShowcase = () => {
@@ -344,11 +346,17 @@ export const ProductShowcase = () => {
 
               <CardContent>
                 <div className="space-y-4">
-                  {product.stock === 0 && (
+                  {/* Badge de estado del producto */}
+                  {product.disponible === false ? (
+                    <Badge variant="secondary" className="mb-2 bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                      🚀 Próximamente
+                    </Badge>
+                  ) : product.stock === 0 ? (
                     <Badge variant="destructive" className="mb-2">
                       Agotado
                     </Badge>
-                  )}
+                  ) : null}
+                  
                   <div>
                     {product.precio_mayoreo && product.precio !== product.precio_mayoreo ? (
                       <div className="flex items-baseline gap-2">
@@ -395,12 +403,12 @@ export const ProductShowcase = () => {
                     </Button>
                     <Button
                       onClick={(e) => addToCart(product, e)}
-                      disabled={product.stock === 0}
+                      disabled={product.stock === 0 || product.disponible === false}
                       size="sm"
                       className="flex-1"
                     >
                       <ShoppingCart className="w-4 h-4 mr-1" />
-                      Agregar
+                      {product.disponible === false ? 'Próximamente' : 'Agregar'}
                     </Button>
                   </div>
                 </div>

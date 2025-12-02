@@ -932,6 +932,8 @@ export type Database = {
           created_at: string | null
           descripcion: string | null
           destacado: boolean | null
+          disponible: boolean | null
+          fecha_lanzamiento: string | null
           id: string
           imagenes: string[] | null
           nombre: string
@@ -950,6 +952,8 @@ export type Database = {
           created_at?: string | null
           descripcion?: string | null
           destacado?: boolean | null
+          disponible?: boolean | null
+          fecha_lanzamiento?: string | null
           id?: string
           imagenes?: string[] | null
           nombre: string
@@ -968,6 +972,8 @@ export type Database = {
           created_at?: string | null
           descripcion?: string | null
           destacado?: boolean | null
+          disponible?: boolean | null
+          fecha_lanzamiento?: string | null
           id?: string
           imagenes?: string[] | null
           nombre?: string

@@ -27,9 +27,6 @@ verify_jwt = false
 [functions.send-newsletter-subscription]
 verify_jwt = false
 
-[functions.send-order-request-confirmation]
-verify_jwt = false
-
 [functions.send-status-notification]
 verify_jwt = false
 
@@ -46,4 +43,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.ticket-ai-response]
+verify_jwt = false
+
+[functions.chat-ai-responder]
 verify_jwt = false
