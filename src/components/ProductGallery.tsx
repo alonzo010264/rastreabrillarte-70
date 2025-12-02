@@ -68,6 +68,8 @@ const ProductGallery = () => {
                   <img
                     src={products[0].image}
                     alt={products[0].name}
+                    width="400"
+                    height="400"
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-125 group-hover:rotate-3"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
@@ -96,6 +98,8 @@ const ProductGallery = () => {
                   <img
                     src={products[1].image}
                     alt={products[1].name}
+                    width="400"
+                    height="400"
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-125"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
@@ -124,6 +128,8 @@ const ProductGallery = () => {
                   <img
                     src={products[2].image}
                     alt={products[2].name}
+                    width="400"
+                    height="400"
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-125 group-hover:-rotate-3"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
