@@ -66,27 +66,38 @@ export const ShoppingCart = () => {
   };
 
   useEffect(() => {
-    loadCart();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    
+    const initCart = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      await loadCart();
 
-    // Suscribirse a cambios en tiempo real del carrito
-    const channel = supabase
-      .channel('cart-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'carrito'
-        },
-        () => {
-          // Recargar carrito cuando hay cambios
-          loadCart();
-        }
-      )
-      .subscribe();
+      // Suscribirse a cambios en tiempo real del carrito del usuario
+      channel = supabase
+        .channel(`cart-items-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'carrito',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            loadCart();
+          }
+        )
+        .subscribe();
+    };
+
+    initCart();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
