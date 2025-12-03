@@ -29,50 +29,51 @@ const Favoritos = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkUserAndLoadFavorites();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let currentUserId: string | null = null;
 
-    // Suscribirse a cambios en tiempo real de favoritos
-    const channel = supabase
-      .channel('favorites-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'favoritos'
-        },
-        async () => {
-          // Recargar favoritos cuando hay cambios
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await loadFavorites(user.id);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const checkUserAndLoadFavorites = async () => {
-    try {
+    const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         toast.error("Debes iniciar sesión para ver tus favoritos");
         navigate("/login");
+        setLoading(false);
         return;
       }
 
+      currentUserId = user.id;
       await loadFavorites(user.id);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
       setLoading(false);
-    }
-  };
+
+      // Suscribirse a cambios en tiempo real de favoritos del usuario
+      channel = supabase
+        .channel(`favorites-page-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'favoritos',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            if (currentUserId) {
+              loadFavorites(currentUserId);
+            }
+          }
+        )
+        .subscribe();
+    };
+
+    init();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [navigate]);
 
   const loadFavorites = async (userId: string) => {
     try {

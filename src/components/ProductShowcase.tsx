@@ -66,7 +66,7 @@ export const ProductShowcase = () => {
   };
 
   useEffect(() => {
-    const channel = supabase
+    const productosChannel = supabase
       .channel('productos-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'productos' },
@@ -77,9 +77,38 @@ export const ProductShowcase = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(productosChannel);
     };
   }, []);
+
+  // Real-time subscription for favorites
+  useEffect(() => {
+    if (!user) return;
+
+    const favoritosChannel = supabase
+      .channel(`favoritos-showcase-${user.id}`)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'favoritos', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newFav = payload.new as { producto_id: string };
+            setFavorites(prev => new Set(prev).add(newFav.producto_id));
+          } else if (payload.eventType === 'DELETE') {
+            const oldFav = payload.old as { producto_id: string };
+            setFavorites(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(oldFav.producto_id);
+              return newSet;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(favoritosChannel);
+    };
+  }, [user]);
 
   const fetchProducts = async () => {
     const { data, error } = await supabase
