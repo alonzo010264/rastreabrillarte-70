@@ -231,46 +231,37 @@ export const ProductShowcase = () => {
     }
 
     try {
-      const { error } = await supabase
+      // Primero buscar si ya existe el item
+      const { data: existing } = await supabase
         .from('carrito')
-        .insert({
-          user_id: user.id,
-          producto_id: product.id,
-          cantidad: 1
-        });
+        .select('id, cantidad')
+        .eq('user_id', user.id)
+        .eq('producto_id', product.id)
+        .is('color', null)
+        .is('talla', null)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (existing) {
+        // Actualizar cantidad existente
+        await supabase
+          .from('carrito')
+          .update({ cantidad: existing.cantidad + 1 })
+          .eq('id', existing.id);
+      } else {
+        // Insertar nuevo item
+        await supabase
+          .from('carrito')
+          .insert({
+            user_id: user.id,
+            producto_id: product.id,
+            cantidad: 1
+          });
+      }
       
-      // Trigger animation (optional - won't break if it fails)
       triggerFlyAnimation(event.currentTarget, 'cart');
-      
       toast.success(`🛒 ${product.nombre} agregado al carrito`);
     } catch (error: any) {
       console.error('Error adding to cart:', error);
-      // Si es error de duplicado, actualizar cantidad
-      if (error?.code === '23505') {
-        try {
-          const { data: existing } = await supabase
-            .from('carrito')
-            .select('id, cantidad')
-            .eq('user_id', user.id)
-            .eq('producto_id', product.id)
-            .single();
-          
-          if (existing) {
-            await supabase
-              .from('carrito')
-              .update({ cantidad: existing.cantidad + 1 })
-              .eq('id', existing.id);
-            
-            triggerFlyAnimation(event.currentTarget, 'cart');
-            toast.success(`🛒 ${product.nombre} agregado al carrito`);
-            return;
-          }
-        } catch (updateError) {
-          console.error('Error updating cart:', updateError);
-        }
-      }
       toast.error('Error al agregar al carrito');
     }
   };
