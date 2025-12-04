@@ -8,7 +8,7 @@ const Footer = () => {
           {/* Logo y descripción */}
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
-              <img src={brillarteLogoFooter} alt="BRILLARTE" width="64" height="64" className="h-16 w-auto" />
+              <img alt="BRILLARTE" width="64" height="64" src="/lovable-uploads/108965a0-1419-4718-a2a0-1aa29864b805.jpg" className="h-16 w-auto object-contain" />
             </div>
             <p className="text-gray-300 mb-4 text-sm leading-relaxed">El Arte de Brillar. Productos únicos de calidad que reflejan tu personalidad. Pulseras, aretes, monederos y accesorios exclusivos para hacer brillar tu estilo.</p>
             <div className="flex space-x-4">
