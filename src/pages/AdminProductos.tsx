@@ -11,15 +11,17 @@ import { toast } from "sonner";
 import { MultipleImageUpload } from "@/components/MultipleImageUpload";
 import { ColorPicker } from "@/components/ColorPicker";
 import { DiscountCodes } from "@/components/DiscountCodes";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Percent, Clock, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 
 interface Producto {
   id: string;
   nombre: string;
   descripcion: string | null;
   precio: number;
+  precio_original: number | null;
   precio_mayoreo: number | null;
   cantidad_mayoreo: number | null;
   stock: number | null;
@@ -29,7 +31,21 @@ interface Producto {
   imagenes: string[] | null;
   activo: boolean | null;
   destacado: boolean | null;
+  en_oferta: boolean | null;
+  porcentaje_descuento: number | null;
+  oferta_inicio: string | null;
+  oferta_fin: string | null;
+  codigo_oferta: string | null;
 }
+
+const generateOfferCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = 'BRILLA-';
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
 
 export default function AdminProductos() {
   const navigate = useNavigate();
@@ -40,6 +56,7 @@ export default function AdminProductos() {
   // Form state
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [precioOriginal, setPrecioOriginal] = useState("");
   const [precio, setPrecio] = useState("");
   const [precioMayoreo, setPrecioMayoreo] = useState("");
   const [cantidadMayoreo, setCantidadMayoreo] = useState("");
@@ -51,10 +68,29 @@ export default function AdminProductos() {
   const [activo, setActivo] = useState(true);
   const [destacado, setDestacado] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // Offer state
+  const [enOferta, setEnOferta] = useState(false);
+  const [porcentajeDescuento, setPorcentajeDescuento] = useState("");
+  const [ofertaInicio, setOfertaInicio] = useState("");
+  const [ofertaFin, setOfertaFin] = useState("");
+  const [codigoOferta, setCodigoOferta] = useState("");
 
   useEffect(() => {
     loadProductos();
   }, []);
+
+  // Calcular precio automáticamente cuando cambia el descuento o precio original
+  useEffect(() => {
+    if (enOferta && precioOriginal && porcentajeDescuento) {
+      const original = parseFloat(precioOriginal);
+      const descuento = parseFloat(porcentajeDescuento);
+      if (!isNaN(original) && !isNaN(descuento)) {
+        const precioConDescuento = original * (1 - descuento / 100);
+        setPrecio(precioConDescuento.toFixed(2));
+      }
+    }
+  }, [enOferta, precioOriginal, porcentajeDescuento]);
 
   const loadProductos = async () => {
     try {
@@ -76,6 +112,7 @@ export default function AdminProductos() {
   const resetForm = () => {
     setNombre("");
     setDescripcion("");
+    setPrecioOriginal("");
     setPrecio("");
     setPrecioMayoreo("");
     setCantidadMayoreo("");
@@ -88,6 +125,11 @@ export default function AdminProductos() {
     setDestacado(false);
     setEditingId(null);
     setShowForm(false);
+    setEnOferta(false);
+    setPorcentajeDescuento("");
+    setOfertaInicio("");
+    setOfertaFin("");
+    setCodigoOferta("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,6 +145,7 @@ export default function AdminProductos() {
         nombre,
         descripcion: descripcion || null,
         precio: parseFloat(precio),
+        precio_original: precioOriginal ? parseFloat(precioOriginal) : parseFloat(precio),
         precio_mayoreo: precioMayoreo ? parseFloat(precioMayoreo) : null,
         cantidad_mayoreo: cantidadMayoreo ? parseInt(cantidadMayoreo) : null,
         stock: stock ? parseInt(stock) : 0,
@@ -112,6 +155,11 @@ export default function AdminProductos() {
         tallas: tallas.length > 0 ? tallas : null,
         activo,
         destacado,
+        en_oferta: enOferta,
+        porcentaje_descuento: enOferta && porcentajeDescuento ? parseFloat(porcentajeDescuento) : null,
+        oferta_inicio: enOferta && ofertaInicio ? new Date(ofertaInicio).toISOString() : null,
+        oferta_fin: enOferta && ofertaFin ? new Date(ofertaFin).toISOString() : null,
+        codigo_oferta: enOferta ? (codigoOferta || generateOfferCode()) : null,
       };
 
       if (editingId) {
@@ -143,6 +191,7 @@ export default function AdminProductos() {
     setEditingId(producto.id);
     setNombre(producto.nombre);
     setDescripcion(producto.descripcion || "");
+    setPrecioOriginal(producto.precio_original?.toString() || producto.precio.toString());
     setPrecio(producto.precio.toString());
     setPrecioMayoreo(producto.precio_mayoreo?.toString() || "");
     setCantidadMayoreo(producto.cantidad_mayoreo?.toString() || "");
@@ -153,6 +202,11 @@ export default function AdminProductos() {
     setTallas(producto.tallas || []);
     setActivo(producto.activo ?? true);
     setDestacado(producto.destacado ?? false);
+    setEnOferta(producto.en_oferta ?? false);
+    setPorcentajeDescuento(producto.porcentaje_descuento?.toString() || "");
+    setOfertaInicio(producto.oferta_inicio ? new Date(producto.oferta_inicio).toISOString().slice(0, 16) : "");
+    setOfertaFin(producto.oferta_fin ? new Date(producto.oferta_fin).toISOString().slice(0, 16) : "");
+    setCodigoOferta(producto.codigo_oferta || "");
     setShowForm(true);
   };
 
@@ -182,6 +236,13 @@ export default function AdminProductos() {
 
   const removeTalla = (talla: string) => {
     setTallas(tallas.filter(t => t !== talla));
+  };
+
+  const handleActivateOffer = () => {
+    setEnOferta(true);
+    if (!codigoOferta) {
+      setCodigoOferta(generateOfferCode());
+    }
   };
 
   if (loading) {
@@ -215,13 +276,20 @@ export default function AdminProductos() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {productos.map((producto) => (
-              <Card key={producto.id}>
+              <Card key={producto.id} className={producto.en_oferta ? 'ring-2 ring-pink-500' : ''}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span className="truncate">{producto.nombre}</span>
-                    {producto.destacado && (
-                      <Badge variant="secondary">⭐ Destacado</Badge>
-                    )}
+                    <div className="flex gap-1">
+                      {producto.destacado && (
+                        <Badge variant="secondary">Destacado</Badge>
+                      )}
+                      {producto.en_oferta && (
+                        <Badge className="bg-pink-500 text-white">
+                          {producto.porcentaje_descuento}% OFF
+                        </Badge>
+                      )}
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -232,14 +300,29 @@ export default function AdminProductos() {
                       className="w-full h-40 object-cover rounded-md mb-4"
                     />
                   )}
-                  <p className="text-2xl font-bold mb-2">${producto.precio}</p>
-                  {producto.precio_mayoreo && (
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Mayoreo: ${producto.precio_mayoreo} (mín. {producto.cantidad_mayoreo})
-                    </p>
-                  )}
-                  <p className="text-sm mb-2">Stock: {producto.stock}</p>
-                  <div className="flex gap-2">
+                  <div className="space-y-2">
+                    {producto.precio_original && producto.precio < producto.precio_original ? (
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold text-pink-600">${producto.precio}</p>
+                        <p className="text-sm line-through text-muted-foreground">${producto.precio_original}</p>
+                      </div>
+                    ) : (
+                      <p className="text-2xl font-bold">${producto.precio}</p>
+                    )}
+                    {producto.precio_mayoreo && (
+                      <p className="text-sm text-muted-foreground">
+                        Mayoreo: ${producto.precio_mayoreo} (mín. {producto.cantidad_mayoreo})
+                      </p>
+                    )}
+                    <p className="text-sm">Stock: {producto.stock}</p>
+                    {producto.codigo_oferta && (
+                      <div className="flex items-center gap-1 text-sm text-pink-600">
+                        <Tag className="w-3 h-3" />
+                        <span className="font-mono">{producto.codigo_oferta}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2 mt-4">
                     <Button onClick={() => handleEdit(producto)} size="sm">
                       Editar
                     </Button>
@@ -285,17 +368,40 @@ export default function AdminProductos() {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="precio">Precio *</Label>
+                  <Label htmlFor="precio_original">Precio Original *</Label>
+                  <Input
+                    id="precio_original"
+                    type="number"
+                    step="0.01"
+                    value={precioOriginal}
+                    onChange={(e) => {
+                      setPrecioOriginal(e.target.value);
+                      if (!enOferta) {
+                        setPrecio(e.target.value);
+                      }
+                    }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="precio">Precio Final *</Label>
                   <Input
                     id="precio"
                     type="number"
                     step="0.01"
                     value={precio}
                     onChange={(e) => setPrecio(e.target.value)}
+                    disabled={enOferta}
                     required
                   />
+                  {enOferta && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Calculado automáticamente
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -308,6 +414,115 @@ export default function AdminProductos() {
                   />
                 </div>
               </div>
+
+              <Separator />
+
+              {/* Sección de Oferta Especial */}
+              <div className="bg-pink-500/10 border border-pink-500/30 rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Percent className="w-5 h-5 text-pink-500" />
+                    <Label className="text-lg font-semibold">Promoción Especial</Label>
+                  </div>
+                  <Switch
+                    checked={enOferta}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        handleActivateOffer();
+                      } else {
+                        setEnOferta(false);
+                        if (precioOriginal) setPrecio(precioOriginal);
+                      }
+                    }}
+                  />
+                </div>
+
+                {enOferta && (
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="porcentaje">Porcentaje de Descuento</Label>
+                        <div className="relative">
+                          <Input
+                            id="porcentaje"
+                            type="number"
+                            min="1"
+                            max="99"
+                            value={porcentajeDescuento}
+                            onChange={(e) => setPorcentajeDescuento(e.target.value)}
+                            className="pr-8"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="codigo">Código de Oferta</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="codigo"
+                            value={codigoOferta}
+                            onChange={(e) => setCodigoOferta(e.target.value.toUpperCase())}
+                            placeholder="BRILLA-XXXX"
+                            className="font-mono"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setCodigoOferta(generateOfferCode())}
+                            title="Generar código"
+                          >
+                            <Tag className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="oferta_inicio">
+                          <Clock className="w-4 h-4 inline mr-1" />
+                          Inicio de Oferta
+                        </Label>
+                        <Input
+                          id="oferta_inicio"
+                          type="datetime-local"
+                          value={ofertaInicio}
+                          onChange={(e) => setOfertaInicio(e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="oferta_fin">
+                          <Clock className="w-4 h-4 inline mr-1" />
+                          Fin de Oferta (Cronómetro)
+                        </Label>
+                        <Input
+                          id="oferta_fin"
+                          type="datetime-local"
+                          value={ofertaFin}
+                          onChange={(e) => setOfertaFin(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    {precioOriginal && porcentajeDescuento && (
+                      <div className="bg-background rounded p-3 text-center">
+                        <p className="text-sm text-muted-foreground">Precio con descuento:</p>
+                        <p className="text-2xl font-bold text-pink-600">
+                          ${(parseFloat(precioOriginal) * (1 - parseFloat(porcentajeDescuento) / 100)).toFixed(2)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Ahorras: ${(parseFloat(precioOriginal) * parseFloat(porcentajeDescuento) / 100).toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <Separator />
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -389,7 +604,7 @@ export default function AdminProductos() {
                     checked={destacado}
                     onCheckedChange={setDestacado}
                   />
-                  <Label htmlFor="destacado">⭐ Producto Destacado</Label>
+                  <Label htmlFor="destacado">Producto Destacado</Label>
                 </div>
               </div>
 

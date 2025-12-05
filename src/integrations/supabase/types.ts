@@ -928,17 +928,23 @@ export type Database = {
           activo: boolean | null
           cantidad_mayoreo: number | null
           categoria: string | null
+          codigo_oferta: string | null
           colores: string[] | null
           created_at: string | null
           descripcion: string | null
           destacado: boolean | null
           disponible: boolean | null
+          en_oferta: boolean | null
           fecha_lanzamiento: string | null
           id: string
           imagenes: string[] | null
           nombre: string
+          oferta_fin: string | null
+          oferta_inicio: string | null
+          porcentaje_descuento: number | null
           precio: number
           precio_mayoreo: number | null
+          precio_original: number | null
           stock: number | null
           tallas: string[] | null
           updated_at: string | null
@@ -948,17 +954,23 @@ export type Database = {
           activo?: boolean | null
           cantidad_mayoreo?: number | null
           categoria?: string | null
+          codigo_oferta?: string | null
           colores?: string[] | null
           created_at?: string | null
           descripcion?: string | null
           destacado?: boolean | null
           disponible?: boolean | null
+          en_oferta?: boolean | null
           fecha_lanzamiento?: string | null
           id?: string
           imagenes?: string[] | null
           nombre: string
+          oferta_fin?: string | null
+          oferta_inicio?: string | null
+          porcentaje_descuento?: number | null
           precio: number
           precio_mayoreo?: number | null
+          precio_original?: number | null
           stock?: number | null
           tallas?: string[] | null
           updated_at?: string | null
@@ -968,17 +980,23 @@ export type Database = {
           activo?: boolean | null
           cantidad_mayoreo?: number | null
           categoria?: string | null
+          codigo_oferta?: string | null
           colores?: string[] | null
           created_at?: string | null
           descripcion?: string | null
           destacado?: boolean | null
           disponible?: boolean | null
+          en_oferta?: boolean | null
           fecha_lanzamiento?: string | null
           id?: string
           imagenes?: string[] | null
           nombre?: string
+          oferta_fin?: string | null
+          oferta_inicio?: string | null
+          porcentaje_descuento?: number | null
           precio?: number
           precio_mayoreo?: number | null
+          precio_original?: number | null
           stock?: number | null
           tallas?: string[] | null
           updated_at?: string | null

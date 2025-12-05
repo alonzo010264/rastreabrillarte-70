@@ -20,7 +20,8 @@ import {
   Shield,
   Mail,
   Ticket,
-  Users
+  Users,
+  Calculator
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -99,6 +100,11 @@ export const AdminMenu = () => {
         <DropdownMenuItem onClick={() => navigate('/admin/cuentas')}>
           <Users className="mr-2 h-4 w-4" />
           Gestionar Cuentas
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate('/admin/contabilidad')}>
+          <Calculator className="mr-2 h-4 w-4" />
+          Contabilidad
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
