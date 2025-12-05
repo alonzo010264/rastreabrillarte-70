@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { ShoppingBag, ChevronLeft, ChevronRight, Heart, ShoppingCart } from "lucide-react";
+import { ShoppingBag, ChevronLeft, ChevronRight, Heart, ShoppingCart, Star, Rocket, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FlyingItem } from "@/components/FlyingItem";
+import { OfferCountdown } from "@/components/OfferCountdown";
 import { createPortal } from "react-dom";
 
 interface Product {
@@ -14,6 +15,7 @@ interface Product {
   nombre: string;
   descripcion: string;
   precio: number;
+  precio_original: number | null;
   precio_mayoreo: number | null;
   cantidad_mayoreo: number | null;
   colores: string[];
@@ -23,6 +25,11 @@ interface Product {
   destacado: boolean | null;
   disponible: boolean | null;
   fecha_lanzamiento: string | null;
+  en_oferta: boolean | null;
+  porcentaje_descuento: number | null;
+  oferta_inicio: string | null;
+  oferta_fin: string | null;
+  codigo_oferta: string | null;
 }
 
 export const ProductShowcase = () => {
@@ -81,7 +88,6 @@ export const ProductShowcase = () => {
     };
   }, []);
 
-  // Real-time subscription for favorites
   useEffect(() => {
     if (!user) return;
 
@@ -120,7 +126,6 @@ export const ProductShowcase = () => {
 
     if (!error && data) {
       setProducts(data);
-      // Initialize image indices
       const indices: {[key: string]: number} = {};
       data.forEach(product => {
         indices[product.id] = 0;
@@ -151,7 +156,6 @@ export const ProductShowcase = () => {
       );
       
       if (!targetElement) {
-        console.log(`Target element not found for ${type}`);
         return;
       }
       
@@ -172,7 +176,6 @@ export const ProductShowcase = () => {
       
       setFlyingItems(prev => [...prev, flyingItem]);
     } catch (error) {
-      // Silently fail - animation is optional
       console.log('Animation skipped:', error);
     }
   };
@@ -210,13 +213,12 @@ export const ProductShowcase = () => {
         
         setFavorites(prev => new Set(prev).add(productId));
         triggerFlyAnimation(event.currentTarget, 'favorite');
-        toast.success('✨ Agregado a favoritos');
+        toast.success('Agregado a favoritos');
       }
     } catch (error: any) {
       console.error('Error toggling favorite:', error);
-      // Si es error de duplicado, significa que ya estaba agregado
       if (error?.code === '23505') {
-        toast.success('✨ Agregado a favoritos');
+        toast.success('Agregado a favoritos');
         setFavorites(prev => new Set(prev).add(productId));
       } else {
         toast.error('Error al actualizar favoritos');
@@ -231,7 +233,6 @@ export const ProductShowcase = () => {
     }
 
     try {
-      // Primero buscar si ya existe el item
       const { data: existing } = await supabase
         .from('carrito')
         .select('id, cantidad')
@@ -242,13 +243,11 @@ export const ProductShowcase = () => {
         .maybeSingle();
 
       if (existing) {
-        // Actualizar cantidad existente
         await supabase
           .from('carrito')
           .update({ cantidad: existing.cantidad + 1 })
           .eq('id', existing.id);
       } else {
-        // Insertar nuevo item
         await supabase
           .from('carrito')
           .insert({
@@ -259,11 +258,26 @@ export const ProductShowcase = () => {
       }
       
       triggerFlyAnimation(event.currentTarget, 'cart');
-      toast.success(`🛒 ${product.nombre} agregado al carrito`);
+      toast.success(`${product.nombre} agregado al carrito`);
     } catch (error: any) {
       console.error('Error adding to cart:', error);
       toast.error('Error al agregar al carrito');
     }
+  };
+
+  const isOfferActive = (product: Product) => {
+    if (!product.en_oferta) return false;
+    const now = new Date();
+    const start = product.oferta_inicio ? new Date(product.oferta_inicio) : null;
+    const end = product.oferta_fin ? new Date(product.oferta_fin) : null;
+    
+    if (start && now < start) return false;
+    if (end && now > end) return false;
+    return true;
+  };
+
+  const hasDiscount = (product: Product) => {
+    return product.precio_original && product.precio < product.precio_original;
   };
 
   return (
@@ -305,6 +319,27 @@ export const ProductShowcase = () => {
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  
+                  {/* Badges de estado */}
+                  <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    {product.destacado && (
+                      <Badge className="bg-amber-500 text-white">
+                        <Star className="w-3 h-3 mr-1 fill-current" />
+                        Destacado
+                      </Badge>
+                    )}
+                    {isOfferActive(product) && (
+                      <Badge className="bg-pink-500 text-white">
+                        <Percent className="w-3 h-3 mr-1" />
+                        {product.porcentaje_descuento}% OFF
+                      </Badge>
+                    )}
+                    {hasDiscount(product) && !isOfferActive(product) && (
+                      <Badge variant="destructive">
+                        Rebaja
+                      </Badge>
+                    )}
+                  </div>
                   
                   {product.imagenes.length > 1 && (
                     <>
@@ -349,12 +384,7 @@ export const ProductShowcase = () => {
               
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-xl">{product.nombre}</CardTitle>
-                    {product.destacado && (
-                      <Badge variant="default" className="text-xs">⭐</Badge>
-                    )}
-                  </div>
+                  <CardTitle className="text-xl">{product.nombre}</CardTitle>
                   {product.categoria && (
                     <Badge variant="secondary">{product.categoria}</Badge>
                   )}
@@ -366,27 +396,36 @@ export const ProductShowcase = () => {
 
               <CardContent>
                 <div className="space-y-4">
-                  {/* Badge de estado del producto */}
+                  {/* Badge de disponibilidad */}
                   {product.disponible === false ? (
-                    <Badge variant="secondary" className="mb-2 bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
-                      🚀 Próximamente
+                    <Badge variant="secondary" className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                      <Rocket className="w-3 h-3 mr-1" />
+                      Próximamente
                     </Badge>
                   ) : product.stock === 0 ? (
-                    <Badge variant="destructive" className="mb-2">
+                    <Badge variant="destructive">
                       Agotado
                     </Badge>
                   ) : null}
+
+                  {/* Cronómetro de oferta */}
+                  {isOfferActive(product) && product.oferta_fin && (
+                    <OfferCountdown 
+                      endDate={product.oferta_fin} 
+                      offerCode={product.codigo_oferta || ''} 
+                    />
+                  )}
                   
+                  {/* Precios */}
                   <div>
-                    {product.precio_mayoreo && product.precio !== product.precio_mayoreo ? (
-                      <div className="flex items-baseline gap-2">
-                        <p className="text-2xl font-bold text-destructive">
+                    {(hasDiscount(product) || isOfferActive(product)) ? (
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <p className="text-2xl font-bold text-pink-600 dark:text-pink-400">
                           ${product.precio.toFixed(2)}
                         </p>
                         <p className="text-lg line-through text-muted-foreground">
-                          ${product.precio_mayoreo.toFixed(2)}
+                          ${(product.precio_original || product.precio_mayoreo || 0).toFixed(2)}
                         </p>
-                        <Badge variant="secondary" className="ml-auto">Rebaja</Badge>
                       </div>
                     ) : (
                       <p className="text-2xl font-bold">
@@ -415,8 +454,8 @@ export const ProductShowcase = () => {
                     <Button
                       onClick={(e) => toggleFavorite(product.id, e)}
                       variant={favorites.has(product.id) ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1"
+                      size="default"
+                      className="flex-1 min-h-[44px]"
                     >
                       <Heart className={`w-4 h-4 mr-1 ${favorites.has(product.id) ? 'fill-current' : ''}`} />
                       {favorites.has(product.id) ? 'Favorito' : 'Me gusta'}
@@ -424,8 +463,8 @@ export const ProductShowcase = () => {
                     <Button
                       onClick={(e) => addToCart(product, e)}
                       disabled={product.stock === 0 || product.disponible === false}
-                      size="sm"
-                      className="flex-1"
+                      size="default"
+                      className="flex-1 min-h-[44px]"
                     >
                       <ShoppingCart className="w-4 h-4 mr-1" />
                       {product.disponible === false ? 'Próximamente' : 'Agregar'}

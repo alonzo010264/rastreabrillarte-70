@@ -41,6 +41,7 @@ import Comunidad from "./pages/Comunidad";
 import Mensajes from "./pages/Mensajes";
 import AdminTickets from "./pages/AdminTickets";
 import AdminVerificaciones from "./pages/AdminVerificaciones";
+import AdminContabilidad from "./pages/AdminContabilidad";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ const App = () => (
           <Route path="/admin/cuenta/:userId" element={<AdminCuentaDetalle />} />
           <Route path="/admin/tickets" element={<AdminTickets />} />
           <Route path="/admin/verificaciones" element={<AdminVerificaciones />} />
+          <Route path="/admin/contabilidad" element={<AdminContabilidad />} />
           <Route path="/comunidad" element={<Comunidad />} />
           <Route path="/mensajes" element={<Mensajes />} />
           <Route path="/perfil-publico/:userId" element={<PerfilPublico />} />
