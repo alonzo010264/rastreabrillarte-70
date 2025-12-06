@@ -118,6 +118,9 @@ export default function PerfilPublico() {
     }
   };
 
+  const BRILLARTE_OFFICIAL_EMAIL = 'oficial@brillarte.lat';
+  const BRILLARTE_LOGO_URL = '/lovable-uploads/991959ba-9b7a-4a2d-9059-6a3eb1bb866c.png';
+
   const loadPublicProfile = async () => {
     if (!userId) {
       toast.error('Usuario no encontrado');
@@ -140,7 +143,18 @@ export default function PerfilPublico() {
         return;
       }
 
-      setProfile(data);
+      // Si es cuenta oficial de BRILLARTE, usar datos especiales
+      const isOfficial = data.correo === BRILLARTE_OFFICIAL_EMAIL;
+      const finalProfile = isOfficial 
+        ? { 
+            ...data, 
+            nombre_completo: 'BRILLARTE', 
+            avatar_url: BRILLARTE_LOGO_URL, 
+            verificado: true 
+          }
+        : data;
+
+      setProfile(finalProfile);
       await loadFollowStats();
     } catch (error) {
       console.error('Error loading profile:', error);
