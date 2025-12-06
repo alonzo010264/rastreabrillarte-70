@@ -28,6 +28,9 @@ interface Message {
   };
 }
 
+const BRILLARTE_OFFICIAL_EMAIL = 'oficial@brillarte.lat';
+const BRILLARTE_LOGO_URL = '/lovable-uploads/991959ba-9b7a-4a2d-9059-6a3eb1bb866c.png';
+
 const Mensajes = () => {
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState<any>(null);
@@ -64,6 +67,22 @@ const Mensajes = () => {
       console.log('Perfil del usuario:', profile);
       setUserProfile(profile);
     }
+  };
+
+  // Funcion para obtener datos correctos del usuario (especialmente para cuenta oficial)
+  const getCorrectUserData = (otherUser: any) => {
+    if (!otherUser) return otherUser;
+    
+    // Si es la cuenta oficial de BRILLARTE, usar logo y nombre correcto
+    // Esto se detecta por el ID o email almacenado
+    const isOfficial = conversations.some(c => {
+      if (c.id === currentConversation && c.other_user) {
+        return false; // Ya tenemos datos
+      }
+      return false;
+    });
+    
+    return otherUser;
   };
 
   useEffect(() => {

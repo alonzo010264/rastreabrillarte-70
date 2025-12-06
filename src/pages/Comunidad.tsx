@@ -78,6 +78,10 @@ const Comunidad = () => {
     }
   };
 
+  // Avatar oficial de BRILLARTE
+  const BRILLARTE_OFFICIAL_EMAIL = 'oficial@brillarte.lat';
+  const BRILLARTE_LOGO_URL = '/lovable-uploads/991959ba-9b7a-4a2d-9059-6a3eb1bb866c.png';
+
   const loadPosts = async () => {
     try {
       const { data: postsData, error } = await supabase
@@ -96,6 +100,17 @@ const Comunidad = () => {
               .select('nombre_completo, avatar_url, verificado, correo')
               .eq('user_id', post.user_id)
               .single();
+
+            // Si es cuenta oficial, usar datos de BRILLARTE
+            const isOfficial = profileData?.correo === BRILLARTE_OFFICIAL_EMAIL;
+            const finalProfile = isOfficial 
+              ? { 
+                  nombre_completo: 'BRILLARTE', 
+                  avatar_url: BRILLARTE_LOGO_URL, 
+                  verificado: true, 
+                  correo: BRILLARTE_OFFICIAL_EMAIL 
+                }
+              : profileData || { nombre_completo: 'Usuario', avatar_url: null, verificado: false, correo: '' };
 
             // Get likes count
             const { count: likesCount } = await supabase
@@ -123,7 +138,7 @@ const Comunidad = () => {
 
             return {
               ...post,
-              profiles: profileData || { nombre_completo: 'Usuario', avatar_url: null, verificado: false, correo: '' },
+              profiles: finalProfile,
               likes_count: likesCount || 0,
               user_liked: !!userLike,
               respuestas_count: respuestasCount || 0
@@ -283,7 +298,17 @@ const Comunidad = () => {
               .select('nombre_completo, avatar_url, verificado, correo')
               .eq('user_id', resp.user_id)
               .single();
-            profileData = data;
+            
+            // Si es cuenta oficial, usar datos de BRILLARTE
+            const isOfficial = data?.correo === BRILLARTE_OFFICIAL_EMAIL;
+            profileData = isOfficial 
+              ? { 
+                  nombre_completo: 'BRILLARTE', 
+                  avatar_url: BRILLARTE_LOGO_URL, 
+                  verificado: true, 
+                  correo: BRILLARTE_OFFICIAL_EMAIL 
+                }
+              : data;
           }
 
           // Get likes count for response
@@ -306,7 +331,7 @@ const Comunidad = () => {
 
           return {
             ...resp,
-            profiles: profileData || { nombre_completo: resp.es_ia ? 'IA' : 'Usuario', avatar_url: null, verificado: false, correo: '' },
+            profiles: profileData || { nombre_completo: resp.es_ia ? 'Asistente IA' : 'Usuario', avatar_url: null, verificado: false, correo: '' },
             likes_count: likesCount || 0,
             user_liked: !!userLike
           };

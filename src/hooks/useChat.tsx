@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+const BRILLARTE_OFFICIAL_EMAIL = 'oficial@brillarte.lat';
+const BRILLARTE_LOGO_URL = '/lovable-uploads/991959ba-9b7a-4a2d-9059-6a3eb1bb866c.png';
+
 interface Message {
   id: string;
   conversation_id: string;
@@ -27,6 +30,7 @@ interface Conversation {
     nombre_completo: string;
     avatar_url: string | null;
     verificado: boolean;
+    isOfficial?: boolean;
   };
 }
 
@@ -65,7 +69,7 @@ export const useChat = (userId: string | null) => {
 
       if (conversationsError) throw conversationsError;
 
-      // Obtener información del otro usuario en cada conversación
+      // Obtener informacion del otro usuario en cada conversacion
       const conversationsWithUsers = await Promise.all(
         (conversationsData || []).map(async (conv) => {
           const { data: participants } = await supabase
@@ -77,15 +81,21 @@ export const useChat = (userId: string | null) => {
           if (participants && participants.length > 0) {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('nombre_completo, avatar_url, verificado')
+              .select('nombre_completo, avatar_url, verificado, correo')
               .eq('user_id', participants[0].user_id)
               .single();
 
+            // Si es cuenta oficial de BRILLARTE, usar datos especiales
+            const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL;
+            
             return {
               ...conv,
               other_user: {
                 id: participants[0].user_id,
-                ...profile
+                nombre_completo: isOfficial ? 'BRILLARTE' : profile?.nombre_completo,
+                avatar_url: isOfficial ? BRILLARTE_LOGO_URL : profile?.avatar_url,
+                verificado: isOfficial ? true : profile?.verificado,
+                isOfficial
               }
             };
           }
