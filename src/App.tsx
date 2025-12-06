@@ -42,6 +42,9 @@ import Mensajes from "./pages/Mensajes";
 import AdminTickets from "./pages/AdminTickets";
 import AdminVerificaciones from "./pages/AdminVerificaciones";
 import AdminContabilidad from "./pages/AdminContabilidad";
+import SolicitudVerificacion from "./pages/SolicitudVerificacion";
+import BannedAccount from "./pages/BannedAccount";
+import AdminCarritosAbandonados from "./pages/AdminCarritosAbandonados";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +93,10 @@ const App = () => (
           <Route path="/comunidad" element={<Comunidad />} />
           <Route path="/mensajes" element={<Mensajes />} />
           <Route path="/perfil-publico/:userId" element={<PerfilPublico />} />
+          <Route path="/solicitar-verificacion" element={<SolicitudVerificacion />} />
+          <Route path="/cuenta-suspendida" element={<BannedAccount />} />
+          <Route path="/admin/carritos-abandonados" element={<AdminCarritosAbandonados />} />
+          <Route path="*" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

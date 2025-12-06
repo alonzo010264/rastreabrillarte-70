@@ -97,6 +97,11 @@ export const AdminMenu = () => {
           Verificaciones y Agentes
         </DropdownMenuItem>
 
+        <DropdownMenuItem onClick={() => navigate('/admin/carritos-abandonados')}>
+          <Package className="mr-2 h-4 w-4" />
+          Carritos Abandonados
+        </DropdownMenuItem>
+
         <DropdownMenuItem onClick={() => navigate('/admin/cuentas')}>
           <Users className="mr-2 h-4 w-4" />
           Gestionar Cuentas
