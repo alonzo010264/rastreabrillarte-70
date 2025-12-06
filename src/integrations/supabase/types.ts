@@ -1266,6 +1266,54 @@ export type Database = {
         }
         Relationships: []
       }
+      solicitudes_verificacion: {
+        Row: {
+          admin_revisor: string | null
+          created_at: string
+          descripcion: string | null
+          estado: string
+          id: string
+          instagram: string | null
+          motivo: string
+          nombre_negocio: string | null
+          notas_admin: string | null
+          sitio_web: string | null
+          updated_at: string
+          user_id: string
+          whatsapp: string | null
+        }
+        Insert: {
+          admin_revisor?: string | null
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          instagram?: string | null
+          motivo: string
+          nombre_negocio?: string | null
+          notas_admin?: string | null
+          sitio_web?: string | null
+          updated_at?: string
+          user_id: string
+          whatsapp?: string | null
+        }
+        Update: {
+          admin_revisor?: string | null
+          created_at?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          instagram?: string | null
+          motivo?: string
+          nombre_negocio?: string | null
+          notas_admin?: string | null
+          sitio_web?: string | null
+          updated_at?: string
+          user_id?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       support_agents: {
         Row: {
           activo: boolean | null
