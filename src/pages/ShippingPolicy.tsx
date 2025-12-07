@@ -1,10 +1,8 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Truck, Diamond } from "lucide-react";
-
 const ShippingPolicy = () => {
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Navigation />
       
       {/* Decorative elements */}
@@ -33,7 +31,7 @@ const ShippingPolicy = () => {
             Puedes retirar tu pedido directamente en nuestra ubicación:
           </p>
           <ul>
-            <li><strong>Dirección:</strong> Cerro Alto, Barrio Las Mercedes, Calle Primera</li>
+            <li><strong>Dirección:</strong>Dirección: Santiago de los caballeros cerro alto</li>
             <li><strong>Proceso:</strong> Utiliza nuestro formulario de "Solicitar Retiro"</li>
             <li><strong>Tiempo:</strong> Te notificaremos cuándo esté listo para retirar</li>
             <li><strong>Requisitos:</strong> Código de pedido y identificación</li>
@@ -78,8 +76,6 @@ const ShippingPolicy = () => {
       </main>
       
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default ShippingPolicy;
