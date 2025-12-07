@@ -49,6 +49,10 @@ const BannedAccount = () => {
     navigate('/');
   };
 
+  const handleAppeal = () => {
+    navigate('/apelar-baneo');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
       <Card className="w-full max-w-md text-center">
@@ -98,6 +102,10 @@ const BannedAccount = () => {
           </div>
 
           <div className="space-y-3">
+            <Button className="w-full gap-2" onClick={handleAppeal}>
+              Apelar Suspension
+            </Button>
+            
             <Button variant="outline" className="w-full gap-2" asChild>
               <a href="mailto:soporte@brillarte.lat">
                 <Mail className="h-4 w-4" />
@@ -107,7 +115,7 @@ const BannedAccount = () => {
             
             <Button variant="ghost" className="w-full gap-2" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
-              Cerrar Sesión
+              Cerrar Sesion
             </Button>
           </div>
 

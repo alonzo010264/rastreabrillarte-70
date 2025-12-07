@@ -45,6 +45,8 @@ import AdminContabilidad from "./pages/AdminContabilidad";
 import SolicitudVerificacion from "./pages/SolicitudVerificacion";
 import BannedAccount from "./pages/BannedAccount";
 import AdminCarritosAbandonados from "./pages/AdminCarritosAbandonados";
+import AdminEnvios from "./pages/AdminEnvios";
+import ApelacionBaneo from "./pages/ApelacionBaneo";
 
 const queryClient = new QueryClient();
 
@@ -96,7 +98,9 @@ const App = () => (
           <Route path="/solicitar-verificacion" element={<SolicitudVerificacion />} />
           <Route path="/cuenta-suspendida" element={<BannedAccount />} />
           <Route path="/admin/carritos-abandonados" element={<AdminCarritosAbandonados />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="/admin/envios" element={<AdminEnvios />} />
+          <Route path="/apelar-baneo" element={<ApelacionBaneo />} />
+          <Route path="/cuenta" element={<Account />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

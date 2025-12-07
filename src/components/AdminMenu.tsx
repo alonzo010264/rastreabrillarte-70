@@ -112,6 +112,11 @@ export const AdminMenu = () => {
           Contabilidad
         </DropdownMenuItem>
 
+        <DropdownMenuItem onClick={() => navigate('/admin/envios')}>
+          <Package className="mr-2 h-4 w-4" />
+          Gestion de Envios
+        </DropdownMenuItem>
+
         <DropdownMenuSeparator />
 
         <DropdownMenuItem onClick={() => navigate('/perfil')}>
