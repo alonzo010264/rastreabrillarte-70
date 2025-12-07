@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      apelaciones_baneo: {
+        Row: {
+          admin_revisor: string | null
+          created_at: string | null
+          estado: string | null
+          id: string
+          notas_admin: string | null
+          razon_apelacion: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_revisor?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          notas_admin?: string | null
+          razon_apelacion: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_revisor?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          notas_admin?: string | null
+          razon_apelacion?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       cancelaciones_notificaciones: {
         Row: {
           activo: boolean | null
@@ -320,6 +353,33 @@ export type Database = {
         }
         Relationships: []
       }
+      empresas_envio: {
+        Row: {
+          activo: boolean | null
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          monto_minimo: number | null
+          nombre: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          monto_minimo?: number | null
+          nombre: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          monto_minimo?: number | null
+          nombre?: string
+        }
+        Relationships: []
+      }
       Estatus: {
         Row: {
           activo: boolean
@@ -613,6 +673,27 @@ export type Database = {
         }
         Relationships: []
       }
+      palabras_prohibidas: {
+        Row: {
+          categoria: string | null
+          created_at: string | null
+          id: string
+          palabra: string
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string | null
+          id?: string
+          palabra: string
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string | null
+          id?: string
+          palabra?: string
+        }
+        Relationships: []
+      }
       paquetes_digitados: {
         Row: {
           codigo_membresia: string
@@ -809,12 +890,15 @@ export type Database = {
           created_at: string | null
           descuento: number | null
           direccion_envio: string
+          empresa_envio_id: string | null
           estado: string
           factura_url: string | null
+          fecha_envio: string | null
           id: string
           items: Json
           subtotal: number
           total: number
+          tracking_envio: string | null
           updated_at: string | null
           user_id: string
         }
@@ -823,12 +907,15 @@ export type Database = {
           created_at?: string | null
           descuento?: number | null
           direccion_envio: string
+          empresa_envio_id?: string | null
           estado?: string
           factura_url?: string | null
+          fecha_envio?: string | null
           id?: string
           items: Json
           subtotal: number
           total: number
+          tracking_envio?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -837,16 +924,27 @@ export type Database = {
           created_at?: string | null
           descuento?: number | null
           direccion_envio?: string
+          empresa_envio_id?: string | null
           estado?: string
           factura_url?: string | null
+          fecha_envio?: string | null
           id?: string
           items?: Json
           subtotal?: number
           total?: number
+          tracking_envio?: string | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_online_empresa_envio_id_fkey"
+            columns: ["empresa_envio_id"]
+            isOneToOne: false
+            referencedRelation: "empresas_envio"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pedidos_registro: {
         Row: {
@@ -1524,36 +1622,42 @@ export type Database = {
         Row: {
           activo: boolean | null
           admin_id: string | null
+          automatico: boolean | null
           created_at: string | null
           duracion_horas: number | null
           duracion_tipo: string
           fecha_fin: string | null
           fecha_inicio: string | null
           id: string
+          palabra_detectada: string | null
           razon: string
           user_id: string
         }
         Insert: {
           activo?: boolean | null
           admin_id?: string | null
+          automatico?: boolean | null
           created_at?: string | null
           duracion_horas?: number | null
           duracion_tipo: string
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
+          palabra_detectada?: string | null
           razon: string
           user_id: string
         }
         Update: {
           activo?: boolean | null
           admin_id?: string | null
+          automatico?: boolean | null
           created_at?: string | null
           duracion_horas?: number | null
           duracion_tipo?: string
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
+          palabra_detectada?: string | null
           razon?: string
           user_id?: string
         }

@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff, User, Shield } from 'lucide-react';
 import { z } from 'zod';
+import { validateRegistration } from '@/utils/profanityFilter';
 
 const Auth = () => {
   const { toast } = useToast();
@@ -211,6 +212,18 @@ const Auth = () => {
         return;
       }
 
+      // Validar contenido inapropiado
+      const validation = validateRegistration(signupName, signupEmail);
+      if (!validation.isValid) {
+        toast({
+          title: 'Contenido inapropiado detectado',
+          description: validation.reason,
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: signupEmail,
         password: signupPassword,
@@ -224,6 +237,20 @@ const Auth = () => {
       });
 
       if (error) throw error;
+
+      // Si se detectó palabra inapropiada, banear automáticamente
+      if (data.user && !validation.isValid) {
+        await supabase.from('user_bans').insert({
+          user_id: data.user.id,
+          razon: validation.reason || 'Contenido inapropiado en registro',
+          duracion_tipo: 'permanente',
+          automatico: true,
+          palabra_detectada: validation.detectedWord
+        });
+        
+        navigate('/apelar-baneo');
+        return;
+      }
 
       toast({
         title: 'Registro exitoso',
