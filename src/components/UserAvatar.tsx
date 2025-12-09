@@ -152,11 +152,14 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
           <div className="flex items-center gap-1">
             <span className="text-sm font-medium">Brillarte</span>
             {showVerified && profile?.verificado && (
-              <img 
-                src={verificadoIcon} 
-                alt="Verificado" 
-                className={`${badgeSizeClasses[size]} object-contain`}
-              />
+              <div className="flex items-center gap-0.5 bg-blue-500/10 px-1.5 py-0.5 rounded-full">
+                <img 
+                  src={verificadoIcon} 
+                  alt="Verificado" 
+                  className="w-4 h-4 object-contain"
+                />
+                <span className="text-xs font-medium text-blue-500">Oficial</span>
+              </div>
             )}
           </div>
         )}
@@ -195,11 +198,14 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
           <div className="flex items-center gap-1">
             <span className="text-sm">{profile.nombre_completo}</span>
             {showVerified && profile?.verificado && (
-              <img 
-                src={verificadoIcon} 
-                alt="Verificado" 
-                className={`${badgeSizeClasses[size]} object-contain`}
-              />
+              <div className="flex items-center gap-0.5 bg-blue-500/10 px-1.5 py-0.5 rounded-full">
+                <img 
+                  src={verificadoIcon} 
+                  alt="Verificado" 
+                  className="w-4 h-4 object-contain"
+                />
+                <span className="text-xs font-medium text-blue-500">Oficial</span>
+              </div>
             )}
           </div>
         )}
