@@ -268,11 +268,14 @@ export default function PerfilPublico() {
                   <div className="flex items-center justify-center gap-2">
                     <h1 className="text-2xl font-bold">{profile.nombre_completo}</h1>
                     {profile.verificado && (
-                      <img 
-                        src={verificadoIcon} 
-                        alt="Verificado" 
-                        className="w-7 h-7"
-                      />
+                      <div className="flex items-center gap-1 bg-blue-500/10 px-2 py-0.5 rounded-full">
+                        <img 
+                          src={verificadoIcon} 
+                          alt="Verificado" 
+                          className="w-5 h-5"
+                        />
+                        <span className="text-sm font-medium text-blue-500">Oficial</span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -334,7 +337,7 @@ export default function PerfilPublico() {
               </div>
 
               {profile.verificado && (
-                <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
                   <div className="flex items-start gap-3">
                     <img 
                       src={verificadoIcon} 
@@ -342,11 +345,11 @@ export default function PerfilPublico() {
                       className="w-6 h-6 shrink-0 mt-0.5"
                     />
                     <div>
-                      <h3 className="font-semibold mb-1">Cuenta Verificada</h3>
+                      <h3 className="font-semibold mb-1 text-blue-600">Cuenta Oficial</h3>
                       <p className="text-sm text-muted-foreground">
                         {profile.correo === 'oficial@brillarte.lat' 
                           ? 'Esta es la cuenta oficial de BRILLARTE.'
-                          : 'Esta es una cuenta verificada de Brillarte.'}
+                          : 'Esta cuenta ha sido verificada por BRILLARTE como cuenta oficial.'}
                       </p>
                     </div>
                   </div>
