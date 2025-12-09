@@ -297,8 +297,11 @@ const AdminCuentas = () => {
                       <TableCell>{profile.correo}</TableCell>
                       <TableCell>${profile.saldo?.toFixed(2) || '0.00'}</TableCell>
                       <TableCell>
-                        <Badge variant={profile.verificado ? "default" : "secondary"}>
-                          {profile.verificado ? 'Verificado' : 'Sin verificar'}
+                        <Badge 
+                          variant={profile.verificado ? "default" : "secondary"}
+                          className={profile.verificado ? 'bg-blue-500 hover:bg-blue-600' : ''}
+                        >
+                          {profile.verificado ? 'Oficial' : 'Sin verificar'}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -323,12 +326,13 @@ const AdminCuentas = () => {
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="outline"
+                            variant={profile.verificado ? "default" : "outline"}
                             size="icon"
                             onClick={() => handleToggleVerification(profile)}
-                            title={profile.verificado ? "Quitar verificación" : "Verificar cuenta"}
+                            title={profile.verificado ? "Quitar verificación oficial" : "Dar verificación oficial (check azul)"}
+                            className={profile.verificado ? 'bg-blue-500 hover:bg-blue-600' : ''}
                           >
-                            <ShieldCheck className={`h-4 w-4 ${profile.verificado ? 'text-green-600' : 'text-gray-400'}`} />
+                            <ShieldCheck className={`h-4 w-4 ${profile.verificado ? 'text-white' : 'text-gray-400'}`} />
                           </Button>
                           <Button
                             variant="outline"
