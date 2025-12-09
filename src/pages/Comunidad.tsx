@@ -551,16 +551,16 @@ const Comunidad = () => {
                           {post.profiles?.nombre_completo}
                         </span>
                       </Link>
-                      {post.profiles?.verificado && (
+                      {(post.profiles?.verificado || isOfficialAccount) && (
                         <div className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
                           <img 
                             src={verificadoIcon} 
                             alt="Verificado" 
                             className="w-4 h-4"
                           />
-                          {isOfficialAccount && (
-                            <span className="text-xs font-medium text-primary">Oficial</span>
-                          )}
+                          <span className="text-xs font-medium text-primary">
+                            {isOfficialAccount ? 'Oficial' : 'Verificado'}
+                          </span>
                         </div>
                       )}
                       <span className="text-xs text-muted-foreground">
@@ -650,16 +650,16 @@ const Comunidad = () => {
                                   ) : (
                                     <span className="text-sm font-semibold">Asistente IA</span>
                                   )}
-                                  {resp.profiles?.verificado && !resp.es_ia && (
+                                  {(resp.profiles?.verificado || isRespOfficialAccount) && !resp.es_ia && (
                                     <div className="flex items-center gap-1 bg-primary/10 px-1.5 py-0.5 rounded-full">
                                       <img 
                                         src={verificadoIcon} 
                                         alt="Verificado" 
                                         className="w-3 h-3"
                                       />
-                                      {isRespOfficialAccount && (
-                                        <span className="text-xs font-medium text-primary">Oficial</span>
-                                      )}
+                                      <span className="text-xs font-medium text-primary">
+                                        {isRespOfficialAccount ? 'Oficial' : 'Verificado'}
+                                      </span>
                                     </div>
                                   )}
                                   <span className="text-xs text-muted-foreground">
