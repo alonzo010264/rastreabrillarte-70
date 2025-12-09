@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Send, Sparkles, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Send, Sparkles, Trash2, Mail } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import verificadoIcon from '@/assets/verificado-icon.png';
 import brillarteLogo from '@/assets/brillarte-logo-new.jpg';
 
@@ -50,6 +50,7 @@ interface Respuesta {
 
 const Comunidad = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState('');
   const [loading, setLoading] = useState(true);
@@ -604,6 +605,16 @@ const Comunidad = () => {
                         <MessageCircle className="w-4 h-4 mr-1" />
                         {post.respuestas_count || 0}
                       </Button>
+                      {user && user.id !== post.user_id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/mensajes?userId=${post.user_id}`)}
+                        >
+                          <Mail className="w-4 h-4 mr-1" />
+                          Mensaje
+                        </Button>
+                      )}
                     </div>
 
                     {/* Respuestas Section */}
