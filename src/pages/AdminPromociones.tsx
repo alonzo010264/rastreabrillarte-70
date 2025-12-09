@@ -40,8 +40,37 @@ export default function AdminPromociones() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadPromociones();
+    checkAdminAndLoad();
   }, []);
+
+  const checkAdminAndLoad = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/');
+      return;
+    }
+
+    const { data: roles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('verificado')
+      .eq('user_id', user.id)
+      .single();
+
+    const hasAdminRole = roles?.some(r => r.role === 'admin');
+    const isVerified = profileData?.verificado === true;
+
+    if (!hasAdminRole && !isVerified) {
+      navigate('/');
+      return;
+    }
+
+    await loadPromociones();
+  };
 
   const loadPromociones = async () => {
     try {

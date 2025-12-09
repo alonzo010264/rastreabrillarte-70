@@ -93,7 +93,16 @@ const AdminEnvios = () => {
         .eq('user_id', session.user.id)
         .maybeSingle();
 
-      if (!roleData || roleData.role !== 'admin') {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('verificado')
+        .eq('user_id', session.user.id)
+        .single();
+
+      const isAdmin = roleData?.role === 'admin';
+      const isVerified = profileData?.verificado === true;
+
+      if (!isAdmin && !isVerified) {
         navigate('/');
         return;
       }

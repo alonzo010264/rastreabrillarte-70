@@ -37,14 +37,23 @@ export default function AdminTarjetas() {
         return;
       }
 
-      // Verificar si es admin
+      // Verificar si es admin O cuenta verificada
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (roleData?.role !== 'admin') {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('verificado')
+        .eq('user_id', user.id)
+        .single();
+
+      const isAdmin = roleData?.role === 'admin';
+      const isVerified = profileData?.verificado === true;
+
+      if (!isAdmin && !isVerified) {
         toast.error('No tienes permisos de administrador');
         navigate('/');
         return;

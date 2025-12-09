@@ -53,20 +53,39 @@ const AdminTickets = () => {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    checkUser();
-    loadTickets();
+    checkUserAndLoad();
     loadAgents();
   }, []);
 
   useEffect(() => {
-    if (filterStatus !== "all") {
+    if (filterStatus !== "all" && user) {
       loadTickets();
     }
   }, [filterStatus]);
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
+  const checkUserAndLoad = async () => {
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) return;
+    
+    setUser(currentUser);
+
+    const { data: roles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', currentUser.id);
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('verificado')
+      .eq('user_id', currentUser.id)
+      .single();
+
+    const hasAdminRole = roles?.some(r => r.role === 'admin');
+    const isVerified = profileData?.verificado === true;
+
+    if (hasAdminRole || isVerified) {
+      await loadTickets();
+    }
   };
 
   const loadAgents = async () => {
