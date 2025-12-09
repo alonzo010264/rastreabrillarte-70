@@ -21,7 +21,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hola! Soy tu asistente de BRILLARTE. ¿En qué puedo ayudarte?"
+      content: "Hola, soy el asistente de BRILLARTE. Como puedo ayudarte hoy?"
     }
   ]);
   const [input, setInput] = useState("");
@@ -44,13 +44,12 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     if (!email.trim()) {
       toast({
         title: "Error",
-        description: "Por favor ingresa tu correo electrónico",
+        description: "Por favor ingresa tu correo electronico",
         variant: "destructive"
       });
       return;
     }
 
-    // Guardar información del cliente
     try {
       await supabase.from('chatbot_conversations').insert({
         email: email.trim(),
@@ -65,7 +64,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setMessages([
       {
         role: "assistant",
-        content: `Perfecto! ¿En qué puedo ayudarte?`
+        content: `Hola! En que puedo ayudarte?${orderCode ? ` Veo que tienes el pedido ${orderCode}.` : ''}`
       }
     ]);
   };
@@ -93,7 +92,6 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
 
       setMessages([...newMessages, { role: "assistant", content: data.response }]);
 
-      // Guardar conversación
       await supabase.from('chatbot_conversations').insert({
         email,
         order_code: orderCode || null,
@@ -103,16 +101,11 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       });
     } catch (error) {
       console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "Hubo un problema. Por favor intenta de nuevo.",
-        variant: "destructive"
-      });
       setMessages([
         ...newMessages,
         {
           role: "assistant",
-          content: "Disculpa, tuve un problema técnico. ¿Podrías intentar de nuevo?"
+          content: "Disculpa, tuve un problema. Intentalo de nuevo."
         }
       ]);
     } finally {
@@ -125,13 +118,12 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 h-[600px] flex flex-col shadow-2xl animate-scale-in z-50">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground p-4 rounded-t-lg flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img src={brillarteLogo} alt="Brillarte" className="w-10 h-10 rounded-full" />
+    <Card className="fixed bottom-20 right-4 w-80 sm:w-96 h-[500px] flex flex-col shadow-2xl animate-scale-in z-50 border-2 border-primary/20">
+      <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <img src={brillarteLogo} alt="Brillarte" className="w-8 h-8 rounded-full" />
           <div>
-            <h3 className="font-semibold">Brillarte</h3>
+            <h3 className="font-semibold text-sm">Agente BRILLARTE</h3>
             <p className="text-xs opacity-90">Asistente Virtual</p>
           </div>
         </div>
@@ -142,33 +134,32 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
             setIsOpen(false);
             onClose();
           }}
-          className="text-primary-foreground hover:bg-primary-foreground/20"
+          className="text-primary-foreground hover:bg-primary-foreground/20 h-8 w-8"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </Button>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/20">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-muted/30">
         {messages.map((msg, idx) => (
           <div
             key={idx}
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] p-3 rounded-lg ${
+              className={`max-w-[85%] p-2.5 rounded-lg text-sm ${
                 msg.role === "user"
                   ? "bg-primary text-primary-foreground"
-                  : "bg-background border"
+                  : "bg-background border shadow-sm"
               }`}
             >
-              <p className="text-sm">{msg.content}</p>
+              <p>{msg.content}</p>
             </div>
           </div>
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-background border p-3 rounded-lg">
+            <div className="bg-background border p-2.5 rounded-lg shadow-sm">
               <p className="text-sm animate-pulse">Escribiendo...</p>
             </div>
           </div>
@@ -176,39 +167,53 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       {needsInfo ? (
-        <div className="p-4 border-t space-y-3">
+        <div className="p-3 border-t space-y-2 bg-background">
           <Input
-            placeholder="Tu correo electrónico *"
+            placeholder="Tu correo electronico *"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
             required
+            className="h-9 text-sm"
           />
           <Input
-            placeholder="Código de pedido (opcional)"
+            placeholder="Codigo de pedido (opcional)"
             value={orderCode}
             onChange={(e) => setOrderCode(e.target.value)}
+            className="h-9 text-sm"
           />
-          <Button onClick={handleSubmitInfo} className="w-full">
-            Comenzar Chat
+          <Button onClick={handleSubmitInfo} className="w-full h-9 text-sm">
+            Iniciar Chat
           </Button>
         </div>
       ) : (
-        <div className="p-4 border-t flex gap-2">
+        <div className="p-3 border-t flex gap-2 bg-background">
           <Input
             placeholder="Escribe tu mensaje..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
             disabled={loading}
+            className="h-9 text-sm"
           />
-          <Button onClick={handleSendMessage} size="icon" disabled={loading}>
+          <Button onClick={handleSendMessage} size="icon" disabled={loading} className="h-9 w-9">
             <Send className="w-4 h-4" />
           </Button>
         </div>
       )}
     </Card>
+  );
+};
+
+export const ChatbotTrigger = ({ onClick }: { onClick: () => void }) => {
+  return (
+    <Button
+      onClick={onClick}
+      className="fixed bottom-4 right-4 rounded-full h-14 w-14 shadow-lg z-50"
+      size="icon"
+    >
+      <MessageCircle className="h-6 w-6" />
+    </Button>
   );
 };

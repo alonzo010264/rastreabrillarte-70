@@ -19,53 +19,63 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY no configurada');
     }
 
-    // Crear cliente de Supabase para consultar pedidos
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Buscar información del pedido si se proporcionó código
+    // Buscar informacion del pedido
     let orderInfo = "";
     if (orderCode) {
-      const { data: order } = await supabase
-        .from('pedidos_registro')
-        .select('*')
+      // Buscar en pedidos_online
+      const { data: pedidoOnline } = await supabase
+        .from('pedidos_online')
+        .select('*, empresas_envio(nombre)')
         .eq('codigo_pedido', orderCode)
         .single();
 
-      if (order) {
-        orderInfo = `\n\nInformación del pedido ${orderCode}:
-- Cliente: ${order.nombre_cliente}
-- Estado actual: ${order.estado_pedido}
-- Fecha de registro: ${order.fecha_registro}
-- Crédito disponible: RD$${order.credito || 0}`;
+      if (pedidoOnline) {
+        orderInfo = `
+PEDIDO ${orderCode}:
+- Estado: ${pedidoOnline.estado}
+- Total: $${pedidoOnline.total}
+- Direccion: ${pedidoOnline.direccion_envio}
+${pedidoOnline.tracking_envio ? `- Tracking: ${pedidoOnline.tracking_envio}` : ''}
+${pedidoOnline.empresas_envio ? `- Enviado por: ${pedidoOnline.empresas_envio.nombre}` : ''}`;
+      } else {
+        // Buscar en pedidos_registro
+        const { data: pedidoReg } = await supabase
+          .from('pedidos_registro')
+          .select('*')
+          .eq('codigo_pedido', orderCode)
+          .single();
+
+        if (pedidoReg) {
+          orderInfo = `
+PEDIDO ${orderCode}:
+- Cliente: ${pedidoReg.nombre_cliente}
+- Estado: ${pedidoReg.estado_pedido}
+- Credito: RD$${pedidoReg.credito || 0}`;
+        }
       }
     }
 
-    // Obtener información general de la web
-    const systemPrompt = `Eres un asistente de BRILLARTE. Responde de forma corta y directa, sin usar asteriscos ni formato markdown.
+    const systemPrompt = `Eres el asistente de BRILLARTE. Responde de forma corta y directa.
 
-INFORMACIÓN:
-- Productos: Pulseras, aretes, monederos y accesorios
-- Ubicación: Santiago, República Dominicana
+INFORMACION:
+- Productos: Pulseras, aretes, monederos artesanales
+- Ubicacion: Santiago, Republica Dominicana
 - Email: brillarte.oficial.ventas@gmail.com
 - WhatsApp: 849-425-2220
-- Horarios: Lun-Vie 9AM-6PM, Sáb 10AM-4PM
+- Horarios: Lun-Vie 9AM-6PM
 
-BRILLARTE PEDIDOS:
-- Compras online desde TEMU
-- Sin costo adicional en primera compra
-- Gestión aduanal completa
-- Entrega 24-48 horas
-- Almacenamiento en Miami
-
-Cliente: ${email}${orderInfo}
-
-REGLAS IMPORTANTES:
-- Respuestas cortas (máximo 2-3 líneas)
-- SIN usar asteriscos ni formato especial
+REGLAS:
+- Respuestas cortas (maximo 2-3 lineas)
+- NO usar emojis ni asteriscos
 - Si no sabes algo, diles que contacten al equipo
-- Sé amable pero conciso`;
+- Se amable pero conciso
+- NO des reembolsos, solo informa que un agente revisara
+
+Cliente: ${email}${orderInfo}`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -80,7 +90,7 @@ REGLAS IMPORTANTES:
           ...messages
         ],
         temperature: 0.7,
-        max_tokens: 150
+        max_tokens: 200
       }),
     });
 
@@ -102,7 +112,7 @@ REGLAS IMPORTANTES:
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Error desconocido',
-        response: 'Disculpa, tengo problemas técnicos. ¿Podrías contactarnos directamente por WhatsApp al 849-425-2220?' 
+        response: 'Disculpa, tengo problemas tecnicos. Contactanos por WhatsApp al 849-425-2220.' 
       }),
       { 
         status: 500,

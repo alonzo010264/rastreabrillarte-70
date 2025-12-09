@@ -47,6 +47,7 @@ import BannedAccount from "./pages/BannedAccount";
 import AdminCarritosAbandonados from "./pages/AdminCarritosAbandonados";
 import AdminEnvios from "./pages/AdminEnvios";
 import ApelacionBaneo from "./pages/ApelacionBaneo";
+import { ChatbotWrapper } from "./components/ChatbotWrapper";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,7 @@ const App = () => (
           <Route path="/cuenta" element={<Account />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ChatbotWrapper />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
