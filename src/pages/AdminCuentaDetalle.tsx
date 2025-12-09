@@ -114,9 +114,16 @@ const AdminCuentaDetalle = () => {
       .select('role')
       .eq('user_id', user.id);
 
-    const hasAdminRole = roles?.some(r => r.role === 'admin');
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('verificado')
+      .eq('user_id', user.id)
+      .single();
 
-    if (!hasAdminRole) {
+    const hasAdminRole = roles?.some(r => r.role === 'admin');
+    const isVerified = profileData?.verificado === true;
+
+    if (!hasAdminRole && !isVerified) {
       toast.error('No tienes permisos de administrador');
       navigate('/');
     }

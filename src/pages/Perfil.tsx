@@ -15,6 +15,7 @@ import { MiSaldo } from "@/components/MiSaldo";
 import { Upload, LogOut, User as UserIcon, Mail, Phone, MapPin, Package, DollarSign, Ticket } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import TicketSupport from "@/components/TicketSupport";
+import verificadoIcon from "@/assets/verificado-icon.png";
 
 export default function Perfil() {
   const navigate = useNavigate();
@@ -258,10 +259,42 @@ export default function Perfil() {
               {/* Avatar Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Foto de Perfil</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    Foto de Perfil
+                    {profile?.verificado && (
+                      <div className="flex items-center gap-1 bg-blue-500/10 px-2 py-0.5 rounded-full">
+                        <img src={verificadoIcon} alt="Verificado" className="w-5 h-5" />
+                        <span className="text-sm font-medium text-blue-500">Cuenta Oficial</span>
+                      </div>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4">
-                  <UserAvatar size="lg" />
+                  <div className="relative">
+                    <UserAvatar size="lg" />
+                    {profile?.verificado && (
+                      <img 
+                        src={verificadoIcon} 
+                        alt="Verificado" 
+                        className="absolute -bottom-1 -right-1 w-8 h-8"
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Mostrar insignia de cuenta oficial */}
+                  {profile?.verificado && (
+                    <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20 w-full">
+                      <div className="flex items-center gap-3">
+                        <img src={verificadoIcon} alt="Verificado" className="w-8 h-8" />
+                        <div>
+                          <h3 className="font-semibold text-blue-600">Cuenta Oficial Verificada</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Tu cuenta ha sido verificada por BRILLARTE
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="text-center">
                     <Label htmlFor="avatar-upload" className="cursor-pointer">

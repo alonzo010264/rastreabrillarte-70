@@ -112,27 +112,26 @@ const AdminDashboard = () => {
         return;
       }
 
-      const { data: roleData, error: roleError } = await supabase
+      // Verificar si es admin O cuenta verificada
+      const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', session.user.id)
         .maybeSingle();
 
-      if (roleError) {
-        console.error('Error fetching role:', roleError);
-        toast({
-          title: "Error",
-          description: "No se pudo verificar permisos",
-          variant: "destructive"
-        });
-        navigate('/');
-        return;
-      }
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('verificado')
+        .eq('user_id', session.user.id)
+        .single();
 
-      if (!roleData || roleData.role !== 'admin') {
+      const isAdmin = roleData?.role === 'admin';
+      const isVerified = profileData?.verificado === true;
+
+      if (!isAdmin && !isVerified) {
         toast({
           title: "Acceso denegado",
-          description: "No tienes permisos de administrador",
+          description: "Necesitas ser cuenta verificada o administrador",
           variant: "destructive"
         });
         navigate('/');

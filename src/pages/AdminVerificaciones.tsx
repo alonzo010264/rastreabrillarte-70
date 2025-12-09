@@ -49,10 +49,33 @@ const AdminVerificaciones = () => {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadProfiles();
-    loadTicketAgents();
-    loadSolicitudes();
+    checkAdminAndLoad();
   }, []);
+
+  const checkAdminAndLoad = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: roles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('verificado')
+      .eq('user_id', user.id)
+      .single();
+
+    const hasAdminRole = roles?.some(r => r.role === 'admin');
+    const isVerified = profileData?.verificado === true;
+
+    if (hasAdminRole || isVerified) {
+      loadProfiles();
+      loadTicketAgents();
+      loadSolicitudes();
+    }
+  };
 
   const loadProfiles = async () => {
     const { data } = await supabase
