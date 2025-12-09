@@ -174,16 +174,26 @@ export const MisPedidos = () => {
             )}
 
             <div>
-              <p className="text-sm font-medium mb-2">Productos:</p>
-              <div className="space-y-2">
+              <p className="text-sm font-medium mb-3">Productos:</p>
+              <div className="space-y-3">
                 {pedido.items.map((item: any, idx: number) => (
-                  <div key={idx} className="flex justify-between text-sm">
-                    <span>
-                      {item.cantidad}x {item.nombre}
-                      {item.color && ` (${item.color})`}
-                      {item.talla && ` - Talla ${item.talla}`}
-                    </span>
-                    <span className="font-medium">${(item.precio * item.cantidad).toFixed(2)}</span>
+                  <div key={idx} className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg">
+                    {item.imagen && (
+                      <img 
+                        src={item.imagen} 
+                        alt={item.nombre}
+                        className="w-16 h-16 object-cover rounded-md border"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{item.nombre}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>Cantidad: {item.cantidad}</span>
+                        {item.color && <span>• {item.color}</span>}
+                        {item.talla && <span>• Talla {item.talla}</span>}
+                      </div>
+                    </div>
+                    <span className="font-semibold text-sm">${(item.precio * item.cantidad).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
