@@ -3,12 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { ShoppingBag, ChevronLeft, ChevronRight, Heart, ShoppingCart, Star, Rocket, Percent } from "lucide-react";
+import { ShoppingBag, ChevronLeft, ChevronRight, Heart, ShoppingCart, Star, Rocket, Percent, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FlyingItem } from "@/components/FlyingItem";
 import { OfferCountdown } from "@/components/OfferCountdown";
 import { createPortal } from "react-dom";
+
+interface EmpresaEnvio {
+  id: string;
+  nombre: string;
+  logo_url: string | null;
+}
 
 interface Product {
   id: string;
@@ -34,6 +40,7 @@ interface Product {
 
 export const ProductShowcase = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [empresasEnvio, setEmpresasEnvio] = useState<EmpresaEnvio[]>([]);
   const { ref, isVisible } = useScrollAnimation();
   const [currentImageIndex, setCurrentImageIndex] = useState<{[key: string]: number}>({});
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -47,6 +54,7 @@ export const ProductShowcase = () => {
 
   useEffect(() => {
     checkUser();
+    loadEmpresasEnvio();
   }, []);
 
   const checkUser = async () => {
@@ -56,6 +64,17 @@ export const ProductShowcase = () => {
       loadFavorites(user.id);
     }
     fetchProducts();
+  };
+
+  const loadEmpresasEnvio = async () => {
+    const { data, error } = await supabase
+      .from('empresas_envio')
+      .select('id, nombre, logo_url')
+      .eq('activo', true);
+    
+    if (!error && data) {
+      setEmpresasEnvio(data);
+    }
   };
 
   const loadFavorites = async (userId: string) => {
@@ -186,7 +205,7 @@ export const ProductShowcase = () => {
 
   const toggleFavorite = async (productId: string, event: React.MouseEvent<HTMLButtonElement>) => {
     if (!user) {
-      toast.error('Debes iniciar sesión para guardar favoritos');
+      toast.error('Debes iniciar sesion para guardar favoritos');
       return;
     }
 
@@ -228,7 +247,7 @@ export const ProductShowcase = () => {
 
   const addToCart = async (product: Product, event: React.MouseEvent<HTMLButtonElement>) => {
     if (!user) {
-      toast.error('Debes iniciar sesión para agregar al carrito');
+      toast.error('Debes iniciar sesion para agregar al carrito');
       return;
     }
 
@@ -300,9 +319,33 @@ export const ProductShowcase = () => {
           <ShoppingBag className="w-16 h-16 mx-auto mb-4" />
           <h2 className="text-4xl font-bold mb-4">Nuestros Productos</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Descubre nuestra colección de accesorios únicos hechos a mano
+            Descubre nuestra coleccion de accesorios unicos hechos a mano
           </p>
         </div>
+
+        {/* Empresas de envio disponibles */}
+        {empresasEnvio.length > 0 && (
+          <div className="mb-8 p-4 bg-primary/5 rounded-lg border border-primary/20">
+            <div className="flex items-center gap-2 mb-3">
+              <Truck className="w-5 h-5 text-primary" />
+              <span className="font-medium">Enviamos con:</span>
+            </div>
+            <div className="flex flex-wrap gap-4 items-center">
+              {empresasEnvio.map((empresa) => (
+                <div key={empresa.id} className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg shadow-sm">
+                  {empresa.logo_url && (
+                    <img 
+                      src={empresa.logo_url} 
+                      alt={empresa.nombre} 
+                      className="h-6 w-auto object-contain"
+                    />
+                  )}
+                  <span className="text-sm font-medium">{empresa.nombre}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((product, index) => (
@@ -400,7 +443,7 @@ export const ProductShowcase = () => {
                   {product.disponible === false ? (
                     <Badge variant="secondary" className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
                       <Rocket className="w-3 h-3 mr-1" />
-                      Próximamente
+                      Proximamente
                     </Badge>
                   ) : product.stock === 0 ? (
                     <Badge variant="destructive">
@@ -408,7 +451,7 @@ export const ProductShowcase = () => {
                     </Badge>
                   ) : null}
 
-                  {/* Cronómetro de oferta */}
+                  {/* Cronometro de oferta */}
                   {isOfferActive(product) && product.oferta_fin && (
                     <OfferCountdown 
                       endDate={product.oferta_fin} 
@@ -450,6 +493,26 @@ export const ProductShowcase = () => {
                     </div>
                   )}
 
+                  {/* Empresas de envio en el producto */}
+                  {empresasEnvio.length > 0 && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Truck className="w-3 h-3" />
+                      <span>Envio disponible</span>
+                      <div className="flex gap-1">
+                        {empresasEnvio.slice(0, 2).map((empresa) => (
+                          empresa.logo_url && (
+                            <img 
+                              key={empresa.id}
+                              src={empresa.logo_url} 
+                              alt={empresa.nombre} 
+                              className="h-4 w-auto object-contain"
+                            />
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-2">
                     <Button
                       onClick={(e) => toggleFavorite(product.id, e)}
@@ -467,7 +530,7 @@ export const ProductShowcase = () => {
                       className="flex-1 min-h-[44px]"
                     >
                       <ShoppingCart className="w-4 h-4 mr-1" />
-                      {product.disponible === false ? 'Próximamente' : 'Agregar'}
+                      {product.disponible === false ? 'Proximamente' : 'Agregar'}
                     </Button>
                   </div>
                 </div>

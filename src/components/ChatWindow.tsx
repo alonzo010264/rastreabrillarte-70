@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Image as ImageIcon, Gift, Tag, X, Shield } from 'lucide-react';
+import { Send, Image as ImageIcon, Gift, Tag, Shield, Ticket, Package } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import verificadoIcon from '@/assets/verificado-icon.png';
@@ -19,7 +20,7 @@ interface Message {
   sender_id: string;
   content: string | null;
   image_url: string | null;
-  tipo: 'text' | 'image' | 'credito' | 'cupon';
+  tipo: string;
   metadata: any;
   created_at: string;
   profiles?: {
@@ -27,6 +28,14 @@ interface Message {
     avatar_url: string | null;
     verificado: boolean;
   };
+}
+
+interface Pedido {
+  id: string;
+  codigo_pedido: string;
+  total: number;
+  estado: string;
+  items: any[];
 }
 
 interface ChatWindowProps {
@@ -38,7 +47,7 @@ interface ChatWindowProps {
     avatar_url: string | null;
     verificado: boolean;
   };
-  onSendMessage: (content: string | null, imageUrl: string | null, tipo: 'text' | 'image' | 'credito' | 'cupon', metadata?: any) => void;
+  onSendMessage: (content: string | null, imageUrl: string | null, tipo: string, metadata?: any) => void;
   onUploadImage: (file: File) => Promise<string | null>;
   isOfficialAccount: boolean;
 }
@@ -56,10 +65,15 @@ export const ChatWindow = ({
   const [showCreditDialog, setShowCreditDialog] = useState(false);
   const [showCuponDialog, setShowCuponDialog] = useState(false);
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
+  const [showTicketDialog, setShowTicketDialog] = useState(false);
+  const [showPedidosDialog, setShowPedidosDialog] = useState(false);
   const [creditAmount, setCreditAmount] = useState('');
   const [creditReason, setCreditReason] = useState('');
   const [cuponCode, setCuponCode] = useState('');
   const [cuponDescription, setCuponDescription] = useState('');
+  const [ticketSubject, setTicketSubject] = useState('');
+  const [ticketDescription, setTicketDescription] = useState('');
+  const [userPedidos, setUserPedidos] = useState<Pedido[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -69,6 +83,29 @@ export const ChatWindow = ({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Cargar pedidos del usuario si no es cuenta oficial
+  useEffect(() => {
+    if (!isOfficialAccount) {
+      loadUserPedidos();
+    }
+  }, [isOfficialAccount, currentUserId]);
+
+  const loadUserPedidos = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pedidos_online')
+        .select('id, codigo_pedido, total, estado, items')
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setUserPedidos((data as Pedido[]) || []);
+    } catch (error) {
+      console.error('Error loading pedidos:', error);
+    }
+  };
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
@@ -96,32 +133,30 @@ export const ChatWindow = ({
     if (isNaN(amount) || amount <= 0) {
       toast({
         title: 'Error',
-        description: 'Ingresa un monto válido',
+        description: 'Ingresa un monto valido',
         variant: 'destructive'
       });
       return;
     }
 
     try {
-      // Actualizar saldo del usuario
       await supabase.rpc('update_user_balance', {
         p_user_id: otherUser.id,
         p_monto: amount,
         p_tipo: 'credito',
-        p_concepto: creditReason || 'Crédito enviado por BRILLARTE',
+        p_concepto: creditReason || 'Credito enviado por BRILLARTE',
         p_admin_id: currentUserId
       });
 
-      // Enviar mensaje en el chat
       onSendMessage(
-        `💰 Crédito enviado: $${amount}`,
+        `Credito enviado: $${amount}\nRazon: ${creditReason || 'Cortesia BRILLARTE'}`,
         null,
         'credito',
         { amount, reason: creditReason }
       );
 
       toast({
-        title: 'Crédito enviado',
+        title: 'Credito enviado',
         description: `Se enviaron $${amount} a ${otherUser.nombre_completo}`
       });
 
@@ -132,7 +167,7 @@ export const ChatWindow = ({
       console.error('Error sending credit:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo enviar el crédito',
+        description: 'No se pudo enviar el credito',
         variant: 'destructive'
       });
     }
@@ -142,27 +177,84 @@ export const ChatWindow = ({
     if (!cuponCode.trim()) {
       toast({
         title: 'Error',
-        description: 'Ingresa un código de cupón',
+        description: 'Ingresa un codigo de cupon',
         variant: 'destructive'
       });
       return;
     }
 
     onSendMessage(
-      `🎁 Cupón: ${cuponCode}\n${cuponDescription}`,
+      `Cupon exclusivo: ${cuponCode}\n${cuponDescription}`,
       null,
       'cupon',
       { code: cuponCode, description: cuponDescription }
     );
 
     toast({
-      title: 'Cupón enviado',
-      description: `Se envió el cupón ${cuponCode}`
+      title: 'Cupon enviado',
+      description: `Se envio el cupon ${cuponCode}`
     });
 
     setCuponCode('');
     setCuponDescription('');
     setShowCuponDialog(false);
+  };
+
+  const handleCreateTicket = async () => {
+    if (!ticketSubject.trim() || !ticketDescription.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Completa todos los campos del ticket',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      const { data: ticketData, error } = await supabase
+        .from('tickets_ayuda')
+        .insert({
+          user_id: otherUser.id,
+          asunto: ticketSubject,
+          descripcion: ticketDescription,
+          estado: 'abierto',
+          prioridad: 'alta'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      onSendMessage(
+        `Se ha creado un ticket de soporte:\nAsunto: ${ticketSubject}\nDescripcion: ${ticketDescription}\n\nNumero de ticket: ${ticketData.id.slice(0, 8).toUpperCase()}`,
+        null,
+        'text'
+      );
+
+      // Llamar a la IA para procesar el ticket
+      await supabase.functions.invoke('ticket-ai-response', {
+        body: { 
+          ticketId: ticketData.id,
+          userId: otherUser.id
+        }
+      });
+
+      toast({
+        title: 'Ticket creado',
+        description: 'Se ha creado el ticket de soporte'
+      });
+
+      setTicketSubject('');
+      setTicketDescription('');
+      setShowTicketDialog(false);
+    } catch (error: any) {
+      console.error('Error creating ticket:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo crear el ticket',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleVerifyUser = async () => {
@@ -174,12 +266,10 @@ export const ChatWindow = ({
 
       toast({
         title: 'Usuario verificado',
-        description: `${otherUser.nombre_completo} ahora tiene la insignia de verificación`
+        description: `${otherUser.nombre_completo} ahora tiene la insignia de verificacion`
       });
 
       setShowVerifyDialog(false);
-      
-      // Reload page to show updated verification status
       window.location.reload();
     } catch (error: any) {
       console.error('Error verifying user:', error);
@@ -189,6 +279,25 @@ export const ChatWindow = ({
         variant: 'destructive'
       });
     }
+  };
+
+  const handleSendPedido = (pedido: Pedido) => {
+    const itemsList = pedido.items.map((item: any) => 
+      `- ${item.cantidad}x ${item.nombre} ($${(item.precio * item.cantidad).toFixed(2)})`
+    ).join('\n');
+
+    onSendMessage(
+      `Mi Pedido: ${pedido.codigo_pedido}\nEstado: ${pedido.estado}\nTotal: $${pedido.total.toFixed(2)}\n\nProductos:\n${itemsList}`,
+      null,
+      'pedido',
+      { pedidoId: pedido.id, codigoPedido: pedido.codigo_pedido }
+    );
+
+    setShowPedidosDialog(false);
+    toast({
+      title: 'Pedido compartido',
+      description: 'Se ha enviado la informacion de tu pedido'
+    });
   };
 
   return (
@@ -205,7 +314,7 @@ export const ChatWindow = ({
             {otherUser.verificado && (
               <div className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
                 <img src={verificadoIcon} alt="Verificado" className="w-4 h-4" />
-                <span className="text-xs font-medium text-primary">Cuenta verificada</span>
+                <span className="text-xs font-medium text-primary">Verificado</span>
               </div>
             )}
           </div>
@@ -227,6 +336,8 @@ export const ChatWindow = ({
         <div className="space-y-4">
           {messages.map((message) => {
             const isOwn = message.sender_id === currentUserId;
+            const isSpecialMessage = message.tipo === 'credito' || message.tipo === 'cupon' || message.tipo === 'pedido';
+            
             return (
               <div
                 key={message.id}
@@ -244,10 +355,28 @@ export const ChatWindow = ({
                       isOwn
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
-                    } ${message.tipo === 'credito' ? 'border-2 border-green-500' : ''} ${
-                      message.tipo === 'cupon' ? 'border-2 border-blue-500' : ''
-                    }`}
+                    } ${message.tipo === 'credito' ? 'border-2 border-green-500 bg-green-50 dark:bg-green-950' : ''} ${
+                      message.tipo === 'cupon' ? 'border-2 border-blue-500 bg-blue-50 dark:bg-blue-950' : ''
+                    } ${message.tipo === 'pedido' ? 'border-2 border-amber-500 bg-amber-50 dark:bg-amber-950' : ''}`}
                   >
+                    {message.tipo === 'credito' && (
+                      <div className="flex items-center gap-1 mb-1 text-green-600">
+                        <Gift className="w-4 h-4" />
+                        <span className="text-xs font-semibold">Credito</span>
+                      </div>
+                    )}
+                    {message.tipo === 'cupon' && (
+                      <div className="flex items-center gap-1 mb-1 text-blue-600">
+                        <Tag className="w-4 h-4" />
+                        <span className="text-xs font-semibold">Cupon</span>
+                      </div>
+                    )}
+                    {message.tipo === 'pedido' && (
+                      <div className="flex items-center gap-1 mb-1 text-amber-600">
+                        <Package className="w-4 h-4" />
+                        <span className="text-xs font-semibold">Pedido</span>
+                      </div>
+                    )}
                     {message.image_url && (
                       <img
                         src={message.image_url}
@@ -256,7 +385,9 @@ export const ChatWindow = ({
                       />
                     )}
                     {message.content && (
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <p className={`text-sm whitespace-pre-wrap ${isSpecialMessage && !isOwn ? 'text-foreground' : ''}`}>
+                        {message.content}
+                      </p>
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground mt-1">
@@ -274,7 +405,7 @@ export const ChatWindow = ({
 
       {/* Input */}
       <div className="p-4 border-t">
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap">
           <input
             ref={fileInputRef}
             type="file"
@@ -291,17 +422,51 @@ export const ChatWindow = ({
             <ImageIcon className="w-4 h-4" />
           </Button>
 
+          {/* Botones para usuarios normales - enviar pedidos */}
+          {!isOfficialAccount && userPedidos.length > 0 && (
+            <Dialog open={showPedidosDialog} onOpenChange={setShowPedidosDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon" title="Compartir pedido">
+                  <Package className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Compartir Pedido</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {userPedidos.map((pedido) => (
+                    <div
+                      key={pedido.id}
+                      className="p-3 border rounded-lg cursor-pointer hover:bg-muted transition"
+                      onClick={() => handleSendPedido(pedido)}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{pedido.codigo_pedido}</span>
+                        <span className="text-sm text-muted-foreground">{pedido.estado}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Total: ${pedido.total.toFixed(2)} - {pedido.items.length} productos
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {/* Botones para cuenta oficial */}
           {isOfficialAccount && (
             <>
               <Dialog open={showCreditDialog} onOpenChange={setShowCreditDialog}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" title="Enviar credito">
                     <Gift className="w-4 h-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Enviar Crédito</DialogTitle>
+                    <DialogTitle>Enviar Credito</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
@@ -314,7 +479,7 @@ export const ChatWindow = ({
                       />
                     </div>
                     <div>
-                      <Label>Razón (opcional)</Label>
+                      <Label>Razon (opcional)</Label>
                       <Input
                         value={creditReason}
                         onChange={(e) => setCreditReason(e.target.value)}
@@ -322,7 +487,7 @@ export const ChatWindow = ({
                       />
                     </div>
                     <Button onClick={handleSendCredit} className="w-full">
-                      Enviar Crédito
+                      Enviar Credito
                     </Button>
                   </div>
                 </DialogContent>
@@ -330,17 +495,17 @@ export const ChatWindow = ({
 
               <Dialog open={showCuponDialog} onOpenChange={setShowCuponDialog}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" title="Enviar cupon">
                     <Tag className="w-4 h-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Enviar Cupón</DialogTitle>
+                    <DialogTitle>Enviar Cupon</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label>Código del Cupón</Label>
+                      <Label>Codigo del Cupon</Label>
                       <Input
                         value={cuponCode}
                         onChange={(e) => setCuponCode(e.target.value)}
@@ -348,15 +513,50 @@ export const ChatWindow = ({
                       />
                     </div>
                     <div>
-                      <Label>Descripción</Label>
+                      <Label>Descripcion</Label>
                       <Input
                         value={cuponDescription}
                         onChange={(e) => setCuponDescription(e.target.value)}
-                        placeholder="Ej: 20% de descuento en tu próxima compra"
+                        placeholder="Ej: 20% de descuento en tu proxima compra"
                       />
                     </div>
                     <Button onClick={handleSendCupon} className="w-full">
-                      Enviar Cupón
+                      Enviar Cupon
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={showTicketDialog} onOpenChange={setShowTicketDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="icon" title="Crear ticket">
+                    <Ticket className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Crear Ticket de Soporte</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Asunto</Label>
+                      <Input
+                        value={ticketSubject}
+                        onChange={(e) => setTicketSubject(e.target.value)}
+                        placeholder="Ej: Problema con pedido"
+                      />
+                    </div>
+                    <div>
+                      <Label>Descripcion</Label>
+                      <Textarea
+                        value={ticketDescription}
+                        onChange={(e) => setTicketDescription(e.target.value)}
+                        placeholder="Describe el problema en detalle..."
+                        rows={4}
+                      />
+                    </div>
+                    <Button onClick={handleCreateTicket} className="w-full">
+                      Crear Ticket
                     </Button>
                   </div>
                 </DialogContent>
@@ -369,10 +569,10 @@ export const ChatWindow = ({
                   </DialogHeader>
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      ¿Deseas otorgar la insignia de verificación a {otherUser.nombre_completo}?
+                      Deseas otorgar la insignia de verificacion a {otherUser.nombre_completo}?
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      El usuario tendrá la insignia "Cuenta verificada" en su perfil y publicaciones.
+                      El usuario tendra la insignia "Cuenta verificada" en su perfil y publicaciones.
                     </p>
                     <Button onClick={handleVerifyUser} className="w-full">
                       <Shield className="w-4 h-4 mr-2" />
