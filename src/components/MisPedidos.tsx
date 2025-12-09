@@ -3,9 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, FileText, Loader2 } from "lucide-react";
+import { Package, FileText, Loader2, Truck } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+
+interface EmpresaEnvio {
+  id: string;
+  nombre: string;
+  logo_url: string | null;
+}
 
 interface Pedido {
   id: string;
@@ -18,6 +24,10 @@ interface Pedido {
   items: any[];
   factura_url?: string;
   created_at: string;
+  empresa_envio_id?: string;
+  tracking_envio?: string;
+  fecha_envio?: string;
+  empresas_envio?: EmpresaEnvio;
 }
 
 export const MisPedidos = () => {
@@ -55,7 +65,10 @@ export const MisPedidos = () => {
 
       const { data, error } = await supabase
         .from('pedidos_online')
-        .select('*')
+        .select(`
+          *,
+          empresas_envio(id, nombre, logo_url)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -68,7 +81,7 @@ export const MisPedidos = () => {
     }
   };
 
-  const getEstadoBadge = (estado: string) => {
+  const getEstadoBadge = (estado: string, empresaEnvio?: EmpresaEnvio) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       'Recibido': 'default',
       'En Proceso': 'secondary',
@@ -76,6 +89,26 @@ export const MisPedidos = () => {
       'Entregado': 'default',
       'Cancelado': 'destructive'
     };
+
+    // Si el pedido tiene empresa de envío y está en un estado de envío
+    if (empresaEnvio && (estado === 'Enviado' || estado.includes('Enviado con'))) {
+      return (
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Truck className="w-3 h-3" />
+            Enviado con {empresaEnvio.nombre}
+          </Badge>
+          {empresaEnvio.logo_url && (
+            <img 
+              src={empresaEnvio.logo_url} 
+              alt={empresaEnvio.nombre} 
+              className="h-6 w-auto object-contain"
+            />
+          )}
+        </div>
+      );
+    }
+    
     return <Badge variant={variants[estado] || 'default'}>{estado}</Badge>;
   };
 
@@ -103,17 +136,43 @@ export const MisPedidos = () => {
       {pedidos.map((pedido) => (
         <Card key={pedido.id}>
           <CardHeader>
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start flex-wrap gap-2">
               <div>
                 <CardTitle className="text-lg">Pedido {pedido.codigo_pedido}</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
                   {format(new Date(pedido.created_at), "d 'de' MMMM, yyyy", { locale: es })}
                 </p>
               </div>
-              {getEstadoBadge(pedido.estado)}
+              {getEstadoBadge(pedido.estado, pedido.empresas_envio)}
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Info de envío si está disponible */}
+            {pedido.empresas_envio && pedido.tracking_envio && (
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  {pedido.empresas_envio.logo_url && (
+                    <img 
+                      src={pedido.empresas_envio.logo_url} 
+                      alt={pedido.empresas_envio.nombre} 
+                      className="h-8 w-auto object-contain"
+                    />
+                  )}
+                  <div>
+                    <p className="font-medium text-sm">Enviado con {pedido.empresas_envio.nombre}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Tracking: {pedido.tracking_envio}
+                    </p>
+                  </div>
+                </div>
+                {pedido.fecha_envio && (
+                  <p className="text-xs text-muted-foreground">
+                    Fecha de envío: {format(new Date(pedido.fecha_envio), "d 'de' MMMM, yyyy", { locale: es })}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div>
               <p className="text-sm font-medium mb-2">Productos:</p>
               <div className="space-y-2">

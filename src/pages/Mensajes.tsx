@@ -196,7 +196,7 @@ const Mensajes = () => {
                   currentUserId={user.id}
                   otherUser={currentConversationData.other_user}
                   onSendMessage={(content, imageUrl, tipo, metadata) => {
-                    sendMessage(currentConversation, content, imageUrl, tipo, metadata);
+                    sendMessage(currentConversation, content, imageUrl, tipo as 'text' | 'image' | 'credito' | 'cupon', metadata);
                   }}
                   onUploadImage={uploadImage}
                   isOfficialAccount={isOfficialAccount}
