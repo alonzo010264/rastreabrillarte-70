@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 import verificadoIcon from '@/assets/verificado-icon.png';
+import brillarteLogo from '@/assets/brillarte-logo-new.jpg';
 
 interface Post {
   id: string;
@@ -78,9 +79,13 @@ const Comunidad = () => {
     }
   };
 
-  // Avatar oficial de BRILLARTE
+  // Avatar oficial de BRILLARTE - detectar por correo o rol admin
   const BRILLARTE_OFFICIAL_EMAIL = 'oficial@brillarte.lat';
-  const BRILLARTE_LOGO_URL = '/lovable-uploads/991959ba-9b7a-4a2d-9059-6a3eb1bb866c.png';
+  const BRILLARTE_ADMIN_EMAILS = ['oficial@brillarte.lat', 'admin@brillarte.lat', 'brillarte@gmail.com'];
+
+  const isOfficialBrillarteAccount = (email: string) => {
+    return BRILLARTE_ADMIN_EMAILS.includes(email?.toLowerCase()) || email?.endsWith('@brillarte.lat');
+  };
 
   const loadPosts = async () => {
     try {
@@ -101,16 +106,25 @@ const Comunidad = () => {
               .eq('user_id', post.user_id)
               .single();
 
-            // Si es cuenta oficial, usar datos de BRILLARTE
-            const isOfficial = profileData?.correo === BRILLARTE_OFFICIAL_EMAIL;
-            const finalProfile = isOfficial 
-              ? { 
-                  nombre_completo: 'BRILLARTE', 
-                  avatar_url: BRILLARTE_LOGO_URL, 
-                  verificado: true, 
-                  correo: BRILLARTE_OFFICIAL_EMAIL 
-                }
-              : profileData || { nombre_completo: 'Usuario', avatar_url: null, verificado: false, correo: '' };
+            // Si es cuenta oficial, usar datos de BRILLARTE con logo importado
+            const isOfficial = isOfficialBrillarteAccount(profileData?.correo || '');
+            let finalProfile;
+            if (isOfficial) {
+              finalProfile = { 
+                nombre_completo: 'BRILLARTE', 
+                avatar_url: brillarteLogo, 
+                verificado: true, 
+                correo: profileData?.correo || BRILLARTE_OFFICIAL_EMAIL,
+                isOfficial: true
+              };
+            } else if (profileData) {
+              finalProfile = { 
+                ...profileData, 
+                isOfficial: false 
+              };
+            } else {
+              finalProfile = { nombre_completo: 'Usuario', avatar_url: null, verificado: false, correo: '', isOfficial: false };
+            }
 
             // Get likes count
             const { count: likesCount } = await supabase
@@ -299,16 +313,17 @@ const Comunidad = () => {
               .eq('user_id', resp.user_id)
               .single();
             
-            // Si es cuenta oficial, usar datos de BRILLARTE
-            const isOfficial = data?.correo === BRILLARTE_OFFICIAL_EMAIL;
+            // Si es cuenta oficial, usar datos de BRILLARTE con logo importado
+            const isOfficial = isOfficialBrillarteAccount(data?.correo || '');
             profileData = isOfficial 
               ? { 
                   nombre_completo: 'BRILLARTE', 
-                  avatar_url: BRILLARTE_LOGO_URL, 
+                  avatar_url: brillarteLogo, 
                   verificado: true, 
-                  correo: BRILLARTE_OFFICIAL_EMAIL 
+                  correo: data?.correo || BRILLARTE_OFFICIAL_EMAIL,
+                  isOfficial: true
                 }
-              : data;
+              : { ...data, isOfficial: false };
           }
 
           // Get likes count for response
@@ -514,7 +529,7 @@ const Comunidad = () => {
           {/* Posts List */}
           <div className="space-y-4">
           {posts.map((post) => {
-            const isOfficialAccount = post.profiles?.correo === 'oficial@brillarte.lat';
+            const isOfficialAccount = isOfficialBrillarteAccount(post.profiles?.correo || '');
             const isOwnPost = user?.id === post.user_id;
             
             return (
@@ -595,7 +610,7 @@ const Comunidad = () => {
                     {expandedPost === post.id && (
                       <div className="mt-4 space-y-4 pl-4 border-l-2 border-border">
                         {respuestas[post.id]?.map((resp) => {
-                          const isRespOfficialAccount = resp.profiles?.correo === 'oficial@brillarte.lat';
+                          const isRespOfficialAccount = isOfficialBrillarteAccount(resp.profiles?.correo || '');
                           
                           return (
                             <div key={resp.id} className="flex gap-3">
