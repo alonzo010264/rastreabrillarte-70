@@ -91,6 +91,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
           items: cartItems.map(item => ({
             producto_id: item.producto_id,
             nombre: item.producto.nombre,
+            imagen: item.producto.imagenes?.[0] || null,
             cantidad: item.cantidad,
             precio: item.producto.precio,
             color: item.color,

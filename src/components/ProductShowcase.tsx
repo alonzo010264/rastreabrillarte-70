@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { ShoppingBag, ChevronLeft, ChevronRight, Heart, ShoppingCart, Star, Rocket, Percent, Truck } from "lucide-react";
+import { ShoppingBag, ChevronLeft, ChevronRight, Heart, ShoppingCart, Star, Rocket, Percent, Truck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FlyingItem } from "@/components/FlyingItem";
@@ -41,6 +41,7 @@ interface Product {
 export const ProductShowcase = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [empresasEnvio, setEmpresasEnvio] = useState<EmpresaEnvio[]>([]);
+  const [loading, setLoading] = useState(true);
   const { ref, isVisible } = useScrollAnimation();
   const [currentImageIndex, setCurrentImageIndex] = useState<{[key: string]: number}>({});
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -136,6 +137,7 @@ export const ProductShowcase = () => {
   }, [user]);
 
   const fetchProducts = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from('productos')
       .select('*')
@@ -151,6 +153,7 @@ export const ProductShowcase = () => {
       });
       setCurrentImageIndex(indices);
     }
+    setLoading(false);
   };
 
   const nextImage = (productId: string, imagesLength: number) => {
@@ -347,6 +350,7 @@ export const ProductShowcase = () => {
           </div>
         )}
 
+        {!loading && products.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((product, index) => (
             <Card 
@@ -538,14 +542,22 @@ export const ProductShowcase = () => {
             </Card>
           ))}
         </div>
+        )}
 
-        {products.length === 0 && (
+        {loading ? (
+          <div className="text-center py-16">
+            <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
+            <p className="text-muted-foreground text-lg">
+              Cargando productos...
+            </p>
+          </div>
+        ) : products.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">
               No hay productos disponibles en este momento
             </p>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
     </>
