@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Image as ImageIcon, Gift, Tag, Shield, Ticket, Package } from 'lucide-react';
+import { Send, Image as ImageIcon, Gift, Tag, Shield, Ticket, Package, MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -50,6 +50,7 @@ interface ChatWindowProps {
   onSendMessage: (content: string | null, imageUrl: string | null, tipo: string, metadata?: any) => void;
   onUploadImage: (file: File) => Promise<string | null>;
   isOfficialAccount: boolean;
+  conversationId?: string;
 }
 
 export const ChatWindow = ({
@@ -58,7 +59,8 @@ export const ChatWindow = ({
   otherUser,
   onSendMessage,
   onUploadImage,
-  isOfficialAccount
+  isOfficialAccount,
+  conversationId
 }: ChatWindowProps) => {
   const [newMessage, setNewMessage] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -74,8 +76,11 @@ export const ChatWindow = ({
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketDescription, setTicketDescription] = useState('');
   const [userPedidos, setUserPedidos] = useState<Pedido[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [otherUserTyping, setOtherUserTyping] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -83,6 +88,63 @@ export const ChatWindow = ({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Suscribirse al estado de escritura del otro usuario
+  useEffect(() => {
+    if (!conversationId || !otherUser.id) return;
+
+    const channel = supabase
+      .channel(`typing:${conversationId}`)
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const typingUsers = Object.values(state).flat().filter(
+          (u: any) => u.user_id === otherUser.id && u.is_typing
+        );
+        setOtherUserTyping(typingUsers.length > 0);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: currentUserId,
+            is_typing: false
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId, currentUserId, otherUser.id]);
+
+  // Emitir estado de escritura
+  const emitTyping = useCallback(async (typing: boolean) => {
+    if (!conversationId) return;
+    
+    const channel = supabase.channel(`typing:${conversationId}`);
+    await channel.track({
+      user_id: currentUserId,
+      is_typing: typing
+    });
+  }, [conversationId, currentUserId]);
+
+  // Manejar cambio en el input
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    
+    if (!isTyping) {
+      setIsTyping(true);
+      emitTyping(true);
+    }
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      emitTyping(false);
+    }, 2000);
+  };
 
   // Cargar pedidos del usuario si no es cuenta oficial
   useEffect(() => {
@@ -400,6 +462,26 @@ export const ChatWindow = ({
               </div>
             );
           })}
+          
+          {/* Indicador de escritura */}
+          {otherUserTyping && (
+            <div className="flex gap-3">
+              <Avatar className="w-8 h-8 flex-shrink-0">
+                <AvatarImage src={otherUser.avatar_url || undefined} />
+                <AvatarFallback className="text-xs">
+                  {otherUser.nombre_completo?.[0] || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex items-center gap-1 bg-muted rounded-lg px-4 py-2">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
+                <span className="text-xs text-muted-foreground ml-2">escribiendo...</span>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
 
@@ -586,12 +668,23 @@ export const ChatWindow = ({
 
           <Input
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            onChange={handleInputChange}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleSendMessage();
+                emitTyping(false);
+              }
+            }}
             placeholder="Escribe un mensaje..."
             className="flex-1"
           />
-          <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
+          <Button 
+            onClick={() => {
+              handleSendMessage();
+              emitTyping(false);
+            }} 
+            disabled={!newMessage.trim()}
+          >
             <Send className="w-4 h-4" />
           </Button>
         </div>
