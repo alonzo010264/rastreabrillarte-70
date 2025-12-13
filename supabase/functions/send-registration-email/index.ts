@@ -19,22 +19,21 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
   try {
     const { email, nombre, codigo, password }: RegistrationEmailRequest = await req.json();
 
     console.log(`Sending registration email to: ${email}`);
-
-    // Initialize Supabase client with service role for inserting into registros_acceso
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
       throw new Error("RESEND_API_KEY not found");
     }
 
-    const subject = `¡Bienvenido a la Familia BRILLARTE! ✨`;
+    const subject = `Bienvenido a la Familia BRILLARTE`;
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -52,6 +51,7 @@ const handler = async (req: Request): Promise<Response> => {
               BRILLARTE
             </h1>
             <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">
+              <img src="https://cdn-icons-png.flaticon.com/24/189/189001.png" alt="" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px; filter: invert(1);">
               El Arte de Brillar
             </p>
           </div>
@@ -59,7 +59,8 @@ const handler = async (req: Request): Promise<Response> => {
           <!-- Main Content -->
           <div style="padding: 40px 30px; background-color: #ffffff;">
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 28px; font-weight: bold; text-align: center;">
-              ¡Bienvenido a la Familia BRILLARTE, ${nombre}! 🎉
+              <img src="https://cdn-icons-png.flaticon.com/24/3069/3069186.png" alt="" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;">
+              Bienvenido a la Familia BRILLARTE, ${nombre}
             </h2>
             
             <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
@@ -69,28 +70,31 @@ const handler = async (req: Request): Promise<Response> => {
             <!-- Beneficios -->
             <div style="background-color: #f8f9fa; border-left: 4px solid #000000; padding: 20px; margin: 30px 0;">
               <h3 style="color: #000000; margin: 0 0 15px 0; font-size: 18px;">
-                🌟 Disfruta de estos beneficios:
+                <img src="https://cdn-icons-png.flaticon.com/24/1828/1828884.png" alt="" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 8px;">
+                Disfruta de estos beneficios:
               </h3>
               <ul style="color: #666666; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
-                <li>🎁 Acceso a promociones y sorteos exclusivos</li>
-                <li>🛍️ Compras rápidas y seguras con tu carrito de compras</li>
-                <li>❤️ Guarda tus productos favoritos</li>
-                <li>🔔 Recibe notificaciones de nuevos productos y ofertas</li>
-                <li>👤 Perfil personalizado con foto</li>
-                <li>⚡ Atención prioritaria</li>
+                <li><img src="https://cdn-icons-png.flaticon.com/16/4213/4213958.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Acceso a promociones y sorteos exclusivos</li>
+                <li><img src="https://cdn-icons-png.flaticon.com/16/891/891462.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Compras rapidas y seguras con tu carrito</li>
+                <li><img src="https://cdn-icons-png.flaticon.com/16/833/833472.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Guarda tus productos favoritos</li>
+                <li><img src="https://cdn-icons-png.flaticon.com/16/3239/3239952.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Recibe notificaciones de nuevos productos</li>
+                <li><img src="https://cdn-icons-png.flaticon.com/16/1077/1077114.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Perfil personalizado con foto</li>
+                <li><img src="https://cdn-icons-png.flaticon.com/16/3596/3596165.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Atencion prioritaria</li>
               </ul>
             </div>
 
             <!-- Action Button -->
             <div style="text-align: center; margin: 40px 0;">
-              <a href="https://gzyfcunlbrfcnbxxaaft.lovable.app/login" 
+              <a href="https://brillarte.lat/login" 
                  style="display: inline-block; background-color: #000000; color: #ffffff; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px;">
-                INICIAR SESIÓN
+                <img src="https://cdn-icons-png.flaticon.com/16/2991/2991112.png" alt="" style="vertical-align: middle; margin-right: 8px; filter: invert(1);">
+                INICIAR SESION
               </a>
             </div>
             
             <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
-              ¡Gracias por confiar en nosotros! 💎<br>
+              <img src="https://cdn-icons-png.flaticon.com/24/1329/1329416.png" alt="" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 5px;">
+              Gracias por confiar en nosotros<br>
               Bienvenido a la excelencia.
             </p>
           </div>
@@ -104,9 +108,13 @@ const handler = async (req: Request): Promise<Response> => {
               Excelencia en cada detalle
             </p>
             <p style="color: #999999; font-size: 12px; margin: 0;">
-              Santiago de los Caballeros, República Dominicana<br>
-              Email: brillarte.oficial.ventas@gmail.com | WhatsApp: 849-425-2220<br>
-              © ${new Date().getFullYear()} BRILLARTE. Todos los derechos reservados.
+              <img src="https://cdn-icons-png.flaticon.com/16/484/484167.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(0.6);">
+              Santiago de los Caballeros, Republica Dominicana<br>
+              <img src="https://cdn-icons-png.flaticon.com/16/542/542638.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(0.6);">
+              brillarte.oficial.ventas@gmail.com | 
+              <img src="https://cdn-icons-png.flaticon.com/16/733/733585.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(0.6);">
+              849-425-2220<br>
+              ${new Date().getFullYear()} BRILLARTE. Todos los derechos reservados.
             </p>
           </div>
         </div>
@@ -139,6 +147,15 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await response.json();
     console.log("Registration email sent successfully:", emailResponse);
 
+    // Guardar log del email
+    await supabase.from('email_logs').insert({
+      destinatario: email,
+      asunto: subject,
+      contenido: emailHtml,
+      tipo: "registro",
+      estado: "enviado"
+    });
+
     // Record in registros_acceso table
     const { error: regError } = await supabase
       .from('registros_acceso')
@@ -146,8 +163,7 @@ const handler = async (req: Request): Promise<Response> => {
         correo: email,
         nombre: nombre,
         codigo_membresia: codigo,
-        password_temporal_mascarado: '****',
-        email_enviado: true
+        password: '****'
       });
 
     if (regError) {
@@ -166,6 +182,20 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error in send-registration-email function:", error);
+
+    // Guardar log del error
+    try {
+      await supabase.from('email_logs').insert({
+        destinatario: "unknown",
+        asunto: "Error en registro",
+        contenido: error.message,
+        tipo: "registro",
+        estado: "error"
+      });
+    } catch (logError) {
+      console.error("Error logging email:", logError);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: false, 

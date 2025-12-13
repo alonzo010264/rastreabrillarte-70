@@ -7,6 +7,11 @@ import pulseras from "@/assets/productos/pulseras-mariposas.webp";
 import floresCrochetRojas from "@/assets/productos/flores-crochet-rojas.png";
 import bouquetCrochetColores from "@/assets/productos/bouquet-crochet-colores.png";
 import aretesMargaritas from "@/assets/productos/aretes-margaritas-colores.png";
+import anilloFloresAzul from "@/assets/productos/anillo-flores-azul.jpg";
+import pulserasCorazones from "@/assets/productos/pulseras-corazones.jpg";
+import pulserasLoveYou from "@/assets/productos/pulseras-love-you.jpg";
+import floresCrochet from "@/assets/productos/flores-crochet.jfif";
+
 const ProductGallery = () => {
   const {
     ref: titleRef,
@@ -36,11 +41,28 @@ const ProductGallery = () => {
     ref: grid6Ref,
     isVisible: grid6Visible
   } = useScrollAnimation(0.1);
+  const {
+    ref: grid7Ref,
+    isVisible: grid7Visible
+  } = useScrollAnimation(0.1);
+  const {
+    ref: grid8Ref,
+    isVisible: grid8Visible
+  } = useScrollAnimation(0.1);
+  const {
+    ref: grid9Ref,
+    isVisible: grid9Visible
+  } = useScrollAnimation(0.1);
+  const {
+    ref: grid10Ref,
+    isVisible: grid10Visible
+  } = useScrollAnimation(0.1);
+
   const products = [{
     id: 1,
     name: "Pulsera Margarita",
     image: margarita,
-    description: "Elegante pulsera de perlas con diseño floral"
+    description: "Elegante pulsera de perlas con diseno floral"
   }, {
     id: 2,
     name: "Aretes de Flores",
@@ -50,7 +72,7 @@ const ProductGallery = () => {
     id: 3,
     name: "Pulseras Mariposas",
     image: pulseras,
-    description: "Colección de pulseras tejidas con mariposas"
+    description: "Coleccion de pulseras tejidas con mariposas"
   }, {
     id: 4,
     name: "Flores Crochet Rojas",
@@ -66,7 +88,28 @@ const ProductGallery = () => {
     name: "Aretes Margaritas Colores",
     image: aretesMargaritas,
     description: "Set de aretes de margaritas en varios colores vibrantes"
+  }, {
+    id: 7,
+    name: "Anillo Flores Azul",
+    image: anilloFloresAzul,
+    description: "Delicado anillo de flores en tonos azules"
+  }, {
+    id: 8,
+    name: "Pulseras Corazones",
+    image: pulserasCorazones,
+    description: "Set de pulseras con corazones en colores pastel"
+  }, {
+    id: 9,
+    name: "Pulseras Love You",
+    image: pulserasLoveYou,
+    description: "Pulseras personalizadas con mensajes de amor"
+  }, {
+    id: 10,
+    name: "Flores Crochet Bouquet",
+    image: floresCrochet,
+    description: "Bouquet de flores tejidas a crochet artesanal"
   }];
+
   const gridRefs = [{
     ref: grid1Ref,
     isVisible: grid1Visible,
@@ -97,9 +140,30 @@ const ProductGallery = () => {
     isVisible: grid6Visible,
     animation: 'opacity-0 -translate-x-10',
     animationActive: 'opacity-100 translate-x-0'
+  }, {
+    ref: grid7Ref,
+    isVisible: grid7Visible,
+    animation: 'opacity-0 translate-y-10',
+    animationActive: 'opacity-100 translate-y-0'
+  }, {
+    ref: grid8Ref,
+    isVisible: grid8Visible,
+    animation: 'opacity-0 -translate-x-10',
+    animationActive: 'opacity-100 translate-x-0'
+  }, {
+    ref: grid9Ref,
+    isVisible: grid9Visible,
+    animation: 'opacity-0 translate-x-10',
+    animationActive: 'opacity-100 translate-x-0'
+  }, {
+    ref: grid10Ref,
+    isVisible: grid10Visible,
+    animation: 'opacity-0 -translate-y-10',
+    animationActive: 'opacity-100 translate-y-0'
   }];
-  const hoverRotations = ['group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-2', ''];
-  const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-pink-500/20', 'from-purple-500/20', 'from-amber-500/20'];
+
+  const hoverRotations = ['group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-2', '', 'group-hover:rotate-2', 'group-hover:-rotate-3', '', 'group-hover:rotate-3'];
+  const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-pink-500/20', 'from-purple-500/20', 'from-amber-500/20', 'from-blue-500/20', 'from-rose-500/20', 'from-emerald-500/20', 'from-violet-500/20'];
   return <section className="py-20 px-4 bg-background relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
