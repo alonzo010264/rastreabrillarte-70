@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,10 +17,13 @@ interface StatusNotificationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
     const { 
@@ -39,8 +43,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const subject = isNewOrder 
-      ? `¡Tu pedido ${orderCode} ha sido creado! - BRILLARTE`
-      : `Actualización de tu pedido ${orderCode} - BRILLARTE`;
+      ? `Tu pedido ${orderCode} ha sido creado - BRILLARTE`
+      : `Actualizacion de tu pedido ${orderCode} - BRILLARTE`;
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -48,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Actualización de Pedido - BRILLARTE</title>
+        <title>Actualizacion de Pedido - BRILLARTE</title>
       </head>
       <body style="margin: 0; padding: 0; background-color: #000000; font-family: Arial, sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
@@ -58,6 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
               BRILLARTE
             </h1>
             <p style="color: #ffffff; margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">
+              <img src="https://cdn-icons-png.flaticon.com/16/189/189001.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(1);">
               Excelencia en cada detalle
             </p>
           </div>
@@ -65,17 +70,18 @@ const handler = async (req: Request): Promise<Response> => {
           <!-- Main Content -->
           <div style="padding: 40px 30px; background-color: #ffffff;">
             <p style="color: #000000; margin: 0 0 20px 0; font-size: 16px;">
+              <img src="https://cdn-icons-png.flaticon.com/20/1077/1077114.png" alt="" style="vertical-align: middle; margin-right: 8px;">
               Hola ${customerName || 'Cliente'},
             </p>
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold; text-align: center;">
               ${isNewOrder 
-                ? '¡Acabamos de Crear tu Pedido!' 
+                ? '<img src="https://cdn-icons-png.flaticon.com/24/190/190411.png" alt="" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;">Acabamos de Crear tu Pedido' 
                 : statusName === 'Entregado' 
-                  ? '¡Pedido Entregado Exitosamente!' 
-                  : 'Obtuvimos una actualización de tu pedido'}
+                  ? '<img src="https://cdn-icons-png.flaticon.com/24/845/845646.png" alt="" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;">Pedido Entregado Exitosamente' 
+                  : '<img src="https://cdn-icons-png.flaticon.com/24/2991/2991148.png" alt="" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;">Obtuvimos una actualizacion de tu pedido'}
             </h2>
             ${!isNewOrder && statusName !== 'Entregado' ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
-              Pronto estará contigo
+              Pronto estara contigo
             </p>` : ''}
             ${isNewOrder ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
               Tu pedido ha sido registrado exitosamente
@@ -83,9 +89,11 @@ const handler = async (req: Request): Promise<Response> => {
             
             <div style="background-color: #f8f9fa; border-left: 4px solid #000000; padding: 20px; margin: 20px 0;">
               <h3 style="color: #000000; margin: 0 0 10px 0; font-size: 18px;">
-                Código de Pedido: <span style="font-weight: normal;">${orderCode}</span>
+                <img src="https://cdn-icons-png.flaticon.com/20/891/891462.png" alt="" style="vertical-align: middle; margin-right: 8px;">
+                Codigo de Pedido: <span style="font-weight: normal;">${orderCode}</span>
               </h3>
               <p style="color: #000000; margin: 0 0 10px 0; font-size: 16px;">
+                <img src="https://cdn-icons-png.flaticon.com/20/3596/3596165.png" alt="" style="vertical-align: middle; margin-right: 8px;">
                 <strong>Estado:</strong> ${statusName}
               </p>
               <p style="color: #666666; margin: 0; font-size: 14px; line-height: 1.5;">
@@ -95,28 +103,32 @@ const handler = async (req: Request): Promise<Response> => {
             
             ${isNewOrder
               ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
-                  Puedes rastrear tu pedido en cualquier momento usando el código <strong>${orderCode}</strong>.<br>
-                  Te notificaremos de cada actualización.
+                  <img src="https://cdn-icons-png.flaticon.com/20/751/751463.png" alt="" style="vertical-align: middle; margin-right: 5px;">
+                  Puedes rastrear tu pedido en cualquier momento usando el codigo <strong>${orderCode}</strong>.<br>
+                  Te notificaremos de cada actualizacion.
                  </p>`
               : statusName === 'Entregado' 
                 ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
+                    <img src="https://cdn-icons-png.flaticon.com/20/1670/1670080.png" alt="" style="vertical-align: middle; margin-right: 5px;">
                     Por favor, revisa tu zona o confirma si fue entregado en tus manos.<br>
-                    <strong>¡Gracias por elegirnos!</strong>
+                    <strong>Gracias por elegirnos</strong>
                    </p>`
                 : `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 20px 0; text-align: center;">
-                    Tu pedido está en proceso. Te notificaremos cualquier cambio adicional.
+                    Tu pedido esta en proceso. Te notificaremos cualquier cambio adicional.
                    </p>`
             }
             
             <!-- Action Button -->
             <div style="text-align: center; margin: 30px 0;">
-              <a href="https://gzyfcunlbrfcnbxxaaft.lovable.app/rastrear" 
+              <a href="https://brillarte.lat/rastrear" 
                  style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px;">
+                <img src="https://cdn-icons-png.flaticon.com/16/751/751463.png" alt="" style="vertical-align: middle; margin-right: 8px; filter: invert(1);">
                 RASTREAR PEDIDO
               </a>
             </div>
             
             <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
+              <img src="https://cdn-icons-png.flaticon.com/20/1329/1329416.png" alt="" style="vertical-align: middle; margin-right: 5px;">
               Gracias por confiar en BRILLARTE.
             </p>
           </div>
@@ -130,9 +142,13 @@ const handler = async (req: Request): Promise<Response> => {
               El Arte de Brillar
             </p>
             <p style="color: #999999; font-size: 12px; margin: 0;">
-              Santiago de los Caballeros, República Dominicana<br>
-              Email: brillarte.oficial.ventas@gmail.com | WhatsApp: 849-425-2220<br>
-              © ${new Date().getFullYear()} BRILLARTE. Todos los derechos reservados.
+              <img src="https://cdn-icons-png.flaticon.com/16/484/484167.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(0.6);">
+              Santiago de los Caballeros, Republica Dominicana<br>
+              <img src="https://cdn-icons-png.flaticon.com/16/542/542638.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(0.6);">
+              brillarte.oficial.ventas@gmail.com | 
+              <img src="https://cdn-icons-png.flaticon.com/16/733/733585.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(0.6);">
+              849-425-2220<br>
+              ${new Date().getFullYear()} BRILLARTE. Todos los derechos reservados.
             </p>
           </div>
         </div>
@@ -148,13 +164,12 @@ const handler = async (req: Request): Promise<Response> => {
       html: emailHtml,
     };
 
-    console.log("Preparando envío de correo:", { 
+    console.log("Preparando envio de correo:", { 
       to: customerEmail, 
       orderCode, 
       statusName 
     });
 
-    // Send email using Resend API with fallback for testing mode
     const sendResend = async (data: any) =>
       await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -171,7 +186,6 @@ const handler = async (req: Request): Promise<Response> => {
       const errorText = await response.text();
       console.error("Primary send failed:", response.status, errorText);
 
-      // Fallback: Resend testing restriction (only to account email)
       if (
         response.status === 403 &&
         errorText.includes("You can only send testing emails to your own email address")
@@ -183,7 +197,7 @@ const handler = async (req: Request): Promise<Response> => {
           const fallbackHtml = emailHtml.replace(
             "</body>",
             `<div style="padding:12px 30px; font-size:12px; color:#666;">
-              Nota: Envío de prueba por restricciones de Resend. Destinatario previsto: ${customerEmail}
+              Nota: Envio de prueba por restricciones de Resend. Destinatario previsto: ${customerEmail}
             </div></body>`
           );
 
@@ -199,6 +213,15 @@ const handler = async (req: Request): Promise<Response> => {
           if (retry.ok) {
             const retryJson = await retry.json();
             console.log("Fallback test email sent:", retryJson);
+
+            await supabase.from('email_logs').insert({
+              destinatario: allowedEmail,
+              asunto: `${subject} (TEST)`,
+              contenido: fallbackHtml,
+              tipo: "actualizacion_estado",
+              estado: "enviado"
+            });
+
             return new Response(
               JSON.stringify({
                 success: true,
@@ -224,8 +247,15 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await response.json();
-
     console.log("Status notification email sent successfully:", emailResponse);
+
+    await supabase.from('email_logs').insert({
+      destinatario: customerEmail,
+      asunto: subject,
+      contenido: emailHtml,
+      tipo: "actualizacion_estado",
+      estado: "enviado"
+    });
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -239,6 +269,19 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error in send-status-notification function:", error);
+
+    try {
+      await supabase.from('email_logs').insert({
+        destinatario: "unknown",
+        asunto: "Error en notificacion de estado",
+        contenido: error.message,
+        tipo: "actualizacion_estado",
+        estado: "error"
+      });
+    } catch (logError) {
+      console.error("Error logging email:", logError);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: false, 
