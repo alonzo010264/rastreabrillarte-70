@@ -1364,6 +1364,56 @@ export type Database = {
         }
         Relationships: []
       }
+      solicitudes_ia: {
+        Row: {
+          admin_revisor: string | null
+          created_at: string | null
+          descripcion: string
+          estado: string
+          id: string
+          monto: number | null
+          notas_admin: string | null
+          ticket_id: string | null
+          tipo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_revisor?: string | null
+          created_at?: string | null
+          descripcion: string
+          estado?: string
+          id?: string
+          monto?: number | null
+          notas_admin?: string | null
+          ticket_id?: string | null
+          tipo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_revisor?: string | null
+          created_at?: string | null
+          descripcion?: string
+          estado?: string
+          id?: string
+          monto?: number | null
+          notas_admin?: string | null
+          ticket_id?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitudes_ia_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_ayuda"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       solicitudes_verificacion: {
         Row: {
           admin_revisor: string | null

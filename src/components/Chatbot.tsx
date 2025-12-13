@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { X, Send, MessageCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { X, Send, MessageCircle, Ticket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import brillarteLogo from "@/assets/brillarte-logo.jpg";
@@ -10,6 +11,8 @@ import brillarteLogo from "@/assets/brillarte-logo.jpg";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  action?: string;
+  ticketId?: string;
 }
 
 interface ChatbotProps {
@@ -21,7 +24,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hola, soy el asistente de BRILLARTE. Como puedo ayudarte hoy?"
+      content: "Hola, soy el asistente oficial de BRILLARTE. Puedo ayudarte con tus pedidos, solicitudes de credito, reembolsos y crear tickets de soporte automaticamente. En que puedo ayudarte?"
     }
   ]);
   const [input, setInput] = useState("");
@@ -29,8 +32,28 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [orderCode, setOrderCode] = useState("");
   const [needsInfo, setNeedsInfo] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if user is logged in
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('correo')
+          .eq('user_id', user.id)
+          .single();
+        if (profile?.correo) {
+          setEmail(profile.correo);
+        }
+      }
+    };
+    checkUser();
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -82,23 +105,50 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     try {
       const { data, error } = await supabase.functions.invoke('chatbot-assistant', {
         body: {
-          messages: newMessages,
+          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
           email,
-          orderCode
+          orderCode,
+          userId
         }
       });
 
       if (error) throw error;
 
-      setMessages([...newMessages, { role: "assistant", content: data.response }]);
+      const assistantMessage: Message = { 
+        role: "assistant", 
+        content: data.response,
+        action: data.action,
+        ticketId: data.ticketId
+      };
 
-      await supabase.from('chatbot_conversations').insert({
-        email,
+      setMessages([...newMessages, assistantMessage]);
+
+      // Show toast if action was taken
+      if (data.action === 'TICKET_CREADO') {
+        toast({
+          title: 'Ticket creado',
+          description: 'Se ha creado un ticket de soporte automaticamente'
+        });
+      } else if (data.action === 'SOLICITUD_CREDITO') {
+        toast({
+          title: 'Solicitud registrada',
+          description: 'Tu solicitud de credito sera revisada por el equipo'
+        });
+      } else if (data.action === 'SOLICITUD_REEMBOLSO') {
+        toast({
+          title: 'Solicitud registrada',
+          description: 'Tu solicitud de reembolso sera revisada por un agente'
+        });
+      }
+
+      const conversationMessages = [...newMessages, { role: assistantMessage.role, content: assistantMessage.content }]
+        .map(m => ({ role: m.role, content: m.content }));
+      
+      await supabase.from('chatbot_conversations').insert([{
+        email: email,
         order_code: orderCode || null,
-        conversation_data: { 
-          messages: [...newMessages, { role: "assistant", content: data.response }] 
-        }
-      });
+        conversation_data: JSON.parse(JSON.stringify({ messages: conversationMessages }))
+      }]);
     } catch (error) {
       console.error('Error:', error);
       setMessages([
@@ -154,6 +204,22 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               }`}
             >
               <p>{msg.content}</p>
+              {msg.action === 'TICKET_CREADO' && msg.ticketId && (
+                <Badge variant="outline" className="mt-2 text-xs">
+                  <Ticket className="h-3 w-3 mr-1" />
+                  Ticket #{msg.ticketId.slice(0, 8)}
+                </Badge>
+              )}
+              {msg.action === 'SOLICITUD_CREDITO' && (
+                <Badge variant="outline" className="mt-2 text-xs bg-green-500/10 text-green-600">
+                  Solicitud de credito registrada
+                </Badge>
+              )}
+              {msg.action === 'SOLICITUD_REEMBOLSO' && (
+                <Badge variant="outline" className="mt-2 text-xs bg-orange-500/10 text-orange-600">
+                  Solicitud de reembolso registrada
+                </Badge>
+              )}
             </div>
           </div>
         ))}

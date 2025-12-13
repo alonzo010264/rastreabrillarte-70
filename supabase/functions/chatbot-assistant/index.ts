@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, email, orderCode } = await req.json();
+    const { messages, email, orderCode, userId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -26,7 +26,6 @@ serve(async (req) => {
     // Buscar informacion del pedido
     let orderInfo = "";
     if (orderCode) {
-      // Buscar en pedidos_online
       const { data: pedidoOnline } = await supabase
         .from('pedidos_online')
         .select('*, empresas_envio(nombre)')
@@ -37,12 +36,11 @@ serve(async (req) => {
         orderInfo = `
 PEDIDO ${orderCode}:
 - Estado: ${pedidoOnline.estado}
-- Total: $${pedidoOnline.total}
+- Total: RD$${pedidoOnline.total}
 - Direccion: ${pedidoOnline.direccion_envio}
 ${pedidoOnline.tracking_envio ? `- Tracking: ${pedidoOnline.tracking_envio}` : ''}
 ${pedidoOnline.empresas_envio ? `- Enviado por: ${pedidoOnline.empresas_envio.nombre}` : ''}`;
       } else {
-        // Buscar en pedidos_registro
         const { data: pedidoReg } = await supabase
           .from('pedidos_registro')
           .select('*')
@@ -59,23 +57,149 @@ PEDIDO ${orderCode}:
       }
     }
 
-    const systemPrompt = `Eres el asistente de BRILLARTE. Responde de forma corta y directa.
+    // Buscar perfil del usuario
+    let userProfile = null;
+    if (userId) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      userProfile = data;
+    }
 
-INFORMACION:
-- Productos: Pulseras, aretes, monederos artesanales
+    // Detectar intenciones en el ultimo mensaje
+    const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    let actionTaken = null;
+    let ticketCreated = null;
+
+    // Detectar solicitud de credito
+    if (lastMessage.includes('credito') || lastMessage.includes('crédito') || 
+        lastMessage.includes('solicitar credito') || lastMessage.includes('quiero credito')) {
+      if (userId && userProfile?.verificado) {
+        // Crear solicitud de credito
+        const { data: solicitud, error } = await supabase
+          .from('solicitudes_ia')
+          .insert({
+            user_id: userId,
+            tipo: 'credito',
+            descripcion: `Solicitud de credito via chatbot. Mensaje: "${messages[messages.length - 1]?.content}"`,
+            monto: null
+          })
+          .select()
+          .single();
+
+        if (!error) {
+          actionTaken = 'SOLICITUD_CREDITO';
+          
+          // Notificar a BRILLARTE
+          const { data: brillarteProfile } = await supabase
+            .from('profiles')
+            .select('user_id')
+            .eq('correo', 'oficial@brillarte.lat')
+            .single();
+
+          if (brillarteProfile) {
+            await supabase.from('notifications').insert({
+              user_id: brillarteProfile.user_id,
+              tipo: 'solicitud_credito',
+              titulo: 'Nueva solicitud de credito',
+              mensaje: `${userProfile?.nombre_completo || email} ha solicitado credito`,
+              accion_url: '/admin/solicitudes-ia'
+            });
+          }
+        }
+      }
+    }
+
+    // Detectar solicitud de reembolso
+    if (lastMessage.includes('reembolso') || lastMessage.includes('devolucion') || 
+        lastMessage.includes('devolver dinero') || lastMessage.includes('me devuelvan')) {
+      if (userId) {
+        // Crear solicitud de reembolso pendiente
+        const { data: solicitud, error } = await supabase
+          .from('solicitudes_ia')
+          .insert({
+            user_id: userId,
+            tipo: 'reembolso',
+            descripcion: `Solicitud de reembolso via chatbot. Pedido: ${orderCode || 'No especificado'}. Mensaje: "${messages[messages.length - 1]?.content}"`,
+            monto: null
+          })
+          .select()
+          .single();
+
+        if (!error) {
+          actionTaken = 'SOLICITUD_REEMBOLSO';
+        }
+      }
+    }
+
+    // Detectar problemas que requieren ticket
+    const ticketKeywords = ['problema', 'ayuda', 'no funciona', 'error', 'queja', 'reclamo', 
+                           'no llego', 'no llegó', 'defectuoso', 'roto', 'malo', 'incorrecto'];
+    const needsTicket = ticketKeywords.some(keyword => lastMessage.includes(keyword));
+
+    if (needsTicket && userId && !actionTaken) {
+      // Crear ticket automaticamente
+      const { data: ticket, error } = await supabase
+        .from('tickets_ayuda')
+        .insert({
+          user_id: userId,
+          asunto: `Ticket automatico - ${orderCode ? `Pedido ${orderCode}` : 'Consulta general'}`,
+          descripcion: messages[messages.length - 1]?.content || 'Sin descripcion',
+          estado: 'Abierto',
+          prioridad: 'Media',
+          categoria: 'chatbot',
+          codigo_membresia: userProfile?.codigo_membresia
+        })
+        .select()
+        .single();
+
+      if (!error && ticket) {
+        ticketCreated = ticket;
+        actionTaken = 'TICKET_CREADO';
+
+        // Agregar primera respuesta de la IA
+        await supabase.from('respuestas_tickets').insert({
+          ticket_id: ticket.id,
+          mensaje: 'Ticket creado automaticamente por el asistente virtual. Un agente revisara tu caso pronto.',
+          es_admin: true
+        });
+      }
+    }
+
+    // Construir system prompt mejorado
+    const systemPrompt = `Eres el asistente oficial de BRILLARTE. Ayudas a clientes con todo lo que necesiten.
+
+INFORMACION DE LA EMPRESA:
+- Productos: Pulseras, aretes, monederos artesanales hechos a mano
 - Ubicacion: Santiago, Republica Dominicana
 - Email: brillarte.oficial.ventas@gmail.com
 - WhatsApp: 849-425-2220
 - Horarios: Lun-Vie 9AM-6PM
 
-REGLAS:
-- Respuestas cortas (maximo 2-3 lineas)
-- NO usar emojis ni asteriscos
-- Si no sabes algo, diles que contacten al equipo
-- Se amable pero conciso
-- NO des reembolsos, solo informa que un agente revisara
+CAPACIDADES:
+- Puedes ayudar a solicitar creditos (solo para cuentas verificadas)
+- Puedes crear tickets de soporte automaticamente
+- Puedes ayudar con reembolsos (pero NO aprobarlos, solo registrar la solicitud)
+- Puedes dar informacion sobre pedidos
 
-Cliente: ${email}${orderInfo}`;
+REGLAS:
+- Respuestas cortas y claras (maximo 3-4 lineas)
+- NO usar emojis ni asteriscos
+- NO aprobar reembolsos ni creditos directamente, solo informar que se registro la solicitud
+- Si creaste un ticket, informar al cliente que un agente lo atendera
+- Se amable y profesional
+
+${actionTaken === 'SOLICITUD_CREDITO' ? 'ACCION: Se registro solicitud de credito. Informar que sera revisada por el equipo.' : ''}
+${actionTaken === 'SOLICITUD_REEMBOLSO' ? 'ACCION: Se registro solicitud de reembolso. Informar que sera revisada por un agente.' : ''}
+${actionTaken === 'TICKET_CREADO' ? `ACCION: Se creo ticket #${ticketCreated?.id?.slice(0, 8)}. Informar que un agente lo atendera pronto.` : ''}
+
+Cliente: ${email}
+${userProfile ? `Nombre: ${userProfile.nombre_completo}` : ''}
+${userProfile?.verificado ? 'Estado: Cuenta verificada' : ''}
+${userProfile?.saldo ? `Saldo: RD$${userProfile.saldo}` : ''}
+${orderInfo}`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -90,7 +214,7 @@ Cliente: ${email}${orderInfo}`;
           ...messages
         ],
         temperature: 0.7,
-        max_tokens: 200
+        max_tokens: 300
       }),
     });
 
@@ -104,7 +228,11 @@ Cliente: ${email}${orderInfo}`;
     const assistantMessage = data.choices[0].message.content;
 
     return new Response(
-      JSON.stringify({ response: assistantMessage }),
+      JSON.stringify({ 
+        response: assistantMessage,
+        action: actionTaken,
+        ticketId: ticketCreated?.id
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

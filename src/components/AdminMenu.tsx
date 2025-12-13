@@ -21,7 +21,8 @@ import {
   Mail,
   Ticket,
   Users,
-  Calculator
+  Calculator,
+  Bot
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -90,6 +91,11 @@ export const AdminMenu = () => {
         <DropdownMenuItem onClick={() => navigate('/admin/tickets')}>
           <Ticket className="mr-2 h-4 w-4" />
           Gestionar Tickets
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate('/admin/solicitudes-ia')}>
+          <Bot className="mr-2 h-4 w-4" />
+          Solicitudes IA
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={() => navigate('/admin/verificaciones')}>
