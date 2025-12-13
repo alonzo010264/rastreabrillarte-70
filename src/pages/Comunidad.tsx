@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Send, Sparkles, Trash2, Mail } from 'lucide-react';
+import { Heart, MessageCircle, Send, Sparkles, Trash2, Mail, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link, useNavigate } from 'react-router-dom';
 import verificadoIcon from '@/assets/verificado-icon.png';
 import brillarteLogo from '@/assets/brillarte-logo-new.jpg';
+import CreditRequestModal from '@/components/CreditRequestModal';
 
 interface Post {
   id: string;
@@ -493,9 +494,18 @@ const Comunidad = () => {
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-2">Comunidad BRILLARTE</h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               Comparte experiencias, haz preguntas y conecta con otros
             </p>
+            {/* Boton de solicitud de creditos para cuentas verificadas */}
+            {userProfile?.verificado && (
+              <div className="flex justify-center gap-2">
+                <CreditRequestModal 
+                  userId={user.id} 
+                  isVerified={userProfile.verificado} 
+                />
+              </div>
+            )}
           </div>
 
           {/* Create Post Card */}
@@ -536,14 +546,30 @@ const Comunidad = () => {
             return (
               <Card key={post.id} className={`p-6 ${isOfficialAccount ? 'border-2 border-primary/20 bg-primary/5' : ''}`}>
                 <div className="flex gap-4">
-                  <Link to={`/perfil-publico/${post.user_id}`}>
-                    <Avatar className={`cursor-pointer hover:opacity-80 transition ${isOfficialAccount ? 'ring-2 ring-primary' : ''}`}>
-                      <AvatarImage src={post.profiles?.avatar_url || undefined} />
-                      <AvatarFallback className={isOfficialAccount ? 'bg-primary text-primary-foreground' : ''}>
-                        {post.profiles?.nombre_completo?.[0] || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Link>
+                  <div className="relative group">
+                    <Link to={`/perfil-publico/${post.user_id}`}>
+                      <Avatar className={`cursor-pointer hover:opacity-80 transition ${isOfficialAccount ? 'ring-2 ring-primary' : ''}`}>
+                        <AvatarImage src={post.profiles?.avatar_url || undefined} />
+                        <AvatarFallback className={isOfficialAccount ? 'bg-primary text-primary-foreground' : ''}>
+                          {post.profiles?.nombre_completo?.[0] || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Link>
+                    {/* Boton de mensaje al hover en avatar */}
+                    {user && user.id !== post.user_id && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          navigate(`/mensajes?userId=${post.user_id}`);
+                        }}
+                        className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110"
+                        title="Enviar mensaje"
+                      >
+                        <Mail className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
                   <div className="flex-1 space-y-3">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Link to={`/perfil-publico/${post.user_id}`} className="hover:underline">
@@ -630,14 +656,30 @@ const Comunidad = () => {
                                   <Sparkles className="w-4 h-4 text-primary" />
                                 </div>
                               ) : (
-                                <Link to={`/perfil-publico/${resp.user_id}`}>
-                                  <Avatar className={`w-8 h-8 cursor-pointer hover:opacity-80 transition flex-shrink-0 ${isRespOfficialAccount ? 'ring-2 ring-primary' : ''}`}>
-                                    <AvatarImage src={resp.profiles?.avatar_url || undefined} />
-                                    <AvatarFallback className={`text-xs ${isRespOfficialAccount ? 'bg-primary text-primary-foreground' : ''}`}>
-                                      {resp.profiles?.nombre_completo?.[0] || 'U'}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                </Link>
+                                <div className="relative group">
+                                  <Link to={`/perfil-publico/${resp.user_id}`}>
+                                    <Avatar className={`w-8 h-8 cursor-pointer hover:opacity-80 transition flex-shrink-0 ${isRespOfficialAccount ? 'ring-2 ring-primary' : ''}`}>
+                                      <AvatarImage src={resp.profiles?.avatar_url || undefined} />
+                                      <AvatarFallback className={`text-xs ${isRespOfficialAccount ? 'bg-primary text-primary-foreground' : ''}`}>
+                                        {resp.profiles?.nombre_completo?.[0] || 'U'}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                  </Link>
+                                  {/* Boton de mensaje al hover */}
+                                  {user && user.id !== resp.user_id && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        navigate(`/mensajes?userId=${resp.user_id}`);
+                                      }}
+                                      className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110"
+                                      title="Enviar mensaje"
+                                    >
+                                      <Mail className="w-2.5 h-2.5" />
+                                    </button>
+                                  )}
+                                </div>
                               )}
                               <div className="flex-1 space-y-1">
                                 <div className="flex items-center gap-2 flex-wrap">

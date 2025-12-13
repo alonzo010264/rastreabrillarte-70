@@ -200,6 +200,7 @@ const Mensajes = () => {
                   }}
                   onUploadImage={uploadImage}
                   isOfficialAccount={isOfficialAccount}
+                  conversationId={currentConversation}
                 />
               ) : (
                 <Card className="h-[600px] flex items-center justify-center">
