@@ -64,7 +64,8 @@ const Comunidad = () => {
   useEffect(() => {
     checkUser();
     loadPosts();
-    subscribeToChanges();
+    const cleanup = subscribeToChanges();
+    return cleanup;
   }, []);
 
   const checkUser = async () => {
@@ -179,31 +180,41 @@ const Comunidad = () => {
 
   const subscribeToChanges = () => {
     const channel = supabase
-      .channel('comunidad-changes')
+      .channel('comunidad-realtime-' + Date.now())
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'posts_comunidad' },
-        () => loadPosts()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'likes_comunidad' },
-        () => loadPosts()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'likes_respuestas_comunidad' },
+        { event: 'INSERT', schema: 'public', table: 'posts_comunidad' },
         (payload) => {
-          if (expandedPost) {
-            loadRespuestas(expandedPost);
-          }
+          // Solo agregar si no existe
+          setPosts(prev => {
+            const exists = prev.some(p => p.id === payload.new.id);
+            if (exists) return prev;
+            // Cargar el post completo con perfil
+            loadPosts();
+            return prev;
+          });
         }
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'respuestas_comunidad' },
+        { event: 'DELETE', schema: 'public', table: 'posts_comunidad' },
         (payload) => {
-          if (expandedPost) {
+          setPosts(prev => prev.filter(p => p.id !== payload.old.id));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'likes_comunidad' },
+        () => {
+          // Debounce para evitar multiples recargas
+          loadPosts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'respuestas_comunidad' },
+        (payload) => {
+          if (expandedPost && payload.new.post_id === expandedPost) {
             loadRespuestas(expandedPost);
           }
         }
