@@ -1112,6 +1112,7 @@ export type Database = {
           direccion: string | null
           fecha_creacion: string | null
           id: string
+          identificador: string | null
           nombre_completo: string
           saldo: number | null
           telefono: string | null
@@ -1128,6 +1129,7 @@ export type Database = {
           direccion?: string | null
           fecha_creacion?: string | null
           id?: string
+          identificador?: string | null
           nombre_completo: string
           saldo?: number | null
           telefono?: string | null
@@ -1144,6 +1146,7 @@ export type Database = {
           direccion?: string | null
           fecha_creacion?: string | null
           id?: string
+          identificador?: string | null
           nombre_completo?: string
           saldo?: number | null
           telefono?: string | null
@@ -1739,6 +1742,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_identificador: {
+        Args: { email: string; nombre: string }
+        Returns: string
+      }
       generate_order_code: { Args: never; Returns: string }
       get_user_role: {
         Args: { input_user_id: string }

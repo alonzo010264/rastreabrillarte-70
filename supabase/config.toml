@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.chat-ai-responder]
 verify_jwt = false
+
+[functions.notify-mention]
+verify_jwt = false
