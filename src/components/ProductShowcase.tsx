@@ -320,7 +320,7 @@ export const ProductShowcase = () => {
       <div className="container mx-auto px-4">
         <div className={`text-center mb-12 ${isVisible ? 'animate-on-scroll' : 'opacity-0'}`}>
           <ShoppingBag className="w-16 h-16 mx-auto mb-4" />
-          <h2 className="text-4xl font-bold mb-4">Nuestros Productos</h2>
+          <h2 className="text-4xl font-bold mb-4">Brillarte Shop</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Descubre nuestra coleccion de accesorios unicos hechos a mano
           </p>

@@ -181,6 +181,44 @@ export type Database = {
         }
         Relationships: []
       }
+      codigos_pago: {
+        Row: {
+          codigo: string
+          created_at: string | null
+          id: string
+          pedido_id: string | null
+          usado: boolean | null
+          usado_at: string | null
+          usado_por: string | null
+        }
+        Insert: {
+          codigo: string
+          created_at?: string | null
+          id?: string
+          pedido_id?: string | null
+          usado?: boolean | null
+          usado_at?: string | null
+          usado_por?: string | null
+        }
+        Update: {
+          codigo?: string
+          created_at?: string | null
+          id?: string
+          pedido_id?: string | null
+          usado?: boolean | null
+          usado_at?: string | null
+          usado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "codigos_pago_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos_online"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_requests: {
         Row: {
           created_at: string | null

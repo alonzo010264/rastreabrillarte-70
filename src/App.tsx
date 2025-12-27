@@ -49,7 +49,8 @@ import AdminEnvios from "./pages/AdminEnvios";
 import ApelacionBaneo from "./pages/ApelacionBaneo";
 import AdminSolicitudesIA from "./pages/AdminSolicitudesIA";
 import { ChatbotWrapper } from "./components/ChatbotWrapper";
-
+import GuiaCodigosPago from "./pages/GuiaCodigosPago";
+import AdminCodigosPago from "./pages/AdminCodigosPago";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -103,6 +104,8 @@ const App = () => (
           <Route path="/admin/envios" element={<AdminEnvios />} />
           <Route path="/apelar-baneo" element={<ApelacionBaneo />} />
           <Route path="/admin/solicitudes-ia" element={<AdminSolicitudesIA />} />
+          <Route path="/guia-codigos-pago" element={<GuiaCodigosPago />} />
+          <Route path="/admin/codigos-pago" element={<AdminCodigosPago />} />
           <Route path="/cuenta" element={<Account />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
