@@ -693,15 +693,6 @@ const Comunidad = () => {
             <p className="text-muted-foreground mb-4">
               Comparte experiencias, haz preguntas y conecta con otros. Usa @usuario para mencionar.
             </p>
-            {/* Boton de solicitud de creditos para cuentas verificadas */}
-            {userProfile?.verificado && (
-              <div className="flex justify-center gap-2">
-                <CreditRequestModal 
-                  userId={user.id} 
-                  isVerified={userProfile.verificado} 
-                />
-              </div>
-            )}
           </div>
 
           {/* Create Post Card */}
