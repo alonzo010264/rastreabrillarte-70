@@ -107,7 +107,7 @@ const Footer = () => {
             
             <div className="space-y-2 text-sm">
               <div className="flex items-center text-gray-300">
-                <FaEnvelope size={16} className="mr-2" />
+                <FaEnvelope className="w-4 h-4 mr-2 flex-shrink-0" />
                 <span>brillarte.oficial.ventas@gmail.com</span>
               </div>
               <div className="flex items-center text-gray-300">
