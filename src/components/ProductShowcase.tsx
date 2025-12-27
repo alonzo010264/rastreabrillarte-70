@@ -3,12 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { ShoppingBag, ChevronLeft, ChevronRight, Heart, ShoppingCart, Star, Rocket, Percent, Truck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FlyingItem } from "@/components/FlyingItem";
 import { OfferCountdown } from "@/components/OfferCountdown";
 import { createPortal } from "react-dom";
+import { FaShoppingBag, FaChevronLeft, FaChevronRight, FaHeart, FaShoppingCart, FaStar, FaRocket, FaPercent, FaTruck, FaSpinner, FaMoneyBillWave, FaStore } from "react-icons/fa";
 
 interface EmpresaEnvio {
   id: string;
@@ -319,36 +319,44 @@ export const ProductShowcase = () => {
       <div className="py-16 bg-muted/30" ref={ref}>
       <div className="container mx-auto px-4">
         <div className={`text-center mb-12 ${isVisible ? 'animate-on-scroll' : 'opacity-0'}`}>
-          <ShoppingBag className="w-16 h-16 mx-auto mb-4" />
+          <FaShoppingBag className="w-16 h-16 mx-auto mb-4" />
           <h2 className="text-4xl font-bold mb-4">Brillarte Shop</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Descubre nuestra coleccion de accesorios unicos hechos a mano
           </p>
         </div>
 
-        {/* Empresas de envio disponibles */}
-        {empresasEnvio.length > 0 && (
-          <div className="mb-8 p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <div className="flex items-center gap-2 mb-3">
-              <Truck className="w-5 h-5 text-primary" />
-              <span className="font-medium">Enviamos con:</span>
+        {/* Empresas de envio y métodos de pago */}
+        <div className="mb-8 p-4 bg-primary/5 rounded-lg border border-primary/20">
+          <div className="flex items-center gap-2 mb-3">
+            <FaTruck className="w-5 h-5 text-primary" />
+            <span className="font-medium">Enviamos con:</span>
+          </div>
+          <div className="flex flex-wrap gap-4 items-center mb-4">
+            {empresasEnvio.map((empresa) => (
+              <div key={empresa.id} className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg shadow-sm">
+                {empresa.logo_url && (
+                  <img 
+                    src={empresa.logo_url} 
+                    alt={empresa.nombre} 
+                    className="h-6 w-auto object-contain"
+                  />
+                )}
+                <span className="text-sm font-medium">{empresa.nombre}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-3 pt-3 border-t border-primary/10">
+            <div className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg shadow-sm">
+              <FaMoneyBillWave className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-medium">Pago contra entrega</span>
             </div>
-            <div className="flex flex-wrap gap-4 items-center">
-              {empresasEnvio.map((empresa) => (
-                <div key={empresa.id} className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg shadow-sm">
-                  {empresa.logo_url && (
-                    <img 
-                      src={empresa.logo_url} 
-                      alt={empresa.nombre} 
-                      className="h-6 w-auto object-contain"
-                    />
-                  )}
-                  <span className="text-sm font-medium">{empresa.nombre}</span>
-                </div>
-              ))}
+            <div className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg shadow-sm">
+              <FaStore className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-medium">Retiro</span>
             </div>
           </div>
-        )}
+        </div>
 
         {!loading && products.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -371,13 +379,13 @@ export const ProductShowcase = () => {
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {product.destacado && (
                       <Badge className="bg-amber-500 text-white">
-                        <Star className="w-3 h-3 mr-1 fill-current" />
+                        <FaStar className="w-3 h-3 mr-1" />
                         Destacado
                       </Badge>
                     )}
                     {isOfferActive(product) && (
                       <Badge className="bg-pink-500 text-white">
-                        <Percent className="w-3 h-3 mr-1" />
+                        <FaPercent className="w-3 h-3 mr-1" />
                         {product.porcentaje_descuento}% OFF
                       </Badge>
                     )}
@@ -399,7 +407,7 @@ export const ProductShowcase = () => {
                           prevImage(product.id, product.imagenes.length);
                         }}
                       >
-                        <ChevronLeft className="h-4 w-4" />
+                        <FaChevronLeft className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -410,7 +418,7 @@ export const ProductShowcase = () => {
                           nextImage(product.id, product.imagenes.length);
                         }}
                       >
-                        <ChevronRight className="h-4 w-4" />
+                        <FaChevronRight className="h-4 w-4" />
                       </Button>
                       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                         {product.imagenes.map((_, idx) => (
@@ -446,7 +454,7 @@ export const ProductShowcase = () => {
                   {/* Badge de disponibilidad */}
                   {product.disponible === false ? (
                     <Badge variant="secondary" className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
-                      <Rocket className="w-3 h-3 mr-1" />
+                      <FaRocket className="w-3 h-3 mr-1" />
                       Proximamente
                     </Badge>
                   ) : product.stock === 0 ? (
@@ -500,7 +508,7 @@ export const ProductShowcase = () => {
                   {/* Empresas de envio en el producto */}
                   {empresasEnvio.length > 0 && (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Truck className="w-3 h-3" />
+                      <FaTruck className="w-3 h-3" />
                       <span>Envio disponible</span>
                       <div className="flex gap-1">
                         {empresasEnvio.slice(0, 2).map((empresa) => (
@@ -524,7 +532,7 @@ export const ProductShowcase = () => {
                       size="default"
                       className="flex-1 min-h-[44px]"
                     >
-                      <Heart className={`w-4 h-4 mr-1 ${favorites.has(product.id) ? 'fill-current' : ''}`} />
+                      <FaHeart className={`w-4 h-4 mr-1 ${favorites.has(product.id) ? 'fill-current' : ''}`} />
                       {favorites.has(product.id) ? 'Favorito' : 'Me gusta'}
                     </Button>
                     <Button
@@ -533,7 +541,7 @@ export const ProductShowcase = () => {
                       size="default"
                       className="flex-1 min-h-[44px]"
                     >
-                      <ShoppingCart className="w-4 h-4 mr-1" />
+                      <FaShoppingCart className="w-4 h-4 mr-1" />
                       {product.disponible === false ? 'Proximamente' : 'Agregar'}
                     </Button>
                   </div>
@@ -546,7 +554,7 @@ export const ProductShowcase = () => {
 
         {loading ? (
           <div className="text-center py-16">
-            <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
+            <FaSpinner className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
             <p className="text-muted-foreground text-lg">
               Cargando productos...
             </p>

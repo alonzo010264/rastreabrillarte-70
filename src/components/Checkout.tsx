@@ -5,10 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { ShoppingCart, Loader2, FileText, Key, HelpCircle, CheckCircle, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PaymentSuccessAnimation } from "./PaymentSuccessAnimation";
+import { FaShoppingCart, FaSpinner, FaFileAlt, FaKey, FaQuestionCircle, FaCheckCircle, FaTimesCircle, FaTruck, FaMoneyBillWave, FaStore } from "react-icons/fa";
 
 interface CheckoutProps {
   cartItems: any[];
@@ -18,6 +19,10 @@ interface CheckoutProps {
   codigoDescuento?: string;
   onSuccess?: () => void;
 }
+
+type MetodoEntrega = 'envio' | 'pago_contra_entrega' | 'retiro';
+
+const COSTO_ENVIO = 150; // Costo de envío por Vimenpaq
 
 export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuento, onSuccess }: CheckoutProps) => {
   const [open, setOpen] = useState(false);
@@ -31,11 +36,18 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
   const [showSuccess, setShowSuccess] = useState(false);
   const [needsAddress, setNeedsAddress] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [metodoEntrega, setMetodoEntrega] = useState<MetodoEntrega>('envio');
+
+  // Calcular costo de envío según método
+  const costoEnvio = metodoEntrega === 'envio' ? COSTO_ENVIO : 0;
+  const totalFinal = total + costoEnvio;
+
+  // Verificar si necesita dirección
+  const necesitaDireccion = metodoEntrega === 'envio' || metodoEntrega === 'pago_contra_entrega';
 
   const handleOpen = async (isOpen: boolean) => {
     setOpen(isOpen);
     if (isOpen) {
-      // Cargar perfil del usuario
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
@@ -89,17 +101,20 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
   };
 
   const handleCheckout = async () => {
-    if (!codigoPago.trim()) {
-      toast.error("Por favor ingresa tu código de pago");
-      return;
+    // Solo validar código si no es pago contra entrega o retiro
+    if (metodoEntrega === 'envio') {
+      if (!codigoPago.trim()) {
+        toast.error("Por favor ingresa tu código de pago");
+        return;
+      }
+      if (!codeValid) {
+        toast.error("Por favor valida tu código de pago primero");
+        return;
+      }
     }
 
-    if (!codeValid) {
-      toast.error("Por favor valida tu código de pago primero");
-      return;
-    }
-
-    if (!direccion.trim()) {
+    // Validar dirección solo si es necesaria
+    if (necesitaDireccion && !direccion.trim()) {
       toast.error("Por favor ingresa tu dirección de envío");
       return;
     }
@@ -112,7 +127,6 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         return;
       }
 
-      // Verificar perfil
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -124,15 +138,14 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         return;
       }
 
-      // Actualizar dirección en perfil si no la tenía
-      if (!profile.direccion || profile.direccion !== direccion) {
+      // Actualizar dirección en perfil si la proporcionó
+      if (direccion.trim() && (!profile.direccion || profile.direccion !== direccion)) {
         await supabase
           .from('profiles')
           .update({ direccion })
           .eq('user_id', user.id);
       }
 
-      // Generar código de pedido
       const { data: orderCode } = await supabase.rpc('generate_order_code');
 
       if (!orderCode) {
@@ -140,7 +153,18 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         return;
       }
 
-      // Crear pedido con estado "Pagado"
+      // Determinar estado según método
+      let estadoPedido = 'Pendiente';
+      let metodoPago = 'pago_contra_entrega';
+      
+      if (metodoEntrega === 'envio') {
+        estadoPedido = 'Pagado';
+        metodoPago = 'codigo_pago';
+      } else if (metodoEntrega === 'retiro') {
+        estadoPedido = 'Listo para retiro';
+        metodoPago = 'pago_contra_entrega';
+      }
+
       const { data: pedido, error: pedidoError } = await supabase
         .from('pedidos_online')
         .insert({
@@ -148,8 +172,8 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
           codigo_pedido: orderCode,
           subtotal,
           descuento,
-          total,
-          direccion_envio: direccion,
+          total: totalFinal,
+          direccion_envio: direccion || 'Retiro en tienda',
           items: cartItems.map(item => ({
             producto_id: item.producto_id,
             nombre: item.producto.nombre,
@@ -158,27 +182,31 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
             precio: item.producto.precio,
             color: item.color,
             talla: item.talla,
-            metodo_pago: 'codigo_pago',
-            codigo_pago: codigoPago
+            metodo_pago: metodoPago,
+            metodo_entrega: metodoEntrega,
+            codigo_pago: codigoPago || null,
+            costo_envio: costoEnvio
           })),
-          estado: 'Pagado'
+          estado: estadoPedido
         })
         .select()
         .single();
 
       if (pedidoError) throw pedidoError;
 
-      // Marcar código como usado
-      await supabase.functions.invoke('manage-payment-codes', {
-        body: { 
-          action: 'use', 
-          codigo: codigoPago,
-          userId: user.id,
-          pedidoId: pedido.id
-        }
-      });
+      // Marcar código como usado solo si se usó código de pago
+      if (metodoEntrega === 'envio' && codigoPago) {
+        await supabase.functions.invoke('manage-payment-codes', {
+          body: { 
+            action: 'use', 
+            codigo: codigoPago,
+            userId: user.id,
+            pedidoId: pedido.id
+          }
+        });
+      }
 
-      // Generar factura PDF
+      // Generar factura
       await supabase.functions.invoke('generate-invoice', {
         body: {
           pedido: {
@@ -186,7 +214,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
             cliente: profile.nombre_completo,
             correo: profile.correo,
             telefono: profile.telefono,
-            direccion: direccion,
+            direccion: direccion || 'Retiro en tienda',
             items: cartItems.map(item => ({
               nombre: item.producto.nombre,
               cantidad: item.cantidad,
@@ -195,8 +223,10 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
             })),
             subtotal,
             descuento,
-            total,
+            costo_envio: costoEnvio,
+            total: totalFinal,
             codigo_descuento: codigoDescuento,
+            metodo_entrega: metodoEntrega,
             fecha: new Date().toISOString()
           }
         }
@@ -208,19 +238,22 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         .delete()
         .eq('user_id', user.id);
 
-      // Notificar al administrador (Brillarte)
+      // Notificar al administrador
       const { data: adminData } = await supabase
         .from('profiles')
         .select('user_id')
         .eq('correo', 'oficial@brillarte.lat')
         .single();
 
+      const metodoTexto = metodoEntrega === 'envio' ? 'Envío Vimenpaq' : 
+                          metodoEntrega === 'pago_contra_entrega' ? 'Pago contra entrega' : 'Retiro';
+
       if (adminData) {
         await supabase.from('notifications').insert({
           user_id: adminData.user_id,
           tipo: 'pedido',
-          titulo: 'Nuevo Pedido Pagado',
-          mensaje: `Nuevo pedido ${orderCode} de ${profile.nombre_completo} por $${total.toFixed(2)} - Pagado con código`,
+          titulo: `Nuevo Pedido - ${metodoTexto}`,
+          mensaje: `Nuevo pedido ${orderCode} de ${profile.nombre_completo} por $${totalFinal.toFixed(2)} - ${metodoTexto}`,
           accion_url: `/admin-dashboard`
         });
       }
@@ -230,11 +263,10 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         user_id: user.id,
         tipo: 'pedido',
         titulo: '¡Pedido Confirmado!',
-        mensaje: `Tu pedido ${orderCode} ha sido procesado correctamente. Total: $${total.toFixed(2)}`,
+        mensaje: `Tu pedido ${orderCode} ha sido procesado. Total: $${totalFinal.toFixed(2)} - ${metodoTexto}`,
         accion_url: `/perfil?tab=pedidos`
       });
 
-      // Mostrar animación de éxito
       setOpen(false);
       setShowSuccess(true);
       
@@ -250,6 +282,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
     setShowSuccess(false);
     setCodigoPago("");
     setCodeValid(null);
+    setMetodoEntrega('envio');
     onSuccess?.();
   };
 
@@ -260,7 +293,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
       <Dialog open={open} onOpenChange={handleOpen}>
         <DialogTrigger asChild>
           <Button className="w-full" size="lg">
-            <ShoppingCart className="w-4 h-4 mr-2" />
+            <FaShoppingCart className="w-4 h-4 mr-2" />
             Proceder al Pago
           </Button>
         </DialogTrigger>
@@ -269,74 +302,115 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
             <DialogTitle>Finalizar Compra</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Código de Pago */}
-            <div className="space-y-2">
-              <Label htmlFor="codigo-pago" className="flex items-center gap-2">
-                <Key className="w-4 h-4 text-pink-500" />
-                Código de Pago *
-              </Label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    id="codigo-pago"
-                    placeholder="XXXX-XXXX-XX"
-                    value={codigoPago}
-                    onChange={(e) => {
-                      setCodigoPago(e.target.value.toUpperCase());
-                      setCodeValid(null);
-                      setCodeError("");
-                    }}
-                    className={`uppercase font-mono ${
-                      codeValid === true ? 'border-green-500 bg-green-50 dark:bg-green-950' : 
-                      codeValid === false ? 'border-red-500 bg-red-50 dark:bg-red-950' : ''
-                    }`}
-                    maxLength={12}
-                  />
-                  {codeValid === true && (
-                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
-                  )}
-                  {codeValid === false && (
-                    <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
-                  )}
+            {/* Método de entrega */}
+            <div className="space-y-3">
+              <Label className="font-medium">Método de entrega</Label>
+              <RadioGroup value={metodoEntrega} onValueChange={(v) => setMetodoEntrega(v as MetodoEntrega)}>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                  <RadioGroupItem value="envio" id="envio" />
+                  <Label htmlFor="envio" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <FaTruck className="w-4 h-4 text-primary" />
+                    <div>
+                      <p className="font-medium">Envío por Vimenpaq</p>
+                      <p className="text-xs text-muted-foreground">+${COSTO_ENVIO.toFixed(2)} (requiere código de pago)</p>
+                    </div>
+                  </Label>
                 </div>
-                <Button 
-                  type="button"
-                  variant="outline"
-                  onClick={validateCode}
-                  disabled={validatingCode || !codigoPago.trim()}
-                >
-                  {validatingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : "Validar"}
-                </Button>
-              </div>
-              {codeError && (
-                <p className="text-sm text-red-500">{codeError}</p>
-              )}
-              {codeValid && (
-                <p className="text-sm text-green-600">✓ Código válido y listo para usar</p>
-              )}
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                  <RadioGroupItem value="pago_contra_entrega" id="pago_contra_entrega" />
+                  <Label htmlFor="pago_contra_entrega" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <FaMoneyBillWave className="w-4 h-4 text-green-600" />
+                    <div>
+                      <p className="font-medium">Pago contra entrega</p>
+                      <p className="text-xs text-muted-foreground">Sin costo adicional - Pagas al recibir</p>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                  <RadioGroupItem value="retiro" id="retiro" />
+                  <Label htmlFor="retiro" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <FaStore className="w-4 h-4 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Retiro</p>
+                      <p className="text-xs text-muted-foreground">Sin costo adicional - Recoges en nuestra ubicación</p>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
 
-            {/* Link a guía */}
-            <Link 
-              to="/guia-codigos-pago" 
-              className="flex items-center gap-2 text-sm text-pink-600 hover:text-pink-700 dark:text-pink-400"
-              target="_blank"
-            >
-              <HelpCircle className="w-4 h-4" />
-              ¿Cómo obtener un código de pago?
-            </Link>
+            {/* Código de Pago - Solo si es envío */}
+            {metodoEntrega === 'envio' && (
+              <div className="space-y-2">
+                <Label htmlFor="codigo-pago" className="flex items-center gap-2">
+                  <FaKey className="w-4 h-4 text-pink-500" />
+                  Código de Pago *
+                </Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="codigo-pago"
+                      placeholder="XXXX-XXXX-XX"
+                      value={codigoPago}
+                      onChange={(e) => {
+                        setCodigoPago(e.target.value.toUpperCase());
+                        setCodeValid(null);
+                        setCodeError("");
+                      }}
+                      className={`uppercase font-mono ${
+                        codeValid === true ? 'border-green-500 bg-green-50 dark:bg-green-950' : 
+                        codeValid === false ? 'border-red-500 bg-red-50 dark:bg-red-950' : ''
+                      }`}
+                      maxLength={12}
+                    />
+                    {codeValid === true && (
+                      <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                    )}
+                    {codeValid === false && (
+                      <FaTimesCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={validateCode}
+                    disabled={validatingCode || !codigoPago.trim()}
+                  >
+                    {validatingCode ? <FaSpinner className="w-4 h-4 animate-spin" /> : "Validar"}
+                  </Button>
+                </div>
+                {codeError && (
+                  <p className="text-sm text-red-500">{codeError}</p>
+                )}
+                {codeValid && (
+                  <p className="text-sm text-green-600">✓ Código válido y listo para usar</p>
+                )}
+              </div>
+            )}
 
-            {/* Dirección */}
+            {/* Link a guía - Solo si es envío */}
+            {metodoEntrega === 'envio' && (
+              <Link 
+                to="/guia-codigos-pago" 
+                className="flex items-center gap-2 text-sm text-pink-600 hover:text-pink-700 dark:text-pink-400"
+                target="_blank"
+              >
+                <FaQuestionCircle className="w-4 h-4" />
+                ¿Cómo obtener un código de pago?
+              </Link>
+            )}
+
+            {/* Dirección - Opcional para retiro */}
             <div>
               <Label htmlFor="direccion">
-                Dirección de Envío *
-                {needsAddress && (
+                Dirección de Envío {necesitaDireccion ? '*' : '(opcional)'}
+                {needsAddress && necesitaDireccion && (
                   <span className="text-muted-foreground text-xs ml-2">(No tienes dirección guardada)</span>
                 )}
               </Label>
               <Textarea
                 id="direccion"
-                placeholder="Calle, número, ciudad, código postal..."
+                placeholder={metodoEntrega === 'retiro' ? "Opcional - Solo si quieres guardar tu dirección" : "Calle, número, ciudad, código postal..."}
                 value={direccion}
                 onChange={(e) => setDireccion(e.target.value)}
                 rows={3}
@@ -365,26 +439,32 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
                   <span>-${descuento.toFixed(2)}</span>
                 </div>
               )}
+              {costoEnvio > 0 && (
+                <div className="flex justify-between text-sm text-blue-600">
+                  <span>Costo de envío:</span>
+                  <span>+${costoEnvio.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold text-lg border-t pt-2">
                 <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
+                <span>${totalFinal.toFixed(2)}</span>
               </div>
             </div>
 
             <Button
               onClick={handleCheckout}
-              disabled={loading || !codeValid || !direccion.trim()}
+              disabled={loading || (metodoEntrega === 'envio' && !codeValid) || (necesitaDireccion && !direccion.trim())}
               className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
               size="lg"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <FaSpinner className="w-4 h-4 mr-2 animate-spin" />
                   Procesando...
                 </>
               ) : (
                 <>
-                  <FileText className="w-4 h-4 mr-2" />
+                  <FaFileAlt className="w-4 h-4 mr-2" />
                   Confirmar Pedido
                 </>
               )}
