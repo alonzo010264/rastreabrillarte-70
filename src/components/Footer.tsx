@@ -1,6 +1,5 @@
-import { Diamond, Heart, Instagram, Facebook, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { FaInstagram, FaFacebookF, FaTwitter, FaEnvelope, FaPhone, FaMapMarkerAlt, FaHeart } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import brillarteLogoFooter from "@/assets/brillarte-logo-footer-optimized.webp";
 const Footer = () => {
   return <footer className="bg-black text-white py-12 mt-12">
       <div className="container mx-auto px-4">
@@ -13,13 +12,13 @@ const Footer = () => {
             <p className="text-gray-300 mb-4 text-sm leading-relaxed">El Arte de Brillar. Productos únicos de calidad que reflejan tu personalidad. Pulseras, aretes, monederos y accesorios exclusivos para hacer brillar tu estilo.</p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <Instagram size={20} />
+                <FaInstagram size={20} />
               </a>
               <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <Facebook size={20} />
+                <FaFacebookF size={20} />
               </a>
               <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <Twitter size={20} />
+                <FaTwitter size={20} />
               </a>
             </div>
           </div>
@@ -108,25 +107,16 @@ const Footer = () => {
             
             <div className="space-y-2 text-sm">
               <div className="flex items-center text-gray-300">
-                <Mail size={16} className="mr-2" />
+                <FaEnvelope size={16} className="mr-2" />
                 <span>brillarte.oficial.ventas@gmail.com</span>
               </div>
               <div className="flex items-center text-gray-300">
-                <Phone size={16} className="mr-2" />
+                <FaPhone size={16} className="mr-2" />
                 <span>849-425-2220</span>
               </div>
               <div className="flex items-center text-gray-300">
-                <MapPin size={16} className="mr-2" />
+                <FaMapMarkerAlt size={16} className="mr-2" />
                 <span>Santiago de los Caballeros, RD</span>
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-3 border-t border-gray-700">
-              <p className="text-xs text-gray-400 mb-1">Enviamos con:</p>
-              <div className="flex flex-wrap gap-2 text-xs text-gray-300">
-                <span className="bg-gray-800 px-2 py-1 rounded">📦 Vimenpaq</span>
-                <span className="bg-gray-800 px-2 py-1 rounded">💵 Pago contra entrega</span>
-                <span className="bg-gray-800 px-2 py-1 rounded">🏬 Retiros en tienda</span>
               </div>
             </div>
           </div>
@@ -134,7 +124,7 @@ const Footer = () => {
         
         <div className="border-t border-gray-800 pt-6 text-center">
           <p className="text-gray-400 text-xs flex items-center justify-center mb-2">
-            Hecho con <Heart className="text-red-400 mx-1" size={12} /> para nuestros clientes
+            Hecho con <FaHeart className="text-red-400 mx-1" size={12} /> para nuestros clientes
           </p>
           <p className="text-gray-400 text-xs">
             © 2024 BRILLARTE. Todos los derechos reservados. Productos únicos de calidad.
