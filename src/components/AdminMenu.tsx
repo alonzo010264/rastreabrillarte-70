@@ -22,7 +22,8 @@ import {
   Ticket,
   Users,
   Calculator,
-  Bot
+  Bot,
+  Key
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -121,6 +122,11 @@ export const AdminMenu = () => {
         <DropdownMenuItem onClick={() => navigate('/admin/envios')}>
           <Package className="mr-2 h-4 w-4" />
           Gestion de Envios
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => navigate('/admin/codigos-pago')}>
+          <Key className="mr-2 h-4 w-4" />
+          Códigos de Pago
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

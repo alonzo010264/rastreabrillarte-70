@@ -112,13 +112,15 @@ const AdminSolicitudesIA = () => {
         })
         .eq('id', solicitud.id);
 
-      // If credit request and amount specified, add credit
-      if (solicitud.tipo === 'credito' && monto) {
+      // If credit OR refund request and amount specified, add credit
+      if ((solicitud.tipo === 'credito' || solicitud.tipo === 'reembolso') && monto) {
         await supabase.rpc('update_user_balance', {
           p_user_id: solicitud.user_id,
           p_monto: parseFloat(monto),
           p_tipo: 'credito',
-          p_concepto: 'Credito aprobado via solicitud IA',
+          p_concepto: solicitud.tipo === 'reembolso' 
+            ? 'Reembolso aprobado via solicitud IA' 
+            : 'Credito aprobado via solicitud IA',
           p_admin_id: user.id
         });
       }
@@ -127,12 +129,14 @@ const AdminSolicitudesIA = () => {
       await supabase.from('notifications').insert({
         user_id: solicitud.user_id,
         tipo: 'solicitud_aprobada',
-        titulo: 'Solicitud aprobada',
-        mensaje: `Tu solicitud de ${solicitud.tipo} ha sido aprobada${monto ? `. Monto: RD$${monto}` : ''}`,
+        titulo: solicitud.tipo === 'reembolso' ? 'Reembolso aprobado' : 'Solicitud aprobada',
+        mensaje: solicitud.tipo === 'reembolso' 
+          ? `Tu reembolso ha sido aprobado${monto ? `. Se han agregado RD$${monto} a tu saldo.` : ''}`
+          : `Tu solicitud de ${solicitud.tipo} ha sido aprobada${monto ? `. Monto: RD$${monto}` : ''}`,
         accion_url: '/cuenta'
       });
 
-      toast({ title: 'Solicitud aprobada' });
+      toast({ title: solicitud.tipo === 'reembolso' ? 'Reembolso procesado y saldo agregado' : 'Solicitud aprobada' });
       setSelectedSolicitud(null);
       setNotas('');
       setMonto('');
@@ -307,9 +311,11 @@ const AdminSolicitudesIA = () => {
                   </div>
                   <p className="text-sm">{selectedSolicitud.descripcion}</p>
 
-                  {selectedSolicitud.tipo === 'credito' && (
+                  {(selectedSolicitud.tipo === 'credito' || selectedSolicitud.tipo === 'reembolso') && (
                     <div>
-                      <label className="text-sm font-medium">Monto a otorgar (RD$)</label>
+                      <label className="text-sm font-medium">
+                        {selectedSolicitud.tipo === 'reembolso' ? 'Monto a reembolsar (RD$)' : 'Monto a otorgar (RD$)'}
+                      </label>
                       <input
                         type="number"
                         value={monto}
@@ -317,6 +323,11 @@ const AdminSolicitudesIA = () => {
                         placeholder="0.00"
                         className="w-full mt-1 p-2 border rounded"
                       />
+                      {selectedSolicitud.tipo === 'reembolso' && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          El monto se agregará automáticamente al saldo del cliente
+                        </p>
+                      )}
                     </div>
                   )}
 

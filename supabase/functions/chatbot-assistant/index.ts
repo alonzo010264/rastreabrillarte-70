@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, email, orderCode, userId } = await req.json();
+    const { messages, email, orderCode, userId, imageUrl } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -59,6 +59,7 @@ PEDIDO ${orderCode}:
 
     // Buscar perfil del usuario
     let userProfile = null;
+    let isAgent = false;
     if (userId) {
       const { data } = await supabase
         .from('profiles')
@@ -66,18 +67,81 @@ PEDIDO ${orderCode}:
         .eq('user_id', userId)
         .single();
       userProfile = data;
+      
+      // Check if user is verified (official agent)
+      isAgent = data?.verificado === true;
     }
 
     // Detectar intenciones en el ultimo mensaje
     const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
     let actionTaken = null;
     let ticketCreated = null;
+    let agentData = null;
 
-    // Detectar solicitud de credito
+    // Si es un agente verificado, permitir consultas especiales
+    if (isAgent) {
+      // Consultar códigos de pago usados
+      if (lastMessage.includes('codigos usados') || lastMessage.includes('códigos usados') || 
+          lastMessage.includes('codigos de pago') || lastMessage.includes('códigos de pago')) {
+        const { data: codigosUsados } = await supabase
+          .from('codigos_pago')
+          .select('codigo, usado_at, usado_por')
+          .eq('usado', true)
+          .order('usado_at', { ascending: false })
+          .limit(10);
+
+        if (codigosUsados && codigosUsados.length > 0) {
+          const codigosList = codigosUsados.map(c => 
+            `- ${c.codigo} (usado el ${new Date(c.usado_at).toLocaleDateString()})`
+          ).join('\n');
+          agentData = `CODIGOS DE PAGO USADOS (ultimos 10):\n${codigosList}`;
+        } else {
+          agentData = 'No hay codigos de pago usados recientemente.';
+        }
+        actionTaken = 'CONSULTA_AGENTE';
+      }
+
+      // Consultar códigos disponibles
+      if (lastMessage.includes('codigos disponibles') || lastMessage.includes('códigos disponibles')) {
+        const { data: codigosDisponibles } = await supabase
+          .from('codigos_pago')
+          .select('codigo')
+          .eq('usado', false);
+
+        if (codigosDisponibles && codigosDisponibles.length > 0) {
+          const codigosList = codigosDisponibles.map(c => `- ${c.codigo}`).join('\n');
+          agentData = `CODIGOS DE PAGO DISPONIBLES:\n${codigosList}`;
+        } else {
+          agentData = 'No hay codigos de pago disponibles. Se generaran automaticamente.';
+        }
+        actionTaken = 'CONSULTA_AGENTE';
+      }
+
+      // Consultar solicitudes pendientes
+      if (lastMessage.includes('solicitudes pendientes') || lastMessage.includes('pendientes')) {
+        const { data: solicitudesPendientes } = await supabase
+          .from('solicitudes_ia')
+          .select('tipo, descripcion, created_at')
+          .eq('estado', 'pendiente')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (solicitudesPendientes && solicitudesPendientes.length > 0) {
+          const solList = solicitudesPendientes.map(s => 
+            `- ${s.tipo.toUpperCase()}: ${s.descripcion.slice(0, 50)}...`
+          ).join('\n');
+          agentData = `SOLICITUDES PENDIENTES:\n${solList}`;
+        } else {
+          agentData = 'No hay solicitudes pendientes.';
+        }
+        actionTaken = 'CONSULTA_AGENTE';
+      }
+    }
+
+    // Detectar solicitud de credito (solo para usuarios verificados)
     if (lastMessage.includes('credito') || lastMessage.includes('crédito') || 
         lastMessage.includes('solicitar credito') || lastMessage.includes('quiero credito')) {
       if (userId && userProfile?.verificado) {
-        // Crear solicitud de credito
         const { data: solicitud, error } = await supabase
           .from('solicitudes_ia')
           .insert({
@@ -92,7 +156,6 @@ PEDIDO ${orderCode}:
         if (!error) {
           actionTaken = 'SOLICITUD_CREDITO';
           
-          // Notificar a BRILLARTE
           const { data: brillarteProfile } = await supabase
             .from('profiles')
             .select('user_id')
@@ -112,17 +175,18 @@ PEDIDO ${orderCode}:
       }
     }
 
-    // Detectar solicitud de reembolso
+    // Detectar solicitud de reembolso - mejorado para recopilar más información
     if (lastMessage.includes('reembolso') || lastMessage.includes('devolucion') || 
-        lastMessage.includes('devolver dinero') || lastMessage.includes('me devuelvan')) {
+        lastMessage.includes('devolver dinero') || lastMessage.includes('me devuelvan') ||
+        lastMessage.includes('devolver') || lastMessage.includes('reembolsar')) {
       if (userId) {
-        // Crear solicitud de reembolso pendiente
+        // Crear solicitud de reembolso con información adicional
         const { data: solicitud, error } = await supabase
           .from('solicitudes_ia')
           .insert({
             user_id: userId,
             tipo: 'reembolso',
-            descripcion: `Solicitud de reembolso via chatbot. Pedido: ${orderCode || 'No especificado'}. Mensaje: "${messages[messages.length - 1]?.content}"`,
+            descripcion: `Solicitud de reembolso via chatbot. Pedido: ${orderCode || 'No especificado'}. Mensaje: "${messages[messages.length - 1]?.content}"${imageUrl ? `. Imagen adjunta: ${imageUrl}` : ''}`,
             monto: null
           })
           .select()
@@ -130,6 +194,23 @@ PEDIDO ${orderCode}:
 
         if (!error) {
           actionTaken = 'SOLICITUD_REEMBOLSO';
+          
+          // Notificar a admin
+          const { data: brillarteProfile } = await supabase
+            .from('profiles')
+            .select('user_id')
+            .eq('correo', 'oficial@brillarte.lat')
+            .single();
+
+          if (brillarteProfile) {
+            await supabase.from('notifications').insert({
+              user_id: brillarteProfile.user_id,
+              tipo: 'solicitud_reembolso',
+              titulo: 'Nueva solicitud de reembolso',
+              mensaje: `${userProfile?.nombre_completo || email} solicita reembolso${orderCode ? ` para pedido ${orderCode}` : ''}`,
+              accion_url: '/admin/solicitudes-ia'
+            });
+          }
         }
       }
     }
@@ -140,7 +221,6 @@ PEDIDO ${orderCode}:
     const needsTicket = ticketKeywords.some(keyword => lastMessage.includes(keyword));
 
     if (needsTicket && userId && !actionTaken) {
-      // Crear ticket automaticamente
       const { data: ticket, error } = await supabase
         .from('tickets_ayuda')
         .insert({
@@ -159,7 +239,6 @@ PEDIDO ${orderCode}:
         ticketCreated = ticket;
         actionTaken = 'TICKET_CREADO';
 
-        // Agregar primera respuesta de la IA
         await supabase.from('respuestas_tickets').insert({
           ticket_id: ticket.id,
           mensaje: 'Ticket creado automaticamente por el asistente virtual. Un agente revisara tu caso pronto.',
@@ -169,7 +248,27 @@ PEDIDO ${orderCode}:
     }
 
     // Construir system prompt mejorado
-    const systemPrompt = `Eres el asistente oficial de BRILLARTE. Ayudas a clientes con todo lo que necesiten.
+    let systemPrompt = '';
+    
+    if (isAgent) {
+      systemPrompt = `Eres el asistente oficial de BRILLARTE para AGENTES. El usuario actual es un agente verificado de BRILLARTE.
+
+SALUDO ESPECIAL: Siempre saluda con "Hola Agente de BRILLARTE, en que puedo ayudarte hoy?"
+
+CAPACIDADES PARA AGENTES:
+- Puedes mostrar codigos de pago usados y disponibles
+- Puedes mostrar solicitudes pendientes
+- Puedes dar informacion detallada de pedidos
+- Tienes acceso a datos internos
+
+${agentData ? `DATOS SOLICITADOS:\n${agentData}` : ''}
+
+REGLAS:
+- Respuestas claras y profesionales
+- NO usar emojis ni asteriscos
+- Proporcionar datos exactos cuando se soliciten`;
+    } else {
+      systemPrompt = `Eres el asistente oficial de BRILLARTE. Ayudas a clientes con todo lo que necesiten.
 
 INFORMACION DE LA EMPRESA:
 - Productos: Pulseras, aretes, monederos artesanales hechos a mano
@@ -178,11 +277,24 @@ INFORMACION DE LA EMPRESA:
 - WhatsApp: 849-425-2220
 - Horarios: Lun-Vie 9AM-6PM
 
+METODOS DE PAGO Y ENVIO:
+- Codigos de pago (prepago con agente)
+- Pago contra entrega
+- Retiros en tienda
+- Envios por Vimenpaq
+
 CAPACIDADES:
 - Puedes ayudar a solicitar creditos (solo para cuentas verificadas)
 - Puedes crear tickets de soporte automaticamente
-- Puedes ayudar con reembolsos (pero NO aprobarlos, solo registrar la solicitud)
+- Puedes ayudar con reembolsos - pregunta: que problema tuviste? codigo de pedido? 
 - Puedes dar informacion sobre pedidos
+- Los clientes pueden subir imagenes de sus productos
+
+PROCESO DE REEMBOLSO:
+1. Pregunta que problema tuvo con el producto
+2. Pide el codigo de pedido si no lo tiene
+3. Solicita que suba foto del producto si es necesario
+4. Registra la solicitud para revision
 
 REGLAS:
 - Respuestas cortas y claras (maximo 3-4 lineas)
@@ -190,14 +302,19 @@ REGLAS:
 - NO aprobar reembolsos ni creditos directamente, solo informar que se registro la solicitud
 - Si creaste un ticket, informar al cliente que un agente lo atendera
 - Se amable y profesional
+- Entiende variaciones del lenguaje humano (errores de escritura, jerga, etc.)`;
+    }
+
+    systemPrompt += `
 
 ${actionTaken === 'SOLICITUD_CREDITO' ? 'ACCION: Se registro solicitud de credito. Informar que sera revisada por el equipo.' : ''}
-${actionTaken === 'SOLICITUD_REEMBOLSO' ? 'ACCION: Se registro solicitud de reembolso. Informar que sera revisada por un agente.' : ''}
+${actionTaken === 'SOLICITUD_REEMBOLSO' ? 'ACCION: Se registro solicitud de reembolso. Informar que sera revisada por un agente. Pregunta si desea agregar mas informacion o imagenes.' : ''}
 ${actionTaken === 'TICKET_CREADO' ? `ACCION: Se creo ticket #${ticketCreated?.id?.slice(0, 8)}. Informar que un agente lo atendera pronto.` : ''}
+${actionTaken === 'CONSULTA_AGENTE' ? 'ACCION: Consulta de agente procesada. Muestra los datos solicitados.' : ''}
 
 Cliente: ${email}
 ${userProfile ? `Nombre: ${userProfile.nombre_completo}` : ''}
-${userProfile?.verificado ? 'Estado: Cuenta verificada' : ''}
+${userProfile?.verificado ? 'Estado: Cuenta verificada (AGENTE BRILLARTE)' : ''}
 ${userProfile?.saldo ? `Saldo: RD$${userProfile.saldo}` : ''}
 ${orderInfo}`;
 
@@ -213,8 +330,7 @@ ${orderInfo}`;
           { role: 'system', content: systemPrompt },
           ...messages
         ],
-        temperature: 0.7,
-        max_tokens: 300
+        max_tokens: 400
       }),
     });
 
@@ -231,7 +347,8 @@ ${orderInfo}`;
       JSON.stringify({ 
         response: assistantMessage,
         action: actionTaken,
-        ticketId: ticketCreated?.id
+        ticketId: ticketCreated?.id,
+        isAgent
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -66,6 +66,60 @@ const OrderTracker = () => {
     setSearchAttempted(true);
     
     try {
+      // Primero buscar en pedidos_online (tienda online)
+      const { data: pedidoOnline } = await supabase
+        .from('pedidos_online')
+        .select('*, empresas_envio(nombre)')
+        .eq('codigo_pedido', orderCode)
+        .single();
+
+      if (pedidoOnline) {
+        const orderData = {
+          orderCode: pedidoOnline.codigo_pedido,
+          customerName: 'Cliente',
+          currentStatus: pedidoOnline.estado,
+          totalAmount: pedidoOnline.total || 0,
+          trackingNumber: pedidoOnline.tracking_envio,
+          shippingCompany: pedidoOnline.empresas_envio?.nombre,
+          estimatedDelivery: pedidoOnline.fecha_envio || undefined,
+          statusHistory: [
+            {
+              status: 'Recibido',
+              date: new Date(pedidoOnline.created_at).toLocaleDateString(),
+              time: new Date(pedidoOnline.created_at).toLocaleTimeString(),
+              description: 'Pedido recibido',
+              category: 'processing' as const
+            },
+            ...(pedidoOnline.estado === 'Pagado' ? [{
+              status: 'Pagado',
+              date: new Date(pedidoOnline.updated_at || pedidoOnline.created_at).toLocaleDateString(),
+              time: new Date(pedidoOnline.updated_at || pedidoOnline.created_at).toLocaleTimeString(),
+              description: 'Pago confirmado',
+              category: 'processing' as const
+            }] : []),
+            ...(pedidoOnline.estado === 'Enviado' || pedidoOnline.tracking_envio ? [{
+              status: 'Enviado',
+              date: pedidoOnline.fecha_envio ? new Date(pedidoOnline.fecha_envio).toLocaleDateString() : 'Pendiente',
+              time: pedidoOnline.fecha_envio ? new Date(pedidoOnline.fecha_envio).toLocaleTimeString() : '',
+              description: `Enviado por ${pedidoOnline.empresas_envio?.nombre || 'courier'}${pedidoOnline.tracking_envio ? ` - Tracking: ${pedidoOnline.tracking_envio}` : ''}`,
+              category: 'shipping' as const
+            }] : []),
+            ...(pedidoOnline.estado === 'Entregado' ? [{
+              status: 'Entregado',
+              date: new Date().toLocaleDateString(),
+              time: '',
+              description: 'Pedido entregado al cliente',
+              category: 'shipping' as const
+            }] : [])
+          ]
+        };
+
+        setOrderFound(orderData);
+        setIsSearching(false);
+        return;
+      }
+
+      // Si no está en pedidos_online, buscar en Pedidos (sistema anterior)
       const { data: pedido, error } = await supabase
         .from('Pedidos')
         .select(`
@@ -117,15 +171,23 @@ const OrderTracker = () => {
   };
 
   const formatCode = (value: string) => {
-    let formatted = value.toUpperCase().replace(/[^B0-9]/g, '');
+    // Soportar formato B01-XXXXX y BXXXXX-XXXXX
+    let formatted = value.toUpperCase().replace(/[^B0-9\-]/g, '');
+    
+    // Si es formato de tienda online (BXXXXX-XXXXX)
+    if (formatted.length > 6 && formatted.includes('-')) {
+      return formatted.slice(0, 12);
+    }
+    
+    // Si es formato antiguo (B01-XXXXX)
     if (formatted.startsWith('B') && formatted.length > 1) {
       if (formatted.length <= 3) {
         formatted = formatted.replace(/^B(\d*)/, 'B$1');
-      } else {
+      } else if (!formatted.includes('-')) {
         formatted = formatted.replace(/^B(\d{2})(\d*)/, 'B$1-$2');
       }
     }
-    return formatted.slice(0, 9);
+    return formatted.slice(0, 12);
   };
 
   const handleNewSearch = () => {
@@ -325,25 +387,25 @@ const OrderTracker = () => {
           </label>
           <Input
             type="text"
-            placeholder="B01-00000"
+            placeholder="B01-00000 o B00000-00000"
             value={orderCode}
             onChange={(e) => setOrderCode(formatCode(e.target.value))}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && orderCode.length === 9 && !isSearching) {
+              if (e.key === 'Enter' && orderCode.length >= 9 && !isSearching) {
                 handleSearch();
               }
             }}
             className="text-center text-lg font-mono tracking-wider border-gray-200 focus:border-gray-400 focus:ring-gray-400 rounded-xl h-12"
-            maxLength={9}
+            maxLength={12}
           />
           <p className="text-xs text-gray-500 mt-2 text-center">
-            Tu código inicia con B01- seguido de 5 dígitos
+            Tu código puede ser B01-XXXXX (antiguo) o BXXXXX-XXXXX (tienda online)
           </p>
         </div>
 
         <Button 
           onClick={handleSearch}
-          disabled={orderCode.length !== 9 || isSearching}
+          disabled={orderCode.length < 9 || isSearching}
           className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 text-base rounded-xl transition-all duration-300 disabled:bg-gray-300"
         >
           {isSearching ? (

@@ -120,6 +120,15 @@ const Footer = () => {
                 <span>Santiago de los Caballeros, RD</span>
               </div>
             </div>
+            
+            <div className="mt-4 pt-3 border-t border-gray-700">
+              <p className="text-xs text-gray-400 mb-1">Enviamos con:</p>
+              <div className="flex flex-wrap gap-2 text-xs text-gray-300">
+                <span className="bg-gray-800 px-2 py-1 rounded">📦 Vimenpaq</span>
+                <span className="bg-gray-800 px-2 py-1 rounded">💵 Pago contra entrega</span>
+                <span className="bg-gray-800 px-2 py-1 rounded">🏬 Retiros en tienda</span>
+              </div>
+            </div>
           </div>
         </div>
         
