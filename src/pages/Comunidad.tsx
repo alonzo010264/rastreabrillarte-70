@@ -525,15 +525,28 @@ const Comunidad = () => {
             userLike = data;
           }
 
+          // Si es respuesta de IA sin user_id, usar perfil de BRILLARTE
+          const defaultProfile = resp.es_ia 
+            ? { 
+                nombre_completo: 'BRILLARTE', 
+                avatar_url: brillarteLogo, 
+                verificado: true, 
+                correo: BRILLARTE_OFFICIAL_EMAIL,
+                identificador: 'brillarte.do',
+                isOfficial: true
+              }
+            : { 
+                nombre_completo: 'Usuario', 
+                avatar_url: null, 
+                verificado: false, 
+                correo: '',
+                identificador: '',
+                isOfficial: false
+              };
+
           return {
             ...resp,
-            profiles: profileData || { 
-              nombre_completo: resp.es_ia ? 'Asistente IA' : 'Usuario', 
-              avatar_url: null, 
-              verificado: false, 
-              correo: '',
-              identificador: ''
-            },
+            profiles: profileData || defaultProfile,
             likes_count: likesCount || 0,
             user_liked: !!userLike
           };
