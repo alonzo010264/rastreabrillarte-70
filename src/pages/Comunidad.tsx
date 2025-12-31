@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Send, Sparkles, Trash2, Mail, AtSign } from 'lucide-react';
+import { Heart, MessageCircle, Send, Sparkles, Trash2, Mail, AtSign, User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link, useNavigate } from 'react-router-dom';
@@ -340,15 +340,31 @@ const Comunidad = () => {
     }
   };
 
-  // Navegar a chat al hacer clic en nombre
+  // Navegar al perfil del usuario al hacer clic en nombre
   const handleNameClick = (e: React.MouseEvent, userId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    if (user && user.id !== userId) {
-      navigate(`/mensajes?userId=${userId}`);
-    } else if (!user) {
+    // Siempre navegar al perfil público, excepto si es el propio usuario
+    if (user?.id === userId) {
+      navigate('/perfil');
+    } else {
       navigate(`/perfil-publico/${userId}`);
     }
+  };
+
+  // Navegar a mensajes
+  const handleMessageClick = (e: React.MouseEvent, userId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast({
+        title: 'Inicia sesión',
+        description: 'Necesitas iniciar sesión para enviar mensajes',
+        variant: 'destructive'
+      });
+      return;
+    }
+    navigate(`/mensajes?userId=${userId}`);
   };
 
   const handleCreatePost = async () => {
@@ -754,11 +770,7 @@ const Comunidad = () => {
                     {/* Boton de mensaje al hover en avatar */}
                     {user && user.id !== post.user_id && (
                       <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          navigate(`/mensajes?userId=${post.user_id}`);
-                        }}
+                        onClick={(e) => handleMessageClick(e, post.user_id)}
                         className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110"
                         title="Enviar mensaje"
                       >
@@ -771,7 +783,7 @@ const Comunidad = () => {
                       <button 
                         onClick={(e) => handleNameClick(e, post.user_id)}
                         className="hover:underline"
-                        title={user && user.id !== post.user_id ? "Enviar mensaje" : "Ver perfil"}
+                        title="Ver perfil"
                       >
                         <span className={`font-semibold ${isOfficialAccount ? 'text-primary' : ''}`}>
                           {post.profiles?.nombre_completo}
@@ -842,14 +854,24 @@ const Comunidad = () => {
                         {post.respuestas_count || 0}
                       </Button>
                       {user && user.id !== post.user_id && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/mensajes?userId=${post.user_id}`)}
-                        >
-                          <Mail className="w-4 h-4 mr-1" />
-                          Mensaje
-                        </Button>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleNameClick(e, post.user_id)}
+                          >
+                            <User className="w-4 h-4 mr-1" />
+                            Perfil
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleMessageClick(e, post.user_id)}
+                          >
+                            <Mail className="w-4 h-4 mr-1" />
+                            Mensaje
+                          </Button>
+                        </>
                       )}
                     </div>
 
@@ -879,11 +901,7 @@ const Comunidad = () => {
                                   {/* Boton de mensaje al hover */}
                                   {user && user.id !== resp.user_id && resp.user_id && (
                                     <button
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        navigate(`/mensajes?userId=${resp.user_id}`);
-                                      }}
+                                      onClick={(e) => handleMessageClick(e, resp.user_id!)}
                                       className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110"
                                       title="Enviar mensaje"
                                     >
@@ -898,7 +916,7 @@ const Comunidad = () => {
                                     <button 
                                       onClick={(e) => resp.user_id && handleNameClick(e, resp.user_id)}
                                       className="hover:underline"
-                                      title={user && user.id !== resp.user_id ? "Enviar mensaje" : "Ver perfil"}
+                                      title="Ver perfil"
                                     >
                                       <span className={`text-sm font-semibold ${isRespOfficialAccount ? 'text-primary' : ''}`}>
                                         {resp.profiles?.nombre_completo}
