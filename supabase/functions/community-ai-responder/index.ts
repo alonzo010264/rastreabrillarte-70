@@ -34,6 +34,16 @@ serve(async (req) => {
     // Wait 30 seconds before responding
     await new Promise(resolve => setTimeout(resolve, 30000));
 
+    // Get the official BRILLARTE user_id to use for the response
+    const { data: brillarteProfile } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .eq('correo', 'oficial@brillarte.lat')
+      .single();
+
+    const brillarteUserId = brillarteProfile?.user_id || null;
+    console.log('Using BRILLARTE user_id for response:', brillarteUserId);
+
     // Generate AI response
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -46,7 +56,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "Eres un miembro activo de la comunidad BRILLARTE con experiencia en accesorios y joyería. Responde de forma natural, breve (máximo 2-3 oraciones), amigable y directa. NO uses emojis. Habla como una persona real que ayuda a otros en la comunidad. Si no sabes algo con certeza, sugiere contactar al equipo."
+            content: "Eres BRILLARTE, la cuenta oficial de una tienda de accesorios y joyería artesanal dominicana. Responde de forma profesional pero amigable, breve (máximo 2-3 oraciones), y directa. NO uses emojis. Habla como el representante oficial de la marca ayudando a la comunidad. Si no sabes algo con certeza, invita a contactar al equipo por mensaje directo."
           },
           {
             role: "user",
@@ -61,16 +71,16 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    const respuestaIA = aiData.choices[0]?.message?.content || "Lo siento, no pude generar una respuesta en este momento.";
+    const respuestaIA = aiData.choices[0]?.message?.content || "Gracias por tu mensaje. Por favor contáctanos por mensaje directo para más información.";
 
-    // Insert AI response
+    // Insert AI response using BRILLARTE's user_id so it shows their profile
     const { error: insertError } = await supabase
       .from('respuestas_comunidad')
       .insert({
         post_id: postId,
         contenido: respuestaIA,
         es_ia: true,
-        user_id: null
+        user_id: brillarteUserId // Now using the official account's user_id
       });
 
     if (insertError) throw insertError;
@@ -83,7 +93,7 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
-    console.log('AI response created successfully');
+    console.log('AI response created successfully as BRILLARTE');
 
     return new Response(
       JSON.stringify({ success: true, respuesta: respuestaIA }),
