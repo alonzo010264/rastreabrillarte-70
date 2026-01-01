@@ -10,10 +10,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Send, ArrowLeft, ImagePlus, Loader2, MessageCircle } from 'lucide-react';
+import { Send, ArrowLeft, ImagePlus, Loader2, MessageCircle, Search, User } from 'lucide-react';
 import verificadoIcon from '@/assets/verificado-icon.png';
 import { useToast } from '@/hooks/use-toast';
 import VerifiedAccountsModal from '@/components/VerifiedAccountsModal';
+import SearchAccountsModal, { AccountResult } from '@/components/SearchAccountsModal';
 import brillarteLogo from '@/assets/brillarte-logo-new.jpg';
 
 const BRILLARTE_OFFICIAL_EMAIL = 'oficial@brillarte.lat';
@@ -42,6 +43,8 @@ interface Conversation {
     avatar_url: string | null;
     verificado: boolean;
     isOfficial?: boolean;
+    identificador?: string | null;
+    displayName: string; // Lo que se muestra según verificación
   };
 }
 
@@ -59,6 +62,7 @@ const Mensajes = () => {
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [showVerifiedModal, setShowVerifiedModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const targetUserId = searchParams.get('userId');
@@ -119,24 +123,37 @@ const Mensajes = () => {
           if (otherParticipant) {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('nombre_completo, avatar_url, verificado, correo')
+              .select('nombre_completo, avatar_url, verificado, correo, identificador')
               .eq('user_id', otherParticipant.user_id)
               .single();
 
             const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL || profile?.correo?.endsWith('@brillarte.lat');
+            const isVerified = isOfficial || profile?.verificado;
+            
+            // Determinar displayName según verificación
+            let displayName: string;
+            if (isOfficial) {
+              displayName = 'BRILLARTE';
+            } else if (isVerified) {
+              displayName = profile?.nombre_completo || 'Usuario';
+            } else {
+              displayName = profile?.identificador ? `@${profile.identificador}` : 'Usuario';
+            }
 
             return {
               ...conv,
               other_user: {
                 id: otherParticipant.user_id,
                 nombre_completo: isOfficial ? 'BRILLARTE' : (profile?.nombre_completo || 'Usuario'),
-                avatar_url: isOfficial ? brillarteLogo : profile?.avatar_url,
-                verificado: isOfficial ? true : (profile?.verificado || false),
-                isOfficial
+                avatar_url: isOfficial ? brillarteLogo : (isVerified ? profile?.avatar_url : null),
+                verificado: isVerified,
+                isOfficial,
+                identificador: profile?.identificador,
+                displayName
               }
             };
           }
-          return conv;
+          return { ...conv, other_user: undefined } as Conversation;
         })
       );
 
@@ -367,6 +384,13 @@ const Mensajes = () => {
     }
   };
 
+  const handleSelectAccount = async (account: AccountResult) => {
+    const convId = await getOrCreateConversation(account.user_id);
+    if (convId) {
+      setCurrentConversation(convId);
+    }
+  };
+
   // Usuario no autenticado
   if (!user) {
     return (
@@ -416,15 +440,26 @@ const Mensajes = () => {
               </Button>
               <h1 className="text-3xl font-bold">Mensajes</h1>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowVerifiedModal(true)}
-              className="gap-2"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Cuentas Verificadas
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowSearchModal(true)}
+                className="gap-2"
+              >
+                <Search className="h-4 w-4" />
+                Buscar
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowVerifiedModal(true)}
+                className="gap-2"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Verificadas
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
@@ -458,15 +493,23 @@ const Mensajes = () => {
                         }`}
                       >
                         <Avatar className={`h-10 w-10 ${conv.other_user?.isOfficial ? 'ring-2 ring-primary' : ''}`}>
-                          <AvatarImage src={conv.other_user?.avatar_url || undefined} />
-                          <AvatarFallback className={conv.other_user?.isOfficial ? 'bg-primary text-primary-foreground' : ''}>
-                            {conv.other_user?.nombre_completo?.[0]?.toUpperCase() || 'U'}
-                          </AvatarFallback>
+                          {conv.other_user?.verificado ? (
+                            <>
+                              <AvatarImage src={conv.other_user?.avatar_url || undefined} />
+                              <AvatarFallback className={conv.other_user?.isOfficial ? 'bg-primary text-primary-foreground' : ''}>
+                                {conv.other_user?.displayName?.[0]?.toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </>
+                          ) : (
+                            <AvatarFallback className="bg-muted">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1">
                             <p className={`font-medium text-sm truncate ${conv.other_user?.isOfficial ? 'text-primary' : ''}`}>
-                              {conv.other_user?.nombre_completo || 'Usuario'}
+                              {conv.other_user?.displayName || 'Usuario'}
                             </p>
                             {conv.other_user?.verificado && (
                               <img src={verificadoIcon} alt="Verificado" className="w-3 h-3 flex-shrink-0" />
@@ -493,15 +536,23 @@ const Mensajes = () => {
                   {/* Header */}
                   <div className="p-4 border-b flex items-center gap-3">
                     <Avatar className={`h-10 w-10 ${currentConversationData.other_user.isOfficial ? 'ring-2 ring-primary' : ''}`}>
-                      <AvatarImage src={currentConversationData.other_user.avatar_url || undefined} />
-                      <AvatarFallback className={currentConversationData.other_user.isOfficial ? 'bg-primary text-primary-foreground' : ''}>
-                        {currentConversationData.other_user.nombre_completo[0]?.toUpperCase()}
-                      </AvatarFallback>
+                      {currentConversationData.other_user.verificado ? (
+                        <>
+                          <AvatarImage src={currentConversationData.other_user.avatar_url || undefined} />
+                          <AvatarFallback className={currentConversationData.other_user.isOfficial ? 'bg-primary text-primary-foreground' : ''}>
+                            {currentConversationData.other_user.displayName[0]?.toUpperCase()}
+                          </AvatarFallback>
+                        </>
+                      ) : (
+                        <AvatarFallback className="bg-muted">
+                          <User className="h-5 w-5 text-muted-foreground" />
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-1">
                         <span className={`font-semibold ${currentConversationData.other_user.isOfficial ? 'text-primary' : ''}`}>
-                          {currentConversationData.other_user.nombre_completo}
+                          {currentConversationData.other_user.displayName}
                         </span>
                         {currentConversationData.other_user.verificado && (
                           <img src={verificadoIcon} alt="Verificado" className="w-4 h-4" />
@@ -635,6 +686,12 @@ const Mensajes = () => {
         open={showVerifiedModal}
         onOpenChange={setShowVerifiedModal}
         onSelectAccount={handleSelectVerifiedAccount}
+      />
+      
+      <SearchAccountsModal
+        open={showSearchModal}
+        onOpenChange={setShowSearchModal}
+        onSelectAccount={handleSelectAccount}
       />
       
       <Footer />

@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Send, ImagePlus, Loader2 } from 'lucide-react';
+import { Send, ImagePlus, Loader2, User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import verificadoIcon from '@/assets/verificado-icon.png';
@@ -278,16 +278,27 @@ const ChatPopup = ({
     }
   };
 
+  // Determinar si mostrar avatar según verificación
+  const showAvatar = targetUserVerified || isOfficial;
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md h-[600px] flex flex-col p-0">
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-3">
             <Avatar className={isOfficial ? 'ring-2 ring-primary' : ''}>
-              <AvatarImage src={targetUserAvatar || undefined} />
-              <AvatarFallback className={isOfficial ? 'bg-primary text-primary-foreground' : ''}>
-                {targetUserName[0]?.toUpperCase()}
-              </AvatarFallback>
+              {showAvatar ? (
+                <>
+                  <AvatarImage src={targetUserAvatar || undefined} />
+                  <AvatarFallback className={isOfficial ? 'bg-primary text-primary-foreground' : ''}>
+                    {targetUserName[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </>
+              ) : (
+                <AvatarFallback className="bg-muted">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                </AvatarFallback>
+              )}
             </Avatar>
             <div>
               <div className="flex items-center gap-2">

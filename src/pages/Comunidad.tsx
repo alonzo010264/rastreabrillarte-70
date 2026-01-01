@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Send, Sparkles, Trash2, Mail, AtSign, User, MessagesSquare, Users } from 'lucide-react';
+import { Heart, MessageCircle, Send, Sparkles, Trash2, Mail, AtSign, User, MessagesSquare, Users, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link, useNavigate } from 'react-router-dom';
@@ -16,6 +16,7 @@ import CreditRequestModal from '@/components/CreditRequestModal';
 import MentionInput, { RenderMentions } from '@/components/MentionInput';
 import ChatPopup from '@/components/ChatPopup';
 import VerifiedAccountsModal from '@/components/VerifiedAccountsModal';
+import SearchAccountsModal, { AccountResult } from '@/components/SearchAccountsModal';
 interface Post {
   id: string;
   contenido: string;
@@ -71,6 +72,7 @@ const Comunidad = () => {
   const [showChatPopup, setShowChatPopup] = useState(false);
   const [chatTarget, setChatTarget] = useState<{userId: string; name: string; avatar?: string; verified?: boolean; isOfficial?: boolean} | null>(null);
   const [showVerifiedModal, setShowVerifiedModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -741,7 +743,16 @@ const Comunidad = () => {
             <p className="text-muted-foreground mb-4">
               Comparte experiencias, haz preguntas y conecta con otros. Usa @usuario para mencionar.
             </p>
-            <div className="flex justify-center gap-3">
+            <div className="flex justify-center gap-3 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSearchModal(true)}
+                className="gap-2"
+              >
+                <Search className="h-4 w-4" />
+                Buscar Usuarios
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -749,7 +760,7 @@ const Comunidad = () => {
                 className="gap-2"
               >
                 <Users className="h-4 w-4" />
-                Cuentas Verificadas
+                Verificadas
               </Button>
               <Button
                 variant="outline"
@@ -1070,6 +1081,48 @@ const Comunidad = () => {
           )}
         </div>
       </div>
+      
+      {/* Modals */}
+      <VerifiedAccountsModal
+        open={showVerifiedModal}
+        onOpenChange={setShowVerifiedModal}
+        onSelectAccount={(account) => {
+          setChatTarget({
+            userId: account.user_id,
+            name: account.nombre_completo,
+            avatar: account.avatar_url || undefined,
+            verified: account.verificado,
+            isOfficial: account.isOfficial
+          });
+          setShowChatPopup(true);
+        }}
+      />
+      
+      <SearchAccountsModal
+        open={showSearchModal}
+        onOpenChange={setShowSearchModal}
+        onSelectAccount={(account: AccountResult) => {
+          setChatTarget({
+            userId: account.user_id,
+            name: account.displayName,
+            avatar: account.verificado ? (account.avatar_url || undefined) : undefined,
+            verified: account.verificado,
+            isOfficial: account.isOfficial
+          });
+          setShowChatPopup(true);
+        }}
+      />
+      
+      <ChatPopup
+        open={showChatPopup}
+        onOpenChange={setShowChatPopup}
+        targetUserId={chatTarget?.userId || ''}
+        targetUserName={chatTarget?.name || ''}
+        targetUserAvatar={chatTarget?.avatar}
+        targetUserVerified={chatTarget?.verified}
+        isOfficial={chatTarget?.isOfficial}
+      />
+      
       <Footer />
     </>
   );
