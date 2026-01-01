@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Send, Sparkles, Trash2, Mail, AtSign, User } from 'lucide-react';
+import { Heart, MessageCircle, Send, Sparkles, Trash2, Mail, AtSign, User, MessagesSquare, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,7 +14,8 @@ import verificadoIcon from '@/assets/verificado-icon.png';
 import brillarteLogo from '@/assets/brillarte-logo-new.jpg';
 import CreditRequestModal from '@/components/CreditRequestModal';
 import MentionInput, { RenderMentions } from '@/components/MentionInput';
-
+import ChatPopup from '@/components/ChatPopup';
+import VerifiedAccountsModal from '@/components/VerifiedAccountsModal';
 interface Post {
   id: string;
   contenido: string;
@@ -65,6 +66,11 @@ const Comunidad = () => {
   const [respuestas, setRespuestas] = useState<{ [key: string]: Respuesta[] }>({});
   const [newRespuesta, setNewRespuesta] = useState<{ [key: string]: string }>({});
   const lastLoadRef = useRef<number>(0);
+  
+  // Chat popup states
+  const [showChatPopup, setShowChatPopup] = useState(false);
+  const [chatTarget, setChatTarget] = useState<{userId: string; name: string; avatar?: string; verified?: boolean; isOfficial?: boolean} | null>(null);
+  const [showVerifiedModal, setShowVerifiedModal] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -352,8 +358,8 @@ const Comunidad = () => {
     }
   };
 
-  // Navegar a mensajes
-  const handleMessageClick = (e: React.MouseEvent, userId: string) => {
+  // Abrir chat popup
+  const handleOpenChatPopup = (e: React.MouseEvent, userId: string, name: string, avatar?: string | null, verified?: boolean, isOfficial?: boolean) => {
     e.preventDefault();
     e.stopPropagation();
     if (!user) {
@@ -364,7 +370,20 @@ const Comunidad = () => {
       });
       return;
     }
-    navigate(`/mensajes?userId=${userId}`);
+    setChatTarget({ userId, name, avatar: avatar || undefined, verified, isOfficial });
+    setShowChatPopup(true);
+  };
+
+  // Seleccionar cuenta verificada
+  const handleSelectVerifiedAccount = (account: any) => {
+    setChatTarget({
+      userId: account.user_id,
+      name: account.nombre_completo,
+      avatar: account.avatar_url,
+      verified: true,
+      isOfficial: account.isOfficial
+    });
+    setShowChatPopup(true);
   };
 
   const handleCreatePost = async () => {
@@ -722,6 +741,26 @@ const Comunidad = () => {
             <p className="text-muted-foreground mb-4">
               Comparte experiencias, haz preguntas y conecta con otros. Usa @usuario para mencionar.
             </p>
+            <div className="flex justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowVerifiedModal(true)}
+                className="gap-2"
+              >
+                <Users className="h-4 w-4" />
+                Cuentas Verificadas
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/mensajes')}
+                className="gap-2"
+              >
+                <MessagesSquare className="h-4 w-4" />
+                Mis Mensajes
+              </Button>
+            </div>
           </div>
 
           {/* Create Post Card */}
@@ -780,10 +819,9 @@ const Comunidad = () => {
                         {post.profiles?.nombre_completo?.[0] || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    {/* Boton de mensaje al hover en avatar */}
                     {user && user.id !== post.user_id && (
                       <button
-                        onClick={(e) => handleMessageClick(e, post.user_id)}
+                        onClick={(e) => handleOpenChatPopup(e, post.user_id, post.profiles?.nombre_completo || 'Usuario', post.profiles?.avatar_url, post.profiles?.verificado, isOfficialAccount)}
                         className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110"
                         title="Enviar mensaje"
                       >
@@ -879,7 +917,7 @@ const Comunidad = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={(e) => handleMessageClick(e, post.user_id)}
+                            onClick={(e) => handleOpenChatPopup(e, post.user_id, post.profiles?.nombre_completo || 'Usuario', post.profiles?.avatar_url, post.profiles?.verificado, isOfficialAccount)}
                           >
                             <Mail className="w-4 h-4 mr-1" />
                             Mensaje
@@ -911,14 +949,14 @@ const Comunidad = () => {
                                       {resp.profiles?.nombre_completo?.[0] || 'U'}
                                     </AvatarFallback>
                                   </Avatar>
-                                  {/* Boton de mensaje al hover */}
                                   {user && user.id !== resp.user_id && resp.user_id && (
                                     <button
-                                      onClick={(e) => handleMessageClick(e, resp.user_id!)}
+                                      onClick={(e) => handleOpenChatPopup(e, resp.user_id!, resp.profiles?.nombre_completo || 'Usuario', resp.profiles?.avatar_url, resp.profiles?.verificado, isRespOfficialAccount)}
                                       className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110"
                                       title="Enviar mensaje"
                                     >
                                       <Mail className="w-2.5 h-2.5" />
+                                    </button>
                                     </button>
                                   )}
                                 </div>

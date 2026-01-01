@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -8,39 +8,61 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
-import { useChat } from '@/hooks/useChat';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Send, ArrowLeft, ImagePlus } from 'lucide-react';
+import { Send, ArrowLeft, ImagePlus, Loader2, MessageCircle } from 'lucide-react';
 import verificadoIcon from '@/assets/verificado-icon.png';
 import { useToast } from '@/hooks/use-toast';
+import VerifiedAccountsModal from '@/components/VerifiedAccountsModal';
+import brillarteLogo from '@/assets/brillarte-logo-new.jpg';
 
+const BRILLARTE_OFFICIAL_EMAIL = 'oficial@brillarte.lat';
 const BRILLARTE_LOGO_URL = '/lovable-uploads/991959ba-9b7a-4a2d-9059-6a3eb1bb866c.png';
+
+interface Message {
+  id: string;
+  sender_id: string;
+  content: string | null;
+  image_url: string | null;
+  tipo: string;
+  created_at: string;
+  profiles?: {
+    nombre_completo: string;
+    avatar_url: string | null;
+    verificado: boolean;
+  };
+}
+
+interface Conversation {
+  id: string;
+  updated_at: string;
+  other_user?: {
+    id: string;
+    nombre_completo: string;
+    avatar_url: string | null;
+    verificado: boolean;
+    isOfficial?: boolean;
+  };
+}
 
 const Mensajes = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
   const [user, setUser] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [currentConversation, setCurrentConversation] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const [initializing, setInitializing] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showVerifiedModal, setShowVerifiedModal] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const targetUserId = searchParams.get('userId');
 
-  const {
-    conversations,
-    currentConversation,
-    setCurrentConversation,
-    messages,
-    loading,
-    sendMessage,
-    uploadImage,
-    getOrCreateConversation
-  } = useChat(user?.id);
-
-  // Scroll al último mensaje
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -54,70 +76,280 @@ const Mensajes = () => {
   }, []);
 
   const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      setUserProfile(profile);
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    setUser(currentUser);
+    
+    if (!currentUser) {
+      setLoading(false);
     }
   };
+
+  // Cargar conversaciones
+  const loadConversations = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data: participantData } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+
+      if (!participantData || participantData.length === 0) {
+        setConversations([]);
+        return;
+      }
+
+      const conversationIds = participantData.map(p => p.conversation_id);
+
+      const { data: conversationsData } = await supabase
+        .from('conversations')
+        .select('*')
+        .in('id', conversationIds)
+        .order('updated_at', { ascending: false });
+
+      const conversationsWithUsers = await Promise.all(
+        (conversationsData || []).map(async (conv) => {
+          const { data: allParticipants } = await supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', conv.id);
+
+          const otherParticipant = allParticipants?.find(p => p.user_id !== user.id);
+
+          if (otherParticipant) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('nombre_completo, avatar_url, verificado, correo')
+              .eq('user_id', otherParticipant.user_id)
+              .single();
+
+            const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL || profile?.correo?.endsWith('@brillarte.lat');
+
+            return {
+              ...conv,
+              other_user: {
+                id: otherParticipant.user_id,
+                nombre_completo: isOfficial ? 'BRILLARTE' : (profile?.nombre_completo || 'Usuario'),
+                avatar_url: isOfficial ? brillarteLogo : profile?.avatar_url,
+                verificado: isOfficial ? true : (profile?.verificado || false),
+                isOfficial
+              }
+            };
+          }
+          return conv;
+        })
+      );
+
+      setConversations(conversationsWithUsers);
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+    }
+  }, [user?.id]);
+
+  // Cargar mensajes
+  const loadMessages = useCallback(async (convId: string) => {
+    try {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', convId)
+        .order('created_at', { ascending: true });
+
+      const messagesWithProfiles = await Promise.all(
+        (data || []).map(async (msg) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('nombre_completo, avatar_url, verificado, correo')
+            .eq('user_id', msg.sender_id)
+            .single();
+
+          const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL || profile?.correo?.endsWith('@brillarte.lat');
+          return {
+            ...msg,
+            profiles: {
+              nombre_completo: isOfficial ? 'BRILLARTE' : (profile?.nombre_completo || 'Usuario'),
+              avatar_url: isOfficial ? brillarteLogo : profile?.avatar_url,
+              verificado: isOfficial ? true : (profile?.verificado || false)
+            }
+          };
+        })
+      );
+
+      setMessages(messagesWithProfiles);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  }, []);
+
+  // Obtener o crear conversación
+  const getOrCreateConversation = useCallback(async (otherUserId: string): Promise<string | null> => {
+    if (!user?.id) return null;
+
+    try {
+      const { data: myParticipations } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+
+      if (myParticipations && myParticipations.length > 0) {
+        for (const p of myParticipations) {
+          const { data: otherParticipation } = await supabase
+            .from('conversation_participants')
+            .select('id')
+            .eq('conversation_id', p.conversation_id)
+            .eq('user_id', otherUserId)
+            .single();
+
+          if (otherParticipation) {
+            return p.conversation_id;
+          }
+        }
+      }
+
+      // Crear nueva conversación
+      const { data: newConv, error: convError } = await supabase
+        .from('conversations')
+        .insert({})
+        .select()
+        .single();
+
+      if (convError) throw convError;
+
+      await supabase.from('conversation_participants').insert([
+        { conversation_id: newConv.id, user_id: user.id },
+        { conversation_id: newConv.id, user_id: otherUserId }
+      ]);
+
+      await loadConversations();
+      return newConv.id;
+
+    } catch (error) {
+      console.error('Error getting/creating conversation:', error);
+      return null;
+    }
+  }, [user?.id, loadConversations]);
+
+  // Inicializar cuando hay usuario
+  useEffect(() => {
+    if (user?.id) {
+      loadConversations().then(() => setLoading(false));
+    }
+  }, [user?.id, loadConversations]);
 
   // Inicializar conversación si hay targetUserId
   useEffect(() => {
-    const initConversation = async () => {
-      if (targetUserId && user?.id && !loading && !initializing) {
-        setInitializing(true);
-        try {
-          const convId = await getOrCreateConversation(targetUserId);
-          if (convId) {
-            setCurrentConversation(convId);
-          }
-        } catch (error) {
-          console.error('Error initializing conversation:', error);
-          toast({
-            title: 'Error',
-            description: 'No se pudo iniciar la conversación',
-            variant: 'destructive'
-          });
-        } finally {
-          setInitializing(false);
+    const initFromTarget = async () => {
+      if (targetUserId && user?.id && !loading) {
+        const convId = await getOrCreateConversation(targetUserId);
+        if (convId) {
+          setCurrentConversation(convId);
         }
       }
     };
+    initFromTarget();
+  }, [targetUserId, user?.id, loading, getOrCreateConversation]);
 
-    initConversation();
-  }, [targetUserId, user?.id, loading]);
+  // Cargar mensajes cuando cambia conversación
+  useEffect(() => {
+    if (currentConversation) {
+      loadMessages(currentConversation);
+    }
+  }, [currentConversation, loadMessages]);
+
+  // Suscripción en tiempo real
+  useEffect(() => {
+    if (!currentConversation) return;
+
+    const channel = supabase
+      .channel(`messages-realtime-${currentConversation}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${currentConversation}`
+        },
+        async (payload) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('nombre_completo, avatar_url, verificado, correo')
+            .eq('user_id', payload.new.sender_id)
+            .single();
+
+          const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL || profile?.correo?.endsWith('@brillarte.lat');
+
+          const newMsg: Message = {
+            ...payload.new as any,
+            profiles: {
+              nombre_completo: isOfficial ? 'BRILLARTE' : (profile?.nombre_completo || 'Usuario'),
+              avatar_url: isOfficial ? brillarteLogo : profile?.avatar_url,
+              verificado: isOfficial ? true : (profile?.verificado || false)
+            }
+          };
+
+          setMessages(prev => {
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+          setIsTyping(false);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentConversation]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentConversation || sending) return;
+    if (!newMessage.trim() || !currentConversation || !user || sending) return;
 
     setSending(true);
+    const messageContent = newMessage.trim();
+    setNewMessage('');
+
     try {
-      await sendMessage(currentConversation, newMessage.trim(), null, 'text', {});
-      setNewMessage('');
+      const { error } = await supabase.from('messages').insert({
+        conversation_id: currentConversation,
+        sender_id: user.id,
+        content: messageContent,
+        tipo: 'text'
+      });
+
+      if (error) throw error;
+
+      await supabase
+        .from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', currentConversation);
+
+      // Si es cuenta oficial, activar IA
+      const currentConvData = conversations.find(c => c.id === currentConversation);
+      if (currentConvData?.other_user?.isOfficial) {
+        setIsTyping(true);
+        supabase.functions.invoke('chat-ai-responder', {
+          body: {
+            conversationId: currentConversation,
+            messageContent,
+            senderUserId: user.id
+          }
+        }).catch(err => {
+          console.error('Error invoking AI:', err);
+          setIsTyping(false);
+        });
+      }
+
     } catch (error) {
       console.error('Error sending message:', error);
+      setNewMessage(messageContent);
+      toast({
+        title: 'Error',
+        description: 'No se pudo enviar el mensaje',
+        variant: 'destructive'
+      });
     } finally {
       setSending(false);
-    }
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !currentConversation) return;
-
-    try {
-      const imageUrl = await uploadImage(file);
-      if (imageUrl) {
-        await sendMessage(currentConversation, null, imageUrl, 'image', {});
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
     }
   };
 
@@ -128,6 +360,13 @@ const Mensajes = () => {
     }
   };
 
+  const handleSelectVerifiedAccount = async (account: any) => {
+    const convId = await getOrCreateConversation(account.user_id);
+    if (convId) {
+      setCurrentConversation(convId);
+    }
+  };
+
   // Usuario no autenticado
   if (!user) {
     return (
@@ -135,6 +374,7 @@ const Mensajes = () => {
         <Navigation />
         <div className="min-h-screen pt-20 pb-16 px-4 flex items-center justify-center">
           <Card className="p-8 text-center max-w-md">
+            <MessageCircle className="h-16 w-16 mx-auto mb-4 text-primary" />
             <h1 className="text-2xl font-bold mb-4">Mensajes</h1>
             <p className="text-muted-foreground mb-6">
               Inicia sesión para ver y enviar mensajes
@@ -150,12 +390,12 @@ const Mensajes = () => {
   }
 
   // Cargando
-  if (loading || initializing) {
+  if (loading) {
     return (
       <>
         <Navigation />
         <div className="min-h-screen pt-20 pb-16 px-4 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
         <Footer />
       </>
@@ -163,18 +403,28 @@ const Mensajes = () => {
   }
 
   const currentConversationData = conversations.find(c => c.id === currentConversation);
-  const isOfficialAccount = userProfile?.correo === 'oficial@brillarte.lat';
 
   return (
     <>
       <Navigation />
       <div className="min-h-screen pt-20 pb-16 px-4 bg-background">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-4 mb-6">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-5 w-5" />
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-3xl font-bold">Mensajes</h1>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowVerifiedModal(true)}
+              className="gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Cuentas Verificadas
             </Button>
-            <h1 className="text-3xl font-bold">Mensajes</h1>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
@@ -186,9 +436,18 @@ const Mensajes = () => {
               <ScrollArea className="h-[calc(100%-60px)]">
                 <div className="p-2 space-y-1">
                   {conversations.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8 text-sm">
-                      No tienes conversaciones aún
-                    </p>
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground text-sm mb-4">
+                        No tienes conversaciones aún
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowVerifiedModal(true)}
+                      >
+                        Iniciar chat
+                      </Button>
+                    </div>
                   ) : (
                     conversations.map((conv) => (
                       <button
@@ -198,15 +457,15 @@ const Mensajes = () => {
                           currentConversation === conv.id ? 'bg-muted' : ''
                         }`}
                       >
-                        <Avatar className="h-10 w-10">
+                        <Avatar className={`h-10 w-10 ${conv.other_user?.isOfficial ? 'ring-2 ring-primary' : ''}`}>
                           <AvatarImage src={conv.other_user?.avatar_url || undefined} />
-                          <AvatarFallback className="bg-primary text-primary-foreground">
+                          <AvatarFallback className={conv.other_user?.isOfficial ? 'bg-primary text-primary-foreground' : ''}>
                             {conv.other_user?.nombre_completo?.[0]?.toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1">
-                            <p className="font-medium text-sm truncate">
+                            <p className={`font-medium text-sm truncate ${conv.other_user?.isOfficial ? 'text-primary' : ''}`}>
                               {conv.other_user?.nombre_completo || 'Usuario'}
                             </p>
                             {conv.other_user?.verificado && (
@@ -231,17 +490,17 @@ const Mensajes = () => {
             <Card className="md:col-span-2 flex flex-col overflow-hidden">
               {currentConversation && currentConversationData?.other_user ? (
                 <>
-                  {/* Header del chat */}
+                  {/* Header */}
                   <div className="p-4 border-b flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
+                    <Avatar className={`h-10 w-10 ${currentConversationData.other_user.isOfficial ? 'ring-2 ring-primary' : ''}`}>
                       <AvatarImage src={currentConversationData.other_user.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
+                      <AvatarFallback className={currentConversationData.other_user.isOfficial ? 'bg-primary text-primary-foreground' : ''}>
                         {currentConversationData.other_user.nombre_completo[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-1">
-                        <span className="font-semibold">
+                        <span className={`font-semibold ${currentConversationData.other_user.isOfficial ? 'text-primary' : ''}`}>
                           {currentConversationData.other_user.nombre_completo}
                         </span>
                         {currentConversationData.other_user.verificado && (
@@ -249,7 +508,7 @@ const Mensajes = () => {
                         )}
                       </div>
                       {currentConversationData.other_user.isOfficial && (
-                        <span className="text-xs text-blue-500">Cuenta Oficial</span>
+                        <span className="text-xs text-muted-foreground">Cuenta Oficial</span>
                       )}
                     </div>
                   </div>
@@ -259,7 +518,7 @@ const Mensajes = () => {
                     <div className="space-y-4">
                       {messages.length === 0 ? (
                         <p className="text-center text-muted-foreground py-8">
-                          No hay mensajes aún. Envía el primero.
+                          Inicia la conversación
                         </p>
                       ) : (
                         messages.map((msg) => {
@@ -291,12 +550,6 @@ const Mensajes = () => {
                                       alt="Imagen"
                                       className="max-w-[200px] rounded-lg"
                                     />
-                                  ) : msg.tipo === 'credito' ? (
-                                    <div className="text-center">
-                                      <p className="font-bold text-lg">💰 Crédito</p>
-                                      <p>{msg.metadata?.monto} créditos</p>
-                                      <p className="text-xs opacity-75">{msg.metadata?.razon}</p>
-                                    </div>
                                   ) : (
                                     <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                                   )}
@@ -312,26 +565,30 @@ const Mensajes = () => {
                           );
                         })
                       )}
+                      
+                      {isTyping && (
+                        <div className="flex justify-start">
+                          <div className="flex gap-2">
+                            <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-primary">
+                              <AvatarImage src={brillarteLogo} />
+                              <AvatarFallback className="bg-primary text-primary-foreground text-xs">B</AvatarFallback>
+                            </Avatar>
+                            <div className="bg-muted rounded-2xl px-4 py-3 flex items-center gap-1">
+                              <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                              <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                              <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div ref={messagesEndRef} />
                     </div>
                   </ScrollArea>
 
-                  {/* Input de mensaje */}
+                  {/* Input */}
                   <div className="p-4 border-t">
                     <div className="flex gap-2">
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleImageUpload}
-                        />
-                        <Button variant="outline" size="icon" type="button" asChild>
-                          <span>
-                            <ImagePlus className="h-5 w-5" />
-                          </span>
-                        </Button>
-                      </label>
                       <Input
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
@@ -340,12 +597,16 @@ const Mensajes = () => {
                         className="flex-1"
                         disabled={sending}
                       />
-                      <Button 
-                        onClick={handleSendMessage} 
+                      <Button
+                        onClick={handleSendMessage}
                         disabled={!newMessage.trim() || sending}
                         size="icon"
                       >
-                        <Send className="h-5 w-5" />
+                        {sending ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <Send className="h-5 w-5" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -353,8 +614,15 @@ const Mensajes = () => {
               ) : (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center text-muted-foreground">
+                    <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
                     <p className="text-lg mb-2">Selecciona una conversación</p>
-                    <p className="text-sm">o inicia una nueva desde la comunidad</p>
+                    <p className="text-sm mb-4">o inicia una nueva</p>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowVerifiedModal(true)}
+                    >
+                      Chatear con cuenta verificada
+                    </Button>
                   </div>
                 </div>
               )}
@@ -362,6 +630,13 @@ const Mensajes = () => {
           </div>
         </div>
       </div>
+      
+      <VerifiedAccountsModal
+        open={showVerifiedModal}
+        onOpenChange={setShowVerifiedModal}
+        onSelectAccount={handleSelectVerifiedAccount}
+      />
+      
       <Footer />
     </>
   );
