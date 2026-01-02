@@ -51,6 +51,7 @@ import AdminSolicitudesIA from "./pages/AdminSolicitudesIA";
 import { ChatbotWrapper } from "./components/ChatbotWrapper";
 import GuiaCodigosPago from "./pages/GuiaCodigosPago";
 import AdminCodigosPago from "./pages/AdminCodigosPago";
+import AdminBrillartePay from "./pages/AdminBrillartePay";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -106,6 +107,7 @@ const App = () => (
           <Route path="/admin/solicitudes-ia" element={<AdminSolicitudesIA />} />
           <Route path="/guia-codigos-pago" element={<GuiaCodigosPago />} />
           <Route path="/admin/codigos-pago" element={<AdminCodigosPago />} />
+          <Route path="/admin/brillarte-pay" element={<AdminBrillartePay />} />
           <Route path="/cuenta" element={<Account />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

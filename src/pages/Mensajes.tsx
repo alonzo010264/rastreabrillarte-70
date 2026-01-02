@@ -10,12 +10,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Send, ArrowLeft, ImagePlus, Loader2, MessageCircle, Search, User } from 'lucide-react';
+import { Send, ArrowLeft, ImagePlus, Loader2, MessageCircle, Search, User, X } from 'lucide-react';
 import verificadoIcon from '@/assets/verificado-icon.png';
 import { useToast } from '@/hooks/use-toast';
 import VerifiedAccountsModal from '@/components/VerifiedAccountsModal';
 import SearchAccountsModal, { AccountResult } from '@/components/SearchAccountsModal';
 import brillarteLogo from '@/assets/brillarte-logo-new.jpg';
+import { AdminChatActions } from '@/components/AdminChatActions';
 
 const BRILLARTE_OFFICIAL_EMAIL = 'oficial@brillarte.lat';
 const BRILLARTE_LOGO_URL = '/lovable-uploads/991959ba-9b7a-4a2d-9059-6a3eb1bb866c.png';
@@ -54,6 +55,7 @@ const Mensajes = () => {
   const { toast } = useToast();
   
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
@@ -63,6 +65,9 @@ const Mensajes = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [showVerifiedModal, setShowVerifiedModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const targetUserId = searchParams.get('userId');
@@ -82,6 +87,16 @@ const Mensajes = () => {
   const checkUser = async () => {
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     setUser(currentUser);
+    
+    if (currentUser) {
+      // Check if admin
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      setIsAdmin(roleData?.role === 'admin');
+    }
     
     if (!currentUser) {
       setLoading(false);
@@ -374,6 +389,50 @@ const Mensajes = () => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: 'Error', description: 'La imagen debe ser menor a 5MB', variant: 'destructive' });
+        return;
+      }
+      setSelectedImage(file);
+    }
+  };
+
+  const handleSendImage = async () => {
+    if (!selectedImage || !currentConversation || !user) return;
+    
+    setUploadingImage(true);
+    try {
+      const fileExt = selectedImage.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chat-images')
+        .upload(fileName, selectedImage);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('chat-images').getPublicUrl(fileName);
+
+      await supabase.from('messages').insert({
+        conversation_id: currentConversation,
+        sender_id: user.id,
+        image_url: urlData.publicUrl,
+        tipo: 'image'
+      });
+
+      setSelectedImage(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({ title: 'Error', description: 'No se pudo enviar la imagen', variant: 'destructive' });
+    } finally {
+      setUploadingImage(false);
     }
   };
 
