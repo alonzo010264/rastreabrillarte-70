@@ -219,6 +219,27 @@ export type Database = {
           },
         ]
       }
+      config_pagos_saldo: {
+        Row: {
+          activado: boolean
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          activado?: boolean
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          activado?: boolean
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_requests: {
         Row: {
           created_at: string | null
@@ -1568,6 +1589,51 @@ export type Database = {
           },
         ]
       }
+      tarjetas_brillarte: {
+        Row: {
+          activa: boolean
+          bloqueada: boolean
+          created_at: string
+          cvv: string
+          fecha_expiracion: string
+          id: string
+          motivo_bloqueo: string | null
+          nombre_titular: string
+          numero_tarjeta: string
+          saldo: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activa?: boolean
+          bloqueada?: boolean
+          created_at?: string
+          cvv: string
+          fecha_expiracion: string
+          id?: string
+          motivo_bloqueo?: string | null
+          nombre_titular: string
+          numero_tarjeta: string
+          saldo?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activa?: boolean
+          bloqueada?: boolean
+          created_at?: string
+          cvv?: string
+          fecha_expiracion?: string
+          id?: string
+          motivo_bloqueo?: string | null
+          nombre_titular?: string
+          numero_tarjeta?: string
+          saldo?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tarjetas_regalo: {
         Row: {
           codigo: string
@@ -1708,6 +1774,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      transacciones_tarjetas_brillarte: {
+        Row: {
+          created_at: string
+          descripcion: string | null
+          id: string
+          monto: number
+          pedido_id: string | null
+          saldo_anterior: number
+          saldo_nuevo: number
+          tarjeta_id: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          monto: number
+          pedido_id?: string | null
+          saldo_anterior: number
+          saldo_nuevo: number
+          tarjeta_id: string
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          monto?: number
+          pedido_id?: string | null
+          saldo_anterior?: number
+          saldo_nuevo?: number
+          tarjeta_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transacciones_tarjetas_brillarte_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos_online"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transacciones_tarjetas_brillarte_tarjeta_id_fkey"
+            columns: ["tarjeta_id"]
+            isOneToOne: false
+            referencedRelation: "tarjetas_brillarte"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_bans: {
         Row: {

@@ -9,7 +9,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { PaymentSuccessAnimation } from "./PaymentSuccessAnimation";
-import { FaShoppingCart, FaSpinner, FaFileAlt, FaKey, FaQuestionCircle, FaCheckCircle, FaTimesCircle, FaTruck, FaMoneyBillWave, FaStore } from "react-icons/fa";
+import { FaShoppingCart, FaSpinner, FaFileAlt, FaKey, FaQuestionCircle, FaCheckCircle, FaTimesCircle, FaTruck, FaMoneyBillWave, FaStore, FaCreditCard } from "react-icons/fa";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CheckoutProps {
   cartItems: any[];
@@ -21,28 +22,39 @@ interface CheckoutProps {
 }
 
 type MetodoEntrega = 'envio' | 'pago_contra_entrega' | 'retiro';
+type MetodoPago = 'code_pay' | 'brillarte_pay';
 
-const COSTO_ENVIO = 150; // Costo de envío por Vimenpaq
+const COSTO_ENVIO = 150;
 
 export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuento, onSuccess }: CheckoutProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [direccion, setDireccion] = useState("");
   const [notas, setNotas] = useState("");
+  
+  // Code Pay
   const [codigoPago, setCodigoPago] = useState("");
   const [validatingCode, setValidatingCode] = useState(false);
   const [codeValid, setCodeValid] = useState<boolean | null>(null);
   const [codeError, setCodeError] = useState("");
+  
+  // Brillarte Pay
+  const [numeroTarjeta, setNumeroTarjeta] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [fechaExp, setFechaExp] = useState("");
+  const [validatingCard, setValidatingCard] = useState(false);
+  const [cardValid, setCardValid] = useState<boolean | null>(null);
+  const [cardError, setCardError] = useState("");
+  const [tarjetaData, setTarjetaData] = useState<any>(null);
+  
   const [showSuccess, setShowSuccess] = useState(false);
   const [needsAddress, setNeedsAddress] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [metodoEntrega, setMetodoEntrega] = useState<MetodoEntrega>('envio');
+  const [metodoPago, setMetodoPago] = useState<MetodoPago>('code_pay');
 
-  // Calcular costo de envío según método
   const costoEnvio = metodoEntrega === 'envio' ? COSTO_ENVIO : 0;
   const totalFinal = total + costoEnvio;
-
-  // Verificar si necesita dirección
   const necesitaDireccion = metodoEntrega === 'envio' || metodoEntrega === 'pago_contra_entrega';
 
   const handleOpen = async (isOpen: boolean) => {
@@ -100,20 +112,94 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
     }
   };
 
-  const handleCheckout = async () => {
-    // Solo validar código si no es pago contra entrega o retiro
-    if (metodoEntrega === 'envio') {
-      if (!codigoPago.trim()) {
-        toast.error("Por favor ingresa tu código de pago");
+  const validateCard = async () => {
+    if (!numeroTarjeta.trim() || numeroTarjeta.replace(/\s/g, '').length < 16) {
+      setCardError("Ingresa un número de tarjeta válido");
+      return;
+    }
+    if (!cvv.trim() || cvv.length !== 3) {
+      setCardError("CVV debe tener 3 dígitos");
+      return;
+    }
+    if (!fechaExp.trim()) {
+      setCardError("Ingresa la fecha de expiración");
+      return;
+    }
+
+    setValidatingCard(true);
+    setCardError("");
+    setCardValid(null);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setCardError("Debes iniciar sesión");
         return;
       }
-      if (!codeValid) {
-        toast.error("Por favor valida tu código de pago primero");
+
+      // Buscar la tarjeta
+      const { data: tarjeta, error } = await supabase
+        .from('tarjetas_brillarte' as any)
+        .select('*')
+        .eq('numero_tarjeta', numeroTarjeta.trim())
+        .eq('cvv', cvv.trim())
+        .eq('fecha_expiracion', fechaExp.trim())
+        .eq('user_id', user.id)
+        .single();
+
+      if (error || !tarjeta) {
+        setCardValid(false);
+        setCardError("Tarjeta no encontrada o datos incorrectos");
         return;
+      }
+
+      const t = tarjeta as any;
+
+      if (t.bloqueada) {
+        setCardValid(false);
+        setCardError("Tarjeta no disponible - Bloqueada");
+        return;
+      }
+
+      if (!t.activa) {
+        setCardValid(false);
+        setCardError("Tarjeta inactiva");
+        return;
+      }
+
+      if (t.saldo < totalFinal) {
+        setCardValid(false);
+        setCardError(`Saldo insuficiente. Disponible: $${t.saldo.toFixed(2)}`);
+        return;
+      }
+
+      setTarjetaData(t);
+      setCardValid(true);
+      toast.success(`¡Tarjeta válida! Saldo: $${t.saldo.toFixed(2)}`);
+    } catch (error: any) {
+      console.error('Error validating card:', error);
+      setCardValid(false);
+      setCardError("Error al validar la tarjeta");
+    } finally {
+      setValidatingCard(false);
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (metodoEntrega === 'envio') {
+      if (metodoPago === 'code_pay') {
+        if (!codigoPago.trim() || !codeValid) {
+          toast.error("Por favor valida tu código de pago primero");
+          return;
+        }
+      } else if (metodoPago === 'brillarte_pay') {
+        if (!cardValid || !tarjetaData) {
+          toast.error("Por favor valida tu tarjeta Brillarte primero");
+          return;
+        }
       }
     }
 
-    // Validar dirección solo si es necesaria
     if (necesitaDireccion && !direccion.trim()) {
       toast.error("Por favor ingresa tu dirección de envío");
       return;
@@ -138,7 +224,6 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         return;
       }
 
-      // Actualizar dirección en perfil si la proporcionó
       if (direccion.trim() && (!profile.direccion || profile.direccion !== direccion)) {
         await supabase
           .from('profiles')
@@ -153,16 +238,15 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         return;
       }
 
-      // Determinar estado según método
       let estadoPedido = 'Pendiente';
-      let metodoPago = 'pago_contra_entrega';
+      let metodoPagoStr = 'pago_contra_entrega';
       
       if (metodoEntrega === 'envio') {
         estadoPedido = 'Pagado';
-        metodoPago = 'codigo_pago';
+        metodoPagoStr = metodoPago === 'code_pay' ? 'codigo_pago' : 'brillarte_pay';
       } else if (metodoEntrega === 'retiro') {
         estadoPedido = 'Listo para retiro';
-        metodoPago = 'pago_contra_entrega';
+        metodoPagoStr = 'pago_contra_entrega';
       }
 
       const { data: pedido, error: pedidoError } = await supabase
@@ -182,9 +266,8 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
             precio: item.producto.precio,
             color: item.color,
             talla: item.talla,
-            metodo_pago: metodoPago,
+            metodo_pago: metodoPagoStr,
             metodo_entrega: metodoEntrega,
-            codigo_pago: codigoPago || null,
             costo_envio: costoEnvio
           })),
           estado: estadoPedido
@@ -194,16 +277,38 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
 
       if (pedidoError) throw pedidoError;
 
-      // Marcar código como usado solo si se usó código de pago
-      if (metodoEntrega === 'envio' && codigoPago) {
-        await supabase.functions.invoke('manage-payment-codes', {
-          body: { 
-            action: 'use', 
-            codigo: codigoPago,
-            userId: user.id,
-            pedidoId: pedido.id
-          }
-        });
+      // Procesar pago según método
+      if (metodoEntrega === 'envio') {
+        if (metodoPago === 'code_pay' && codigoPago) {
+          await supabase.functions.invoke('manage-payment-codes', {
+            body: { 
+              action: 'use', 
+              codigo: codigoPago,
+              userId: user.id,
+              pedidoId: pedido.id
+            }
+          });
+        } else if (metodoPago === 'brillarte_pay' && tarjetaData) {
+          // Descontar de la tarjeta y registrar transacción
+          const nuevoSaldo = tarjetaData.saldo - totalFinal;
+          
+          await supabase
+            .from('tarjetas_brillarte' as any)
+            .update({ saldo: nuevoSaldo })
+            .eq('id', tarjetaData.id);
+
+          await supabase
+            .from('transacciones_tarjetas_brillarte' as any)
+            .insert({
+              tarjeta_id: tarjetaData.id,
+              tipo: 'compra',
+              monto: totalFinal,
+              saldo_anterior: tarjetaData.saldo,
+              saldo_nuevo: nuevoSaldo,
+              descripcion: `Compra - Pedido ${orderCode}`,
+              pedido_id: pedido.id
+            });
+        }
       }
 
       // Generar factura
@@ -227,6 +332,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
             total: totalFinal,
             codigo_descuento: codigoDescuento,
             metodo_entrega: metodoEntrega,
+            metodo_pago: metodoPagoStr,
             fecha: new Date().toISOString()
           }
         }
@@ -238,7 +344,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         .delete()
         .eq('user_id', user.id);
 
-      // Notificar al administrador
+      // Notificar
       const { data: adminData } = await supabase
         .from('profiles')
         .select('user_id')
@@ -253,17 +359,16 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
           user_id: adminData.user_id,
           tipo: 'pedido',
           titulo: `Nuevo Pedido - ${metodoTexto}`,
-          mensaje: `Nuevo pedido ${orderCode} de ${profile.nombre_completo} por $${totalFinal.toFixed(2)} - ${metodoTexto}`,
+          mensaje: `Nuevo pedido ${orderCode} de ${profile.nombre_completo} por $${totalFinal.toFixed(2)} - ${metodoPago === 'brillarte_pay' ? 'Brillarte Pay' : 'Code Pay'}`,
           accion_url: `/admin-dashboard`
         });
       }
 
-      // Notificar al cliente
       await supabase.from('notifications').insert({
         user_id: user.id,
         tipo: 'pedido',
         titulo: '¡Pedido Confirmado!',
-        mensaje: `Tu pedido ${orderCode} ha sido procesado. Total: $${totalFinal.toFixed(2)} - ${metodoTexto}`,
+        mensaje: `Tu pedido ${orderCode} ha sido procesado. Total: $${totalFinal.toFixed(2)}`,
         accion_url: `/perfil?tab=pedidos`
       });
 
@@ -282,8 +387,21 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
     setShowSuccess(false);
     setCodigoPago("");
     setCodeValid(null);
+    setNumeroTarjeta("");
+    setCvv("");
+    setFechaExp("");
+    setCardValid(null);
+    setTarjetaData(null);
     setMetodoEntrega('envio');
+    setMetodoPago('code_pay');
     onSuccess?.();
+  };
+
+  const isPagoValido = () => {
+    if (metodoEntrega !== 'envio') return true;
+    if (metodoPago === 'code_pay') return codeValid === true;
+    if (metodoPago === 'brillarte_pay') return cardValid === true;
+    return false;
   };
 
   return (
@@ -297,7 +415,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
             Proceder al Pago
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Finalizar Compra</DialogTitle>
           </DialogHeader>
@@ -312,7 +430,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
                     <FaTruck className="w-4 h-4 text-primary" />
                     <div>
                       <p className="font-medium">Envío por Vimenpaq</p>
-                      <p className="text-xs text-muted-foreground">+${COSTO_ENVIO.toFixed(2)} (requiere código de pago)</p>
+                      <p className="text-xs text-muted-foreground">+${COSTO_ENVIO.toFixed(2)}</p>
                     </div>
                   </Label>
                 </div>
@@ -322,7 +440,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
                     <FaMoneyBillWave className="w-4 h-4 text-green-600" />
                     <div>
                       <p className="font-medium">Pago contra entrega</p>
-                      <p className="text-xs text-muted-foreground">Sin costo adicional - Pagas al recibir</p>
+                      <p className="text-xs text-muted-foreground">Sin costo adicional</p>
                     </div>
                   </Label>
                 </div>
@@ -332,88 +450,152 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
                     <FaStore className="w-4 h-4 text-blue-600" />
                     <div>
                       <p className="font-medium">Retiro</p>
-                      <p className="text-xs text-muted-foreground">Sin costo adicional - Recoges en nuestra ubicación</p>
+                      <p className="text-xs text-muted-foreground">Sin costo adicional</p>
                     </div>
                   </Label>
                 </div>
               </RadioGroup>
             </div>
 
-            {/* Código de Pago - Solo si es envío */}
+            {/* Método de pago - Solo si es envío */}
             {metodoEntrega === 'envio' && (
-              <div className="space-y-2">
-                <Label htmlFor="codigo-pago" className="flex items-center gap-2">
-                  <FaKey className="w-4 h-4 text-pink-500" />
-                  Código de Pago *
-                </Label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Input
-                      id="codigo-pago"
-                      placeholder="XXXX-XXXX-XX"
-                      value={codigoPago}
-                      onChange={(e) => {
-                        setCodigoPago(e.target.value.toUpperCase());
-                        setCodeValid(null);
-                        setCodeError("");
-                      }}
-                      className={`uppercase font-mono ${
-                        codeValid === true ? 'border-green-500 bg-green-50 dark:bg-green-950' : 
-                        codeValid === false ? 'border-red-500 bg-red-50 dark:bg-red-950' : ''
-                      }`}
-                      maxLength={12}
-                    />
-                    {codeValid === true && (
-                      <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+              <div className="space-y-3">
+                <Label className="font-medium">Método de Pago</Label>
+                <Tabs value={metodoPago} onValueChange={(v) => setMetodoPago(v as MetodoPago)}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="code_pay" className="gap-2">
+                      <FaKey className="w-3 h-3" />
+                      Code Pay
+                    </TabsTrigger>
+                    <TabsTrigger value="brillarte_pay" className="gap-2">
+                      <FaCreditCard className="w-3 h-3" />
+                      Brillarte Pay
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="code_pay" className="space-y-3 mt-3">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          placeholder="XXXX-XXXX-XX"
+                          value={codigoPago}
+                          onChange={(e) => {
+                            setCodigoPago(e.target.value.toUpperCase());
+                            setCodeValid(null);
+                            setCodeError("");
+                          }}
+                          className={`uppercase font-mono ${
+                            codeValid === true ? 'border-green-500 bg-green-50 dark:bg-green-950' : 
+                            codeValid === false ? 'border-red-500 bg-red-50 dark:bg-red-950' : ''
+                          }`}
+                          maxLength={12}
+                        />
+                        {codeValid === true && (
+                          <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                        )}
+                        {codeValid === false && (
+                          <FaTimesCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
+                        )}
+                      </div>
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        onClick={validateCode}
+                        disabled={validatingCode || !codigoPago.trim()}
+                      >
+                        {validatingCode ? <FaSpinner className="w-4 h-4 animate-spin" /> : "Validar"}
+                      </Button>
+                    </div>
+                    {codeError && <p className="text-sm text-red-500">{codeError}</p>}
+                    {codeValid && <p className="text-sm text-green-600">✓ Código válido</p>}
+                    <Link 
+                      to="/guia-codigos-pago" 
+                      className="flex items-center gap-2 text-sm text-pink-600 hover:text-pink-700"
+                      target="_blank"
+                    >
+                      <FaQuestionCircle className="w-4 h-4" />
+                      ¿Cómo obtener un código de pago?
+                    </Link>
+                  </TabsContent>
+                  
+                  <TabsContent value="brillarte_pay" className="space-y-3 mt-3">
+                    <div className="p-4 bg-gradient-to-br from-gray-900 to-gray-700 rounded-lg text-white space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs opacity-70">BRILLARTE PAY</span>
+                        <FaCreditCard className="w-6 h-6" />
+                      </div>
+                      <Input
+                        placeholder="5200 42XX XXXX XXXX"
+                        value={numeroTarjeta}
+                        onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+                          v = v.replace(/(.{4})/g, '$1 ').trim();
+                          setNumeroTarjeta(v);
+                          setCardValid(null);
+                          setCardError("");
+                        }}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-mono"
+                      />
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="MM/YY"
+                          value={fechaExp}
+                          onChange={(e) => {
+                            let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+                            if (v.length >= 2) v = v.slice(0, 2) + '/' + v.slice(2);
+                            setFechaExp(v);
+                            setCardValid(null);
+                          }}
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-mono"
+                          maxLength={5}
+                        />
+                        <Input
+                          placeholder="CVV"
+                          type="password"
+                          value={cvv}
+                          onChange={(e) => {
+                            setCvv(e.target.value.replace(/\D/g, '').slice(0, 3));
+                            setCardValid(null);
+                          }}
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-mono w-20"
+                          maxLength={3}
+                        />
+                      </div>
+                    </div>
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      onClick={validateCard}
+                      disabled={validatingCard || !numeroTarjeta.trim() || !cvv.trim() || !fechaExp.trim()}
+                      className="w-full"
+                    >
+                      {validatingCard ? <FaSpinner className="w-4 h-4 animate-spin mr-2" /> : <FaCreditCard className="w-4 h-4 mr-2" />}
+                      Validar Tarjeta
+                    </Button>
+                    {cardError && <p className="text-sm text-red-500">{cardError}</p>}
+                    {cardValid && tarjetaData && (
+                      <div className="text-sm text-green-600 space-y-1">
+                        <p>✓ Tarjeta válida</p>
+                        <p>Saldo disponible: ${tarjetaData.saldo.toFixed(2)}</p>
+                        <p>Después del pago: ${(tarjetaData.saldo - totalFinal).toFixed(2)}</p>
+                      </div>
                     )}
-                    {codeValid === false && (
-                      <FaTimesCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
-                    )}
-                  </div>
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    onClick={validateCode}
-                    disabled={validatingCode || !codigoPago.trim()}
-                  >
-                    {validatingCode ? <FaSpinner className="w-4 h-4 animate-spin" /> : "Validar"}
-                  </Button>
-                </div>
-                {codeError && (
-                  <p className="text-sm text-red-500">{codeError}</p>
-                )}
-                {codeValid && (
-                  <p className="text-sm text-green-600">✓ Código válido y listo para usar</p>
-                )}
+                  </TabsContent>
+                </Tabs>
               </div>
             )}
 
-            {/* Link a guía - Solo si es envío */}
-            {metodoEntrega === 'envio' && (
-              <Link 
-                to="/guia-codigos-pago" 
-                className="flex items-center gap-2 text-sm text-pink-600 hover:text-pink-700 dark:text-pink-400"
-                target="_blank"
-              >
-                <FaQuestionCircle className="w-4 h-4" />
-                ¿Cómo obtener un código de pago?
-              </Link>
-            )}
-
-            {/* Dirección - Opcional para retiro */}
+            {/* Dirección */}
             <div>
               <Label htmlFor="direccion">
                 Dirección de Envío {necesitaDireccion ? '*' : '(opcional)'}
-                {needsAddress && necesitaDireccion && (
-                  <span className="text-muted-foreground text-xs ml-2">(No tienes dirección guardada)</span>
-                )}
               </Label>
               <Textarea
                 id="direccion"
-                placeholder={metodoEntrega === 'retiro' ? "Opcional - Solo si quieres guardar tu dirección" : "Calle, número, ciudad, código postal..."}
+                placeholder={metodoEntrega === 'retiro' ? "Opcional" : "Calle, número, ciudad..."}
                 value={direccion}
                 onChange={(e) => setDireccion(e.target.value)}
-                rows={3}
+                rows={2}
               />
             </div>
 
@@ -421,13 +603,14 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
               <Label htmlFor="notas">Notas adicionales (opcional)</Label>
               <Textarea
                 id="notas"
-                placeholder="Instrucciones especiales, preferencias de entrega..."
+                placeholder="Instrucciones especiales..."
                 value={notas}
                 onChange={(e) => setNotas(e.target.value)}
                 rows={2}
               />
             </div>
             
+            {/* Resumen */}
             <div className="bg-muted p-4 rounded-lg space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
@@ -449,11 +632,16 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
                 <span>Total:</span>
                 <span>${totalFinal.toFixed(2)}</span>
               </div>
+              {metodoEntrega === 'envio' && (
+                <div className="text-xs text-muted-foreground pt-1">
+                  Método de pago: {metodoPago === 'code_pay' ? 'Code Pay' : 'Brillarte Pay'}
+                </div>
+              )}
             </div>
 
             <Button
               onClick={handleCheckout}
-              disabled={loading || (metodoEntrega === 'envio' && !codeValid) || (necesitaDireccion && !direccion.trim())}
+              disabled={loading || !isPagoValido() || (necesitaDireccion && !direccion.trim())}
               className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
               size="lg"
             >
