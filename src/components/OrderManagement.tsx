@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Package, Plus, Copy, Edit } from "lucide-react";
+import OnlineOrdersManagement from "./OnlineOrdersManagement";
 
 interface Estatus {
   id: number;
@@ -584,6 +585,9 @@ const OrderManagement = () => {
           </div>
         </Card>
       )}
+
+      {/* Gestión de Pedidos Online */}
+      <OnlineOrdersManagement />
     </div>
   );
 };

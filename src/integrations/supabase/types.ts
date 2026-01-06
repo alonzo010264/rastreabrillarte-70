@@ -951,8 +951,10 @@ export type Database = {
           direccion_envio: string
           empresa_envio_id: string | null
           estado: string
+          estado_detallado: string | null
           factura_url: string | null
           fecha_envio: string | null
+          historial_estados: Json | null
           id: string
           items: Json
           subtotal: number
@@ -968,8 +970,10 @@ export type Database = {
           direccion_envio: string
           empresa_envio_id?: string | null
           estado?: string
+          estado_detallado?: string | null
           factura_url?: string | null
           fecha_envio?: string | null
+          historial_estados?: Json | null
           id?: string
           items: Json
           subtotal: number
@@ -985,8 +989,10 @@ export type Database = {
           direccion_envio?: string
           empresa_envio_id?: string | null
           estado?: string
+          estado_detallado?: string | null
           factura_url?: string | null
           fecha_envio?: string | null
+          historial_estados?: Json | null
           id?: string
           items?: Json
           subtotal?: number
