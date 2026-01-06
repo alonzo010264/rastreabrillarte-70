@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, FileText, Loader2, Truck } from "lucide-react";
-import { format } from "date-fns";
+import { Package, FileText, Loader2, Truck, MapPin } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
-
 interface EmpresaEnvio {
   id: string;
   nombre: string;
@@ -31,6 +31,7 @@ interface Pedido {
 }
 
 export const MisPedidos = () => {
+  const navigate = useNavigate();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +88,8 @@ export const MisPedidos = () => {
       'En Proceso': 'secondary',
       'Enviado': 'outline',
       'Entregado': 'default',
-      'Cancelado': 'destructive'
+      'Cancelado': 'destructive',
+      'Pagado': 'default'
     };
 
     // Si el pedido tiene empresa de envío y está en un estado de envío
@@ -110,6 +112,14 @@ export const MisPedidos = () => {
     }
     
     return <Badge variant={variants[estado] || 'default'}>{estado}</Badge>;
+  };
+
+  const isRecentOrder = (createdAt: string) => {
+    return differenceInDays(new Date(), new Date(createdAt)) <= 30;
+  };
+
+  const handleRastrear = (codigoPedido: string) => {
+    navigate(`/rastrear-pedido/${codigoPedido}`);
   };
 
   if (loading) {
@@ -221,14 +231,27 @@ export const MisPedidos = () => {
               <p className="text-muted-foreground">{pedido.direccion_envio}</p>
             </div>
 
-            {pedido.factura_url && (
-              <Button variant="outline" className="w-full" asChild>
-                <a href={pedido.factura_url} target="_blank" rel="noopener noreferrer">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Descargar Factura
-                </a>
-              </Button>
-            )}
+            <div className="flex flex-col sm:flex-row gap-2">
+              {/* Botón Rastrear - solo para pedidos recientes */}
+              {isRecentOrder(pedido.created_at) && (
+                <Button 
+                  onClick={() => handleRastrear(pedido.codigo_pedido)}
+                  className="flex-1 bg-pink-500 hover:bg-pink-600 text-white"
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Rastrear Pedido
+                </Button>
+              )}
+              
+              {pedido.factura_url && (
+                <Button variant="outline" className="flex-1" asChild>
+                  <a href={pedido.factura_url} target="_blank" rel="noopener noreferrer">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Descargar Factura
+                  </a>
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       ))}
