@@ -519,7 +519,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
                   </TabsContent>
                   
                   <TabsContent value="brillarte_pay" className="space-y-3 mt-3">
-                    <div className="p-4 bg-gradient-to-br from-gray-900 to-gray-700 rounded-lg text-white space-y-3">
+                    <div className="p-4 bg-gradient-to-br from-pink-600 to-pink-400 rounded-lg text-white space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-xs opacity-70">BRILLARTE PAY</span>
                         <FaCreditCard className="w-6 h-6" />
