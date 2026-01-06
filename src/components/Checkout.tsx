@@ -137,11 +137,13 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         return;
       }
 
-      // Buscar la tarjeta
+      // Buscar la tarjeta - quitar espacios del número
+      const numeroLimpio = numeroTarjeta.replace(/\s/g, '');
+      
       const { data: tarjeta, error } = await supabase
         .from('tarjetas_brillarte' as any)
         .select('*')
-        .eq('numero_tarjeta', numeroTarjeta.trim())
+        .eq('numero_tarjeta', numeroLimpio)
         .eq('cvv', cvv.trim())
         .eq('fecha_expiracion', fechaExp.trim())
         .eq('user_id', user.id)
