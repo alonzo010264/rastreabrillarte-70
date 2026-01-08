@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -706,7 +707,8 @@ const Comunidad = () => {
     return (
       <>
         <Navigation />
-        <div className="min-h-screen pt-20 pb-16 px-4">
+        <PageHeader title="Comunidad BRILLARTE" subtitle="Conecta con otros usuarios" />
+        <div className="min-h-screen pt-8 pb-16 px-4">
           <div className="max-w-2xl mx-auto">
             <p className="text-center">Cargando...</p>
           </div>
@@ -720,9 +722,9 @@ const Comunidad = () => {
     return (
       <>
         <Navigation />
-        <div className="min-h-screen pt-20 pb-16 px-4">
+        <PageHeader title="Comunidad BRILLARTE" subtitle="Conecta con otros usuarios" />
+        <div className="min-h-screen pt-8 pb-16 px-4">
           <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-3xl font-bold mb-4">Comunidad BRILLARTE</h1>
             <p className="text-muted-foreground mb-8">
               Inicia sesión para participar en la comunidad
             </p>
@@ -736,12 +738,12 @@ const Comunidad = () => {
   return (
     <>
       <Navigation />
-      <div className="min-h-screen pt-20 pb-16 px-4 bg-background">
+      <PageHeader title="Comunidad BRILLARTE" subtitle="Comparte experiencias y conecta con otros" />
+      <div className="min-h-screen pt-8 pb-16 px-4 bg-background">
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2">Comunidad BRILLARTE</h1>
             <p className="text-muted-foreground mb-4">
-              Comparte experiencias, haz preguntas y conecta con otros. Usa @usuario para mencionar.
+              Usa @usuario para mencionar a otros.
             </p>
             <div className="flex justify-center gap-3 flex-wrap">
               <Button

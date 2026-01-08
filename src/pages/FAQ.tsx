@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Diamond, HelpCircle, Package, Truck, CreditCard, Shield } from "lucide-react";
 
@@ -96,18 +97,10 @@ const FAQ = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <PageHeader title="Preguntas Frecuentes" subtitle="Encuentra respuestas a tus dudas" />
       
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in">
-            <HelpCircle className="w-16 h-16 text-primary mx-auto mb-6" />
-            <h1 className="text-4xl md:text-5xl font-light text-foreground mb-6">
-              Preguntas Frecuentes
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Encuentra respuestas a las dudas más comunes sobre BRILLARTE
-            </p>
-          </div>
 
           <div className="space-y-8">
             {faqs.map((category, categoryIndex) => (

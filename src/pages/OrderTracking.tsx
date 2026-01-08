@@ -22,7 +22,7 @@ const OrderTracking = () => {
         <Diamond className="absolute bottom-40 right-1/3 text-gray-200 w-8 h-8 rotate-12 opacity-20" />
       </div>
       
-      <Header />
+      <Header title="Rastreo de Pedidos" subtitle="Consulta el estado de tu pedido" />
       
       <main className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
         <div className="animate-fade-in space-y-12">

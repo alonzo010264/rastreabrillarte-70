@@ -1,11 +1,13 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Shield, Diamond } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
+import { Diamond } from "lucide-react";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <PageHeader title="Políticas de Privacidad" subtitle="Tu privacidad es importante para BRILLARTE" />
       
       {/* Decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
@@ -15,15 +17,6 @@ const PrivacyPolicy = () => {
       </div>
 
       <main className="container mx-auto px-4 py-16 max-w-4xl relative z-10">
-        <div className="text-center mb-12">
-          <Shield className="w-16 h-16 text-primary mx-auto mb-4" />
-          <h1 className="text-4xl font-light text-foreground mb-4">
-            Políticas de Privacidad
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Tu privacidad es importante para BRILLARTE
-          </p>
-        </div>
 
         <div className="prose prose-gray max-w-none">
           <h2>Información que Recopilamos</h2>
