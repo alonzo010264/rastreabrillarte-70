@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Gift, Calendar, Instagram, Facebook, Heart, Sparkles, Trophy } from "lucide-react";
+import { Gift, Calendar, Instagram, Facebook, Heart, Sparkles } from "lucide-react";
 
 interface Promocion {
   id: string;
@@ -156,7 +156,7 @@ export default function Promociones() {
   if (loading) {
     return (
       <>
-        <Header />
+        <Header title="Promociones y Sorteos" subtitle="¡Participa y gana!" />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Sparkles className="w-12 h-12 mx-auto mb-4 animate-pulse text-primary" />
@@ -170,23 +170,11 @@ export default function Promociones() {
 
   return (
     <>
-      <Header />
+      <Header title="Promociones y Sorteos" subtitle="¡Participa y gana increíbles premios!" />
       <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background">
-        {/* Hero Section */}
-        <section className="py-16 px-4 text-center">
+        {/* Social Media Alert */}
+        <section className="py-8 px-4">
           <div className="container mx-auto max-w-4xl">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <Trophy className="w-12 h-12 text-primary animate-bounce" />
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                Promociones Brillarte
-              </h1>
-              <Gift className="w-12 h-12 text-primary animate-bounce" style={{ animationDelay: '0.2s' }} />
-            </div>
-            <p className="text-lg text-muted-foreground mb-8">
-              ¡Participa en nuestras promociones y sorteos exclusivos! Sigue los pasos de cada promoción para tener la oportunidad de ganar increíbles premios.
-            </p>
-            
-            {/* Social Media Alert */}
             <Card className="mb-8 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, ShoppingCart } from "lucide-react";
@@ -159,13 +160,10 @@ const Favoritos = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <PageHeader title="Mis Favoritos" subtitle="Tus productos guardados" />
       
       <div className="container mx-auto py-12 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3 mb-8">
-            <Heart className="h-8 w-8 text-primary fill-primary" />
-            <h1 className="text-3xl font-bold">Mis Favoritos</h1>
-          </div>
 
           {favorites.length === 0 ? (
             <Card>

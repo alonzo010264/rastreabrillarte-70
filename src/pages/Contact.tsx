@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -111,18 +112,10 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <PageHeader title="Contacto" subtitle="Estamos aquí para ayudarte" />
       
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in">
-            <MessageSquare className="w-16 h-16 text-primary mx-auto mb-6" />
-            <h1 className="text-4xl md:text-5xl font-light text-foreground mb-6">
-              Contacto
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Estamos aquí para ayudarte. Contáctanos por cualquier medio
-            </p>
-          </div>
 
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}

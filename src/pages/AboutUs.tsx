@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
 import { Users, Target, Heart, Sparkles } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import teamUniforms from "@/assets/team-uniforms.png";
@@ -25,18 +26,9 @@ const AboutUs = () => {
   } = useScrollAnimation();
   return <div className="min-h-screen bg-background">
       <Navigation />
+      <PageHeader title="Nosotros" subtitle="Conoce más sobre BRILLARTE y nuestro compromiso contigo" />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">
-        {/* Header */}
-        <div className="text-center mb-16 animate-fade-in">
-          
-          <h1 className="text-4xl md:text-5xl font-light text-foreground mb-6">
-            Nosotros
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Conoce más sobre BRILLARTE y nuestro compromiso contigo
-          </p>
-        </div>
 
         {/* Nuestra Historia con Imagen */}
         <section ref={ref1} className={`mb-20 ${visible1 ? 'animate-on-scroll' : 'opacity-0'}`}>

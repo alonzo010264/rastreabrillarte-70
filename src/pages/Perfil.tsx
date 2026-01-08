@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
 import UserAvatar from "@/components/UserAvatar";
 import { MisPedidos } from "@/components/MisPedidos";
 import { MiSaldo } from "@/components/MiSaldo";
@@ -220,11 +221,11 @@ export default function Perfil() {
   return (
     <>
       <Navigation />
+      <PageHeader title="Mi Perfil" subtitle="Gestiona tu cuenta" showBackButton={true} />
       <div className="container mx-auto py-8 px-4 min-h-screen">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold">Mi Perfil</h1>
+          <div className="flex items-center justify-end mb-8">
             <Button onClick={handleLogout} variant="outline">
               <LogOut className="w-4 h-4 mr-2" />
               Cerrar Sesión
