@@ -56,7 +56,7 @@ const Navigation = () => {
   const isProductsPage = location.pathname === '/productos';
 
   return (
-    <nav className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+    <nav className="bg-background/80 backdrop-blur-xl border-b border-border/50 sticky top-0 z-50 transition-all duration-300">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -64,14 +64,14 @@ const Navigation = () => {
             <img 
               src={brillarteLogo} 
               alt="BRILLARTE Logo" 
-              className="h-10 w-10 object-contain transition-transform group-hover:scale-110 duration-300"
+              className="h-10 w-10 object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-12"
             />
-            <span className="font-light text-xl text-foreground">BRILLARTE</span>
+            <span className="font-light text-xl text-foreground transition-colors duration-300 group-hover:text-primary">BRILLARTE</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => {
+            {navigationItems.map((item, index) => {
               const isExternal = item.href.startsWith('http');
               return isExternal ? (
                 <a
@@ -79,7 +79,8 @@ const Navigation = () => {
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                  className="px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary text-muted-foreground hover:scale-105 link-underline"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {item.name}
                 </a>
@@ -88,13 +89,17 @@ const Navigation = () => {
                   key={item.name}
                   to={item.href}
                   className={cn(
-                    "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                    "px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:scale-105 relative overflow-hidden",
                     isActive(item.href)
-                      ? "bg-accent text-accent-foreground"
+                      ? "bg-primary/15 text-primary shadow-sm"
                       : "text-muted-foreground"
                   )}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {item.name}
+                  {isActive(item.href) && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-primary rounded-full" />
+                  )}
                 </Link>
               );
             })}
@@ -201,9 +206,9 @@ const Navigation = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-fade-in">
-            <div className="flex flex-col space-y-2">
-              {navigationItems.map((item) => {
+          <div className="md:hidden py-4 border-t border-border/50 animate-slide-up-fade glass">
+            <div className="flex flex-col space-y-1">
+              {navigationItems.map((item, index) => {
                 const isExternal = item.href.startsWith('http');
                 return isExternal ? (
                   <a
@@ -212,7 +217,8 @@ const Navigation = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setIsMenuOpen(false)}
-                    className="px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                    className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary text-muted-foreground hover:translate-x-2"
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
                     {item.name}
                   </a>
@@ -222,11 +228,12 @@ const Navigation = () => {
                     to={item.href}
                     onClick={() => setIsMenuOpen(false)}
                     className={cn(
-                      "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                      "px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:translate-x-2",
                       isActive(item.href)
-                        ? "bg-accent text-accent-foreground"
+                        ? "bg-primary/15 text-primary border-l-2 border-primary"
                         : "text-muted-foreground"
                     )}
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
                     {item.name}
                   </Link>
