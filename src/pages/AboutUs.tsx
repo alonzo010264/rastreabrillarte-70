@@ -1,26 +1,35 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Diamond, Users, Target, Heart, Sparkles } from "lucide-react";
+import { Users, Target, Heart, Sparkles } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import teamUniforms from "@/assets/team-uniforms.png";
 import teamMember from "@/assets/team-member.png";
 import delivery from "@/assets/delivery.jpg";
 import customerHelp from "@/assets/customer-help.jpg";
-
 const AboutUs = () => {
-  const { ref: ref1, isVisible: visible1 } = useScrollAnimation();
-  const { ref: ref2, isVisible: visible2 } = useScrollAnimation();
-  const { ref: ref3, isVisible: visible3 } = useScrollAnimation();
-  const { ref: ref4, isVisible: visible4 } = useScrollAnimation();
-
-  return (
-    <div className="min-h-screen bg-background">
+  const {
+    ref: ref1,
+    isVisible: visible1
+  } = useScrollAnimation();
+  const {
+    ref: ref2,
+    isVisible: visible2
+  } = useScrollAnimation();
+  const {
+    ref: ref3,
+    isVisible: visible3
+  } = useScrollAnimation();
+  const {
+    ref: ref4,
+    isVisible: visible4
+  } = useScrollAnimation();
+  return <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
-          <Diamond className="w-16 h-16 text-primary mx-auto mb-6 rotate-45 animate-float" />
+          
           <h1 className="text-4xl md:text-5xl font-light text-foreground mb-6">
             Nosotros
           </h1>
@@ -49,11 +58,7 @@ const AboutUs = () => {
             </div>
             <div className="relative group">
               <div className="overflow-hidden rounded-2xl shadow-xl hover-lift">
-                <img 
-                  src={teamUniforms} 
-                  alt="Equipo BRILLARTE" 
-                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110"
-                />
+                <img src={teamUniforms} alt="Equipo BRILLARTE" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
               </div>
             </div>
           </div>
@@ -64,11 +69,7 @@ const AboutUs = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1 relative group">
               <div className="overflow-hidden rounded-2xl shadow-xl hover-lift">
-                <img 
-                  src={delivery} 
-                  alt="Entregas BRILLARTE" 
-                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110"
-                />
+                <img src={delivery} alt="Entregas BRILLARTE" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
               </div>
             </div>
             <div className="order-1 md:order-2">
@@ -121,11 +122,7 @@ const AboutUs = () => {
             </div>
             <div className="relative group">
               <div className="overflow-hidden rounded-2xl shadow-xl hover-lift">
-                <img 
-                  src={customerHelp} 
-                  alt="Atención al cliente BRILLARTE" 
-                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110"
-                />
+                <img src={customerHelp} alt="Atención al cliente BRILLARTE" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
               </div>
             </div>
           </div>
@@ -171,8 +168,6 @@ const AboutUs = () => {
       </div>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default AboutUs;
