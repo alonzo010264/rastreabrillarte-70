@@ -130,7 +130,7 @@ const Home = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <Card className={`card-interactive border-2 border-transparent hover:border-primary/30 bg-card/80 backdrop-blur-sm transition-all duration-700 ${missionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
               <CardHeader>
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform bg-primary-foreground">
                   <Heart className="w-7 h-7 text-primary animate-scale-pulse" />
                 </div>
                 <CardTitle className="text-2xl">Misión</CardTitle>
@@ -166,7 +166,7 @@ const Home = () => {
             transitionDelay: '400ms'
           }}>
               <CardHeader>
-                <div className="w-14 h-14 rounded-2xl bg-accent/20 flex items-center justify-center mb-4">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 bg-primary-foreground">
                   <Sparkles className="w-7 h-7 text-accent-foreground animate-scale-pulse animation-delay-500" />
                 </div>
                 <CardTitle className="text-2xl">Valores</CardTitle>
