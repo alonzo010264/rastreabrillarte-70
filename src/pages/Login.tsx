@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn, UserPlus } from "lucide-react";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -102,91 +104,95 @@ const Login = () => {
 
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="bg-white border-2 border-black rounded-2xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-black mb-2">BRILLARTE</h1>
-            <p className="text-gray-600">Inicia sesión en tu cuenta</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">Correo Electrónico</label>
-              <Input
-                type="email"
-                placeholder="tu@correo.com"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
-              />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
+      <Navigation />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md animate-scale-in">
+          <Card className="bg-card border-2 border-border rounded-2xl p-8">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-foreground mb-2">BRILLARTE</h1>
+              <p className="text-muted-foreground">Inicia sesión en tu cuenta</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">Contraseña</label>
-              <Input
-                type="password"
-                placeholder="Tu contraseña"
-                value={formData.password}
-                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                className="rounded-xl border-gray-300 focus:border-black focus:ring-black"
-              />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Correo Electrónico</label>
+                <Input
+                  type="email"
+                  placeholder="tu@correo.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  className="rounded-xl border-border focus:border-primary focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Contraseña</label>
+                <Input
+                  type="password"
+                  placeholder="Tu contraseña"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  className="rounded-xl border-border focus:border-primary focus:ring-primary"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <label htmlFor="remember" className="text-sm text-muted-foreground">
+                  Mantener sesión iniciada
+                </label>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full rounded-xl py-6 text-lg font-medium"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
+                    Iniciando...
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <LogIn className="mr-2" size={20} />
+                    Iniciar Sesión
+                  </div>
+                )}
+              </Button>
+            </form>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-card text-muted-foreground">O continúa con</span>
+              </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
-              />
-              <label htmlFor="remember" className="text-sm text-gray-700">
-                Mantener sesión iniciada
-              </label>
+            <div className="mt-6 text-center">
+              <p className="text-muted-foreground mb-3">¿No tienes una cuenta?</p>
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/registro')}
+                className="border-2 hover:bg-primary hover:text-primary-foreground rounded-xl px-8"
+              >
+                <UserPlus className="mr-2" size={18} />
+                Registrarse
+              </Button>
             </div>
-
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-black text-white hover:bg-gray-800 rounded-xl py-6 text-lg font-medium"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Iniciando...
-                </div>
-              ) : (
-                <div className="flex items-center justify-center">
-                  <LogIn className="mr-2" size={20} />
-                  Iniciar Sesión
-                </div>
-              )}
-            </Button>
-          </form>
-
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">O continúa con</span>
-            </div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-gray-600 mb-3">¿No tienes una cuenta?</p>
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/registro')}
-              className="bg-white text-black border-2 border-black hover:bg-black hover:text-white rounded-xl px-8"
-            >
-              <UserPlus className="mr-2" size={18} />
-              Registrarse
-            </Button>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };
