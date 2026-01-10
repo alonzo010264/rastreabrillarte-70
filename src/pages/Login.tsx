@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogIn, UserPlus } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -106,13 +107,13 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
       <Navigation />
+      <PageHeader 
+        title="Iniciar Sesión" 
+        subtitle="Accede a tu cuenta BRILLARTE"
+      />
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md animate-scale-in">
           <Card className="bg-card border-2 border-border rounded-2xl p-8">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-foreground mb-2">BRILLARTE</h1>
-              <p className="text-muted-foreground">Inicia sesión en tu cuenta</p>
-            </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
