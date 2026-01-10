@@ -11,7 +11,6 @@ import anilloFloresAzul from "@/assets/productos/anillo-flores-azul.jpg";
 import pulserasCorazones from "@/assets/productos/pulseras-corazones.jpg";
 import pulserasLoveYou from "@/assets/productos/pulseras-love-you.jpg";
 import floresCrochet from "@/assets/productos/flores-crochet.jfif";
-
 const ProductGallery = () => {
   const {
     ref: titleRef,
@@ -57,7 +56,6 @@ const ProductGallery = () => {
     ref: grid10Ref,
     isVisible: grid10Visible
   } = useScrollAnimation(0.1);
-
   const products = [{
     id: 1,
     name: "Pulsera Margarita",
@@ -109,7 +107,6 @@ const ProductGallery = () => {
     image: floresCrochet,
     description: "Bouquet de flores tejidas a crochet artesanal"
   }];
-
   const gridRefs = [{
     ref: grid1Ref,
     isVisible: grid1Visible,
@@ -161,7 +158,6 @@ const ProductGallery = () => {
     animation: 'opacity-0 -translate-y-10',
     animationActive: 'opacity-100 translate-y-0'
   }];
-
   const hoverRotations = ['group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-2', '', 'group-hover:rotate-2', 'group-hover:-rotate-3', '', 'group-hover:rotate-3'];
   const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-pink-500/20', 'from-purple-500/20', 'from-amber-500/20', 'from-blue-500/20', 'from-rose-500/20', 'from-emerald-500/20', 'from-violet-500/20'];
   return <section className="py-20 px-4 bg-background relative overflow-hidden">
@@ -196,7 +192,7 @@ const ProductGallery = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
                     <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
                       <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 animate-pulse" />
+                        
                         {product.name}
                       </h3>
                       <p className="text-sm opacity-90">{product.description}</p>
