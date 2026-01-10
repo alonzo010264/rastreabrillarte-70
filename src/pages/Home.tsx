@@ -282,7 +282,7 @@ const Home = () => {
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_rgba(255,255,255,0.1)_0%,_transparent_50%)]" />
         </div>
         <div ref={ctaRef} className="container mx-auto text-center max-w-3xl relative z-10">
-          <h2 className={`text-4xl md:text-6xl font-light mb-6 transition-all duration-1000 ${ctaVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>¿Listo para Brillar? <span className="font-medium">Brillar</span>? ✨
+          <h2 className={`text-4xl md:text-6xl font-light mb-6 transition-all duration-1000 ${ctaVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>¿Listo para Brillar? Brillar? <span className="font-medium">Brillar</span>? ✨
           </h2>
           <p className={`text-xl opacity-90 mb-10 transition-all duration-1000 ${ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`} style={{
           transitionDelay: '200ms'
