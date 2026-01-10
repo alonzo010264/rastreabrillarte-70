@@ -11,6 +11,8 @@ import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff, User, Shield } from 'lucide-react';
 import { z } from 'zod';
 import { validateRegistration } from '@/utils/profanityFilter';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 
 const Auth = () => {
   const { toast } = useToast();
@@ -275,169 +277,173 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">BRILLARTE</CardTitle>
-          <CardDescription className="text-center">
-            Accede a tu cuenta o regístrate
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Iniciar Sesión
-              </TabsTrigger>
-              <TabsTrigger value="signup" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Registrarse
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login" className="space-y-4">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Correo electrónico</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="tu@email.com"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Contraseña</Label>
-                  <div className="relative">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
+      <Navigation />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md animate-scale-in">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">BRILLARTE</CardTitle>
+            <CardDescription className="text-center">
+              Accede a tu cuenta o regístrate
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Iniciar Sesión
+                </TabsTrigger>
+                <TabsTrigger value="signup" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Registrarse
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="login" className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Correo electrónico</Label>
                     <Input
-                      id="login-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Tu contraseña"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
+                      id="login-email"
+                      type="email"
+                      placeholder="tu@email.com"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
                       required
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
                   </div>
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  {loading ? 'Iniciando...' : 'Iniciar Sesión'}
-                </Button>
-              </form>
-              
-              {emailNotConfirmed && (
-                <div className="text-center space-y-2">
-                  <p className="text-sm text-muted-foreground">Tu correo no está confirmado.</p>
-                  <Button type="button" variant="secondary" onClick={handleResendConfirmation} disabled={loading || !loginEmail}>
-                    Reenviar correo de confirmación
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Contraseña</Label>
+                    <div className="relative">
+                      <Input
+                        id="login-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Tu contraseña"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    {loading ? 'Iniciando...' : 'Iniciar Sesión'}
                   </Button>
-                </div>
-              )}
-              
-              <Separator />
-              
-              <div className="text-center text-sm text-muted-foreground">
-                <p className="mb-2">Acceso para Administradores:</p>
-                <p>Los administradores usan las mismas credenciales</p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="signup" className="space-y-4">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Nombre completo</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="Tu nombre completo"
-                    value={signupName}
-                    onChange={(e) => setSignupName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Correo electrónico</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="tu@email.com"
-                    value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-phone">Teléfono (opcional)</Label>
-                  <Input
-                    id="signup-phone"
-                    type="tel"
-                    placeholder="+1234567890"
-                    value={signupPhone}
-                    onChange={(e) => setSignupPhone(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Contraseña</Label>
-                  <div className="relative">
-                    <Input
-                      id="signup-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Mínimo 6 caracteres"
-                      value={signupPassword}
-                      onChange={(e) => setSignupPassword(e.target.value)}
-                      required
-                      minLength={6}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                </form>
+                
+                {emailNotConfirmed && (
+                  <div className="text-center space-y-2">
+                    <p className="text-sm text-muted-foreground">Tu correo no está confirmado.</p>
+                    <Button type="button" variant="secondary" onClick={handleResendConfirmation} disabled={loading || !loginEmail}>
+                      Reenviar correo de confirmación
                     </Button>
                   </div>
+                )}
+                
+                <Separator />
+                
+                <div className="text-center text-sm text-muted-foreground">
+                  <p className="mb-2">Acceso para Administradores:</p>
+                  <p>Los administradores usan las mismas credenciales</p>
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  {loading ? 'Registrando...' : 'Crear Cuenta'}
-                </Button>
-              </form>
+              </TabsContent>
               
-              <div className="text-center text-sm text-muted-foreground">
-                <p>Al registrarte, aceptas nuestros términos y condiciones</p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+              <TabsContent value="signup" className="space-y-4">
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Nombre completo</Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      placeholder="Tu nombre completo"
+                      value={signupName}
+                      onChange={(e) => setSignupName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Correo electrónico</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="tu@email.com"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Teléfono (opcional)</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="+1234567890"
+                      value={signupPhone}
+                      onChange={(e) => setSignupPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Contraseña</Label>
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Mínimo 6 caracteres"
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
+                        required
+                        minLength={6}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    {loading ? 'Registrando...' : 'Crear Cuenta'}
+                  </Button>
+                </form>
+                
+                <div className="text-center text-sm text-muted-foreground">
+                  <p>Al registrarte, aceptas nuestros términos y condiciones</p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+      <Footer />
     </div>
   );
 };
