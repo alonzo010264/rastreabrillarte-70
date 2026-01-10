@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserPlus, LogIn } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -91,14 +92,13 @@ const Register = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
       <Navigation />
+      <PageHeader 
+        title="Crear Cuenta" 
+        subtitle="Únete a BRILLARTE y disfruta de todos los beneficios"
+      />
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl animate-scale-in">
           <Card className="bg-card border-2 border-border rounded-xl p-6">
-            {/* Header */}
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-foreground mb-1">Únete a BRILLARTE</h1>
-              <p className="text-sm text-muted-foreground">Crea tu cuenta para ver tus pedidos</p>
-            </div>
 
             {/* Formulario */}
             <form onSubmit={handleSubmit} className="space-y-4">

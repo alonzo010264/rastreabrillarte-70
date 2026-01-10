@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { validateRegistration } from '@/utils/profanityFilter';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import PageHeader from '@/components/PageHeader';
 
 const Auth = () => {
   const { toast } = useToast();
@@ -279,15 +280,13 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
       <Navigation />
+      <PageHeader 
+        title="Acceso a tu Cuenta" 
+        subtitle="Inicia sesión o crea una cuenta nueva"
+      />
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md animate-scale-in">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">BRILLARTE</CardTitle>
-            <CardDescription className="text-center">
-              Accede a tu cuenta o regístrate
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login" className="flex items-center gap-2">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Home, ArrowLeft } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
 import notFoundImage from "@/assets/404-brillarte.png";
 
 const NotFound = () => {
@@ -20,6 +21,10 @@ const NotFound = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-muted/30 to-background">
       <Navigation />
+      <PageHeader 
+        title="Página No Encontrada" 
+        subtitle="La página que buscas no existe o ha sido movida"
+      />
       
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-4xl mx-auto text-center animate-fade-in">
@@ -35,7 +40,6 @@ const NotFound = () => {
           {/* Mensaje adicional */}
           <div className="space-y-4 animate-slide-up-fade">
             <p className="text-lg md:text-xl text-muted-foreground max-w-md mx-auto">
-              La página que buscas no existe o ha sido movida. 
               ¡Pero no te preocupes, te ayudamos a encontrar lo que necesitas!
             </p>
             
