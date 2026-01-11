@@ -209,7 +209,7 @@ const ProfileChatPopup = ({
   const handleSendPedido = async (pedido: any) => {
     if (!conversationId || !currentUserId) return;
 
-    const pedidoMessage = `📦 *Pedido ${pedido.codigo_pedido}*\n` +
+    const pedidoMessage = `Pedido ${pedido.codigo_pedido}\n` +
       `Estado: ${pedido.estado}\n` +
       `Total: RD$${pedido.total}\n` +
       `Productos: ${pedido.items?.map((i: any) => `${i.cantidad}x ${i.nombre}`).join(', ')}`;

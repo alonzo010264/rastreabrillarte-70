@@ -181,7 +181,7 @@ const BrillartePedidos = () => {
             <Card className="bg-primary/5 border-primary/20 animate-fade-in animation-delay-400">
               <CardContent className="py-6">
                 <p className="text-lg font-medium text-foreground mb-2">
-                  🚀 Próximamente: Amazon y otros servicios
+                  Próximamente: Amazon y otros servicios
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Por ahora enfocados en TEMU para ofrecerte el mejor servicio. 

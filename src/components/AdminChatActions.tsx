@@ -77,7 +77,7 @@ export const AdminChatActions = ({ targetUserId, conversationId, onMessageSent }
       if (error) throw error;
 
       await sendMessage(
-        `🎁 ¡Te envío un código de descuento exclusivo!\n\nCódigo: ${descuentoCodigo.toUpperCase()}\nDescuento: ${descuentoPorcentaje}%\n\nÚsalo en tu próxima compra.`,
+        `Te envío un código de descuento exclusivo.\n\nCódigo: ${descuentoCodigo.toUpperCase()}\nDescuento: ${descuentoPorcentaje}%\n\nÚsalo en tu próxima compra.`,
         'cupon',
         { codigo: descuentoCodigo.toUpperCase(), descuento: descuentoPorcentaje }
       );

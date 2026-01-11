@@ -74,28 +74,28 @@ const NotFound = () => {
                   onClick={() => navigate('/productos')}
                   className="text-primary hover:text-primary/80"
                 >
-                  🛍️ Productos
+                  Productos
                 </Button>
                 <Button 
                   variant="link" 
                   onClick={() => navigate('/contacto')}
                   className="text-primary hover:text-primary/80"
                 >
-                  📧 Contacto
+                  Contacto
                 </Button>
                 <Button 
                   variant="link" 
-                  onClick={() => navigate('/rastrear-pedido')}
+                  onClick={() => navigate('/rastrear')}
                   className="text-primary hover:text-primary/80"
                 >
-                  📦 Rastrear Pedido
+                  Rastrear Pedido
                 </Button>
                 <Button 
                   variant="link" 
                   onClick={() => navigate('/faq')}
                   className="text-primary hover:text-primary/80"
                 >
-                  ❓ Preguntas Frecuentes
+                  Preguntas Frecuentes
                 </Button>
               </div>
             </div>
