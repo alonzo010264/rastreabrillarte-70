@@ -151,7 +151,7 @@ export default function AdminPromociones() {
               }
             });
 
-            const mensajeIA = aiResponse?.mensaje || `🎉 Nueva promoción: ${titulo} - ¡Participa ahora!`;
+            const mensajeIA = aiResponse?.mensaje || `Nueva promoción: ${titulo} - Participa ahora`;
 
             // Obtener todos los perfiles
             const { data: profiles } = await supabase
@@ -164,7 +164,7 @@ export default function AdminPromociones() {
                 user_id: p.user_id,
                 codigo_membresia: p.codigo_membresia,
                 tipo: 'promocion',
-                titulo: `🎁 ${titulo}`,
+                titulo: titulo,
                 mensaje: mensajeIA,
                 imagen_url: imagenUrl || null,
                 accion_url: '/promociones'
@@ -252,7 +252,7 @@ export default function AdminPromociones() {
                   <CardTitle className="flex items-center justify-between gap-2">
                     <span className="truncate">{promocion.titulo}</span>
                     {promocion.activa && (
-                      <Badge variant="secondary" className="shrink-0">✨ Activa</Badge>
+                      <Badge variant="secondary" className="shrink-0">Activa</Badge>
                     )}
                   </CardTitle>
                 </CardHeader>
