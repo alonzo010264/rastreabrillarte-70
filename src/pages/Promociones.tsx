@@ -135,7 +135,7 @@ export default function Promociones() {
         }
       }
 
-      toast.success('¡Participación registrada exitosamente! 🎉');
+      toast.success('Participación registrada exitosamente.');
       setParticipaandoId(null);
       setEmail("");
       setComentario("");

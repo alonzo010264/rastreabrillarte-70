@@ -170,7 +170,7 @@ export default function Perfil() {
       // Limpiar URL temporal
       URL.revokeObjectURL(tempUrl);
       
-      toast.success('¡Foto de perfil actualizada! Todos pueden verla ahora 🎉');
+      toast.success('Foto de perfil actualizada. Todos pueden verla ahora.');
       
       // Realtime se encargará de actualizar automáticamente
     } catch (error) {
