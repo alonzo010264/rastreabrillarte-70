@@ -53,6 +53,9 @@ import GuiaCodigosPago from "./pages/GuiaCodigosPago";
 import AdminCodigosPago from "./pages/AdminCodigosPago";
 import AdminBrillartePay from "./pages/AdminBrillartePay";
 import RastrearPedidoOnline from "./pages/RastrearPedidoOnline";
+import AgentLogin from "./pages/AgentLogin";
+import AgentDashboard from "./pages/AgentDashboard";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -111,6 +114,8 @@ const App = () => (
           <Route path="/admin/brillarte-pay" element={<AdminBrillartePay />} />
           <Route path="/rastrear-pedido/:codigoPedido" element={<RastrearPedidoOnline />} />
           <Route path="/cuenta" element={<Account />} />
+          <Route path="/agente/login" element={<AgentLogin />} />
+          <Route path="/agente/dashboard" element={<AgentDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <ChatbotWrapper />

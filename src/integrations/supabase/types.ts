@@ -14,6 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_forms: {
+        Row: {
+          agente_id: string
+          cliente_email: string | null
+          created_at: string | null
+          datos: Json
+          id: string
+          session_id: string
+          tipo_formulario: string
+        }
+        Insert: {
+          agente_id: string
+          cliente_email?: string | null
+          created_at?: string | null
+          datos: Json
+          id?: string
+          session_id: string
+          tipo_formulario: string
+        }
+        Update: {
+          agente_id?: string
+          cliente_email?: string | null
+          created_at?: string | null
+          datos?: Json
+          id?: string
+          session_id?: string
+          tipo_formulario?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_forms_agente_id_fkey"
+            columns: ["agente_id"]
+            isOneToOne: false
+            referencedRelation: "agent_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_forms_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_notifications: {
+        Row: {
+          agente_id: string | null
+          created_at: string | null
+          id: string
+          leido: boolean | null
+          mensaje: string | null
+          session_id: string | null
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          agente_id?: string | null
+          created_at?: string | null
+          id?: string
+          leido?: boolean | null
+          mensaje?: string | null
+          session_id?: string | null
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          agente_id?: string | null
+          created_at?: string | null
+          id?: string
+          leido?: boolean | null
+          mensaje?: string | null
+          session_id?: string | null
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_notifications_agente_id_fkey"
+            columns: ["agente_id"]
+            isOneToOne: false
+            referencedRelation: "agent_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_notifications_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_profiles: {
+        Row: {
+          activo: boolean | null
+          apellido: string
+          avatar_inicial: string
+          calificacion_promedio: number | null
+          chats_atendidos: number | null
+          created_at: string | null
+          email: string
+          en_linea: boolean | null
+          id: string
+          nombre: string
+          telefono: string | null
+          ultimo_acceso: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activo?: boolean | null
+          apellido: string
+          avatar_inicial: string
+          calificacion_promedio?: number | null
+          chats_atendidos?: number | null
+          created_at?: string | null
+          email: string
+          en_linea?: boolean | null
+          id?: string
+          nombre: string
+          telefono?: string | null
+          ultimo_acceso?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activo?: boolean | null
+          apellido?: string
+          avatar_inicial?: string
+          calificacion_promedio?: number | null
+          chats_atendidos?: number | null
+          created_at?: string | null
+          email?: string
+          en_linea?: boolean | null
+          id?: string
+          nombre?: string
+          telefono?: string | null
+          ultimo_acceso?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       apelaciones_baneo: {
         Row: {
           admin_revisor: string | null
@@ -108,6 +252,103 @@ export type Database = {
             columns: ["producto_id"]
             isOneToOne: false
             referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          contenido: string
+          created_at: string | null
+          id: string
+          leido: boolean | null
+          metadata: Json | null
+          sender_id: string | null
+          sender_nombre: string | null
+          sender_type: string
+          session_id: string
+          tipo: string | null
+        }
+        Insert: {
+          contenido: string
+          created_at?: string | null
+          id?: string
+          leido?: boolean | null
+          metadata?: Json | null
+          sender_id?: string | null
+          sender_nombre?: string | null
+          sender_type: string
+          session_id: string
+          tipo?: string | null
+        }
+        Update: {
+          contenido?: string
+          created_at?: string | null
+          id?: string
+          leido?: boolean | null
+          metadata?: Json | null
+          sender_id?: string | null
+          sender_nombre?: string | null
+          sender_type?: string
+          session_id?: string
+          tipo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          agente_id: string | null
+          atendido_por: string | null
+          cliente_email: string
+          cliente_nombre: string | null
+          created_at: string | null
+          estado: string | null
+          id: string
+          inactividad_notificada: boolean | null
+          metadata: Json | null
+          ultima_actividad: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agente_id?: string | null
+          atendido_por?: string | null
+          cliente_email: string
+          cliente_nombre?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          inactividad_notificada?: boolean | null
+          metadata?: Json | null
+          ultima_actividad?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agente_id?: string | null
+          atendido_por?: string | null
+          cliente_email?: string
+          cliente_nombre?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          inactividad_notificada?: boolean | null
+          metadata?: Json | null
+          ultima_actividad?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_agente_id_fkey"
+            columns: ["agente_id"]
+            isOneToOne: false
+            referencedRelation: "agent_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1832,6 +2073,41 @@ export type Database = {
           },
         ]
       }
+      typing_status: {
+        Row: {
+          id: string
+          is_typing: boolean | null
+          session_id: string
+          updated_at: string | null
+          user_id: string | null
+          user_type: string
+        }
+        Insert: {
+          id?: string
+          is_typing?: boolean | null
+          session_id: string
+          updated_at?: string | null
+          user_id?: string | null
+          user_type: string
+        }
+        Update: {
+          id?: string
+          is_typing?: boolean | null
+          session_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          user_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "typing_status_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_bans: {
         Row: {
           activo: boolean | null
@@ -1921,6 +2197,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_agent: { Args: { _user_id: string }; Returns: boolean }
       is_user_banned: { Args: { check_user_id: string }; Returns: boolean }
       update_user_balance: {
         Args: {
@@ -1934,7 +2211,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "agent"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2062,7 +2339,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "agent"],
     },
   },
 } as const
