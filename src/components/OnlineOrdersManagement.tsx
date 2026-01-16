@@ -179,20 +179,20 @@ export const OnlineOrdersManagement = () => {
   const getEstadoBadgeColor = (estado: string) => {
     switch (estado) {
       case 'Pagado':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-muted text-foreground border-border';
       case 'Enviado':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-muted text-foreground border-border';
       case 'Entregado':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-muted text-foreground border-border';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-foreground border-border';
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -201,7 +201,7 @@ export const OnlineOrdersManagement = () => {
     <Card className="mt-8">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Package className="w-5 h-5 text-pink-500" />
+          <Package className="w-5 h-5 text-primary" />
           Pedidos Online (Tienda)
         </CardTitle>
       </CardHeader>
@@ -219,7 +219,7 @@ export const OnlineOrdersManagement = () => {
               return (
                 <div
                   key={pedido.id}
-                  className="border rounded-lg p-4 hover:border-pink-300 transition-colors"
+                  className="border rounded-lg p-4 hover:border-primary/50 transition-colors"
                 >
                   <div className="flex flex-col md:flex-row justify-between gap-4">
                     {/* Info del pedido */}
@@ -249,19 +249,19 @@ export const OnlineOrdersManagement = () => {
                             key={estado.id}
                             className={`
                               h-2 flex-1 rounded-full transition-colors
-                              ${index <= estadoIndex ? 'bg-pink-500' : 'bg-gray-200'}
+                              ${index <= estadoIndex ? 'bg-primary' : 'bg-muted'}
                             `}
                             title={estado.label}
                           />
                         ))}
                       </div>
-                      <p className="text-xs text-pink-600 mt-1">
+                      <p className="text-xs text-primary mt-1">
                         {pedido.estado_detallado || 'Pedido Pagado'}
                       </p>
                       
                       {pedido.tracking_envio && (
                         <div className="mt-2 flex items-center gap-2 text-sm">
-                          <Truck className="w-4 h-4 text-blue-500" />
+                          <Truck className="w-4 h-4 text-primary" />
                           <span>Tracking: {pedido.tracking_envio}</span>
                         </div>
                       )}
@@ -285,7 +285,7 @@ export const OnlineOrdersManagement = () => {
                               setNewEstado(pedido.estado_detallado || 'Pedido Pagado');
                               setDialogOpen(true);
                             }}
-                            className="border-pink-300 text-pink-600 hover:bg-pink-50"
+                            className="border-primary/50 text-primary hover:bg-primary/10"
                           >
                             <Edit className="w-4 h-4 mr-2" />
                             Actualizar Estado
@@ -346,7 +346,7 @@ export const OnlineOrdersManagement = () => {
                             <Button
                               onClick={handleUpdateEstado}
                               disabled={updating}
-                              className="w-full bg-pink-500 hover:bg-pink-600"
+                              className="w-full"
                             >
                               {updating ? (
                                 <>

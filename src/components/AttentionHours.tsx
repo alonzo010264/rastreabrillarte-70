@@ -53,8 +53,8 @@ const AttentionHours = () => {
         
         <div className="space-y-3">
           <div className="flex items-center">
-            <Instagram className="text-pink-500 mr-3" size={16} />
-            <span className="text-sm text-gray-700">Instagram Oficial</span>
+            <Instagram className="text-foreground mr-3" size={16} />
+            <span className="text-sm text-muted-foreground">Instagram Oficial</span>
           </div>
           <div className="flex items-center">
             <MessageCircle className="text-green-500 mr-3" size={16} />

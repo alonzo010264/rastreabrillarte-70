@@ -305,7 +305,7 @@ export default function AdminProductos() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {productos.map((producto) => (
-              <Card key={producto.id} className={producto.en_oferta ? 'ring-2 ring-pink-500' : ''}>
+              <Card key={producto.id} className={producto.en_oferta ? 'ring-2 ring-primary' : ''}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span className="truncate">{producto.nombre}</span>
@@ -314,7 +314,7 @@ export default function AdminProductos() {
                         <Badge variant="secondary">Destacado</Badge>
                       )}
                       {producto.en_oferta && (
-                        <Badge className="bg-pink-500 text-white">
+                        <Badge className="bg-primary text-primary-foreground">
                           {producto.porcentaje_descuento}% OFF
                         </Badge>
                       )}
@@ -332,7 +332,7 @@ export default function AdminProductos() {
                   <div className="space-y-2">
                     {producto.precio_original && producto.precio < producto.precio_original ? (
                       <div className="flex items-baseline gap-2">
-                        <p className="text-2xl font-bold text-pink-600">${producto.precio}</p>
+                        <p className="text-2xl font-bold text-primary">${producto.precio}</p>
                         <p className="text-sm line-through text-muted-foreground">${producto.precio_original}</p>
                       </div>
                     ) : (
@@ -345,7 +345,7 @@ export default function AdminProductos() {
                     )}
                     <p className="text-sm">Stock: {producto.stock}</p>
                     {producto.codigo_oferta && (
-                      <div className="flex items-center gap-1 text-sm text-pink-600">
+                      <div className="flex items-center gap-1 text-sm text-primary">
                         <Tag className="w-3 h-3" />
                         <span className="font-mono">{producto.codigo_oferta}</span>
                       </div>
@@ -447,10 +447,10 @@ export default function AdminProductos() {
               <Separator />
 
               {/* Sección de Oferta Especial */}
-              <div className="bg-pink-500/10 border border-pink-500/30 rounded-lg p-4 space-y-4">
+              <div className="bg-muted border border-border rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Percent className="w-5 h-5 text-pink-500" />
+                    <Percent className="w-5 h-5 text-primary" />
                     <Label className="text-lg font-semibold">Promoción Especial</Label>
                   </div>
                   <Switch
@@ -539,7 +539,7 @@ export default function AdminProductos() {
                     {precioOriginal && porcentajeDescuento && (
                       <div className="bg-background rounded p-3 text-center">
                         <p className="text-sm text-muted-foreground">Precio con descuento:</p>
-                        <p className="text-2xl font-bold text-pink-600">
+                        <p className="text-2xl font-bold text-primary">
                           ${(parseFloat(precioOriginal) * (1 - parseFloat(porcentajeDescuento) / 100)).toFixed(2)}
                         </p>
                         <p className="text-sm text-muted-foreground">

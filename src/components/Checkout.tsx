@@ -512,7 +512,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
                     {codeValid && <p className="text-sm text-green-600">✓ Código válido</p>}
                     <Link 
                       to="/guia-codigos-pago" 
-                      className="flex items-center gap-2 text-sm text-pink-600 hover:text-pink-700"
+                      className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
                       target="_blank"
                     >
                       <FaQuestionCircle className="w-4 h-4" />
@@ -521,7 +521,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
                   </TabsContent>
                   
                   <TabsContent value="brillarte_pay" className="space-y-3 mt-3">
-                    <div className="p-4 bg-gradient-to-br from-pink-600 to-pink-400 rounded-lg text-white space-y-3">
+                    <div className="p-4 bg-gradient-to-br from-primary to-primary/70 rounded-lg text-primary-foreground space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-xs opacity-70">BRILLARTE PAY</span>
                         <FaCreditCard className="w-6 h-6" />
@@ -644,7 +644,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
             <Button
               onClick={handleCheckout}
               disabled={loading || !isPagoValido() || (necesitaDireccion && !direccion.trim())}
-              className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+              className="w-full"
               size="lg"
             >
               {loading ? (

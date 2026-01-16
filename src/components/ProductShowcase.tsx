@@ -384,7 +384,7 @@ export const ProductShowcase = () => {
                       </Badge>
                     )}
                     {isOfferActive(product) && (
-                      <Badge className="bg-pink-500 text-white">
+                      <Badge className="bg-primary text-primary-foreground">
                         <FaPercent className="w-3 h-3 mr-1" />
                         {product.porcentaje_descuento}% OFF
                       </Badge>
@@ -475,7 +475,7 @@ export const ProductShowcase = () => {
                   <div>
                     {(hasDiscount(product) || isOfferActive(product)) ? (
                       <div className="flex items-baseline gap-2 flex-wrap">
-                        <p className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+                        <p className="text-2xl font-bold text-primary">
                           ${product.precio.toFixed(2)}
                         </p>
                         <p className="text-lg line-through text-muted-foreground">
