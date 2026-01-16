@@ -1,13 +1,5 @@
-import { useState } from "react";
-import { Chatbot, ChatbotTrigger } from "./Chatbot";
+import { ChatbotLive } from "./ChatbotLive";
 
 export const ChatbotWrapper = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <>
-      {isOpen && <Chatbot onClose={() => setIsOpen(false)} />}
-      {!isOpen && <ChatbotTrigger onClick={() => setIsOpen(true)} />}
-    </>
-  );
+  return <ChatbotLive />;
 };
