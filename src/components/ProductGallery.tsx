@@ -159,7 +159,7 @@ const ProductGallery = () => {
     animationActive: 'opacity-100 translate-y-0'
   }];
   const hoverRotations = ['group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-2', '', 'group-hover:rotate-2', 'group-hover:-rotate-3', '', 'group-hover:rotate-3'];
-  const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-pink-500/20', 'from-purple-500/20', 'from-amber-500/20', 'from-blue-500/20', 'from-rose-500/20', 'from-emerald-500/20', 'from-violet-500/20'];
+  const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-muted/40', 'from-foreground/10', 'from-muted-foreground/20', 'from-border/30', 'from-muted/30', 'from-foreground/5', 'from-muted/50'];
   return <section className="py-20 px-4 bg-background relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
@@ -204,8 +204,8 @@ const ProductGallery = () => {
         </div>
 
         <div className="text-center mt-16">
-          <div className="inline-block p-1 rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 animate-glow">
-            <a href="https://www.instagram.com/brillarte.do.oficial/" target="_blank" rel="noopener noreferrer" className="block bg-background px-8 py-4 rounded-xl font-medium hover:bg-transparent hover:text-white transition-all duration-300 group">
+          <div className="inline-block p-1 rounded-2xl bg-primary animate-glow">
+            <a href="https://www.instagram.com/brillarte.do.oficial/" target="_blank" rel="noopener noreferrer" className="block bg-background px-8 py-4 rounded-xl font-medium hover:bg-transparent hover:text-primary-foreground transition-all duration-300 group">
               <span className="flex items-center gap-2 text-lg">
                 <Sparkles className="w-5 h-5 group-hover:animate-spin" />
                 Contáctanos por Instagram

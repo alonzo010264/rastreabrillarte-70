@@ -135,7 +135,7 @@ const AdminCodigosPago = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
-                <Key className="w-8 h-8 text-pink-500" />
+                <Key className="w-8 h-8 text-primary" />
                 Códigos de Pago
               </h1>
               <p className="text-muted-foreground">

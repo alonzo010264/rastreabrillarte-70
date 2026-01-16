@@ -47,7 +47,7 @@ interface Producto {
   categoria: string | null;
 }
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', '#ec4899', '#f59e0b', '#10b981', '#6366f1'];
+const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--muted-foreground))', 'hsl(var(--foreground))', 'hsl(var(--accent-foreground))', 'hsl(var(--border))'];
 
 export default function AdminContabilidad() {
   const navigate = useNavigate();

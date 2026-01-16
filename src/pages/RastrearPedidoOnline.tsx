@@ -122,7 +122,7 @@ const RastrearPedidoOnline = () => {
         <Navigation />
         <PageHeader title="Rastrear Pedido" subtitle="Siguiendo tu pedido..." />
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
         <Footer />
       </div>
@@ -160,17 +160,17 @@ const RastrearPedidoOnline = () => {
         {/* Header del pedido */}
         <div className="mb-8">
           
-          <Card className="bg-gradient-to-r from-pink-500 to-pink-400 text-white">
+          <Card className="bg-primary text-primary-foreground">
             <CardContent className="py-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                   <h1 className="text-2xl font-bold mb-1">Pedido {pedido.codigo_pedido}</h1>
-                  <p className="text-pink-100">
+                  <p className="text-primary-foreground/70">
                     {format(new Date(pedido.created_at), "d 'de' MMMM, yyyy", { locale: es })}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-pink-100 text-sm">Total</p>
+                  <p className="text-primary-foreground/70 text-sm">Total</p>
                   <p className="text-2xl font-bold">${pedido.total.toFixed(2)}</p>
                 </div>
               </div>
@@ -182,7 +182,7 @@ const RastrearPedidoOnline = () => {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5 text-pink-500" />
+              <Package className="w-5 h-5 text-primary" />
               Estado del Pedido
             </CardTitle>
           </CardHeader>
@@ -191,9 +191,9 @@ const RastrearPedidoOnline = () => {
               {/* Línea de fondo */}
               <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded-full" />
               
-              {/* Línea de progreso rosa */}
+              {/* Línea de progreso */}
               <div 
-                className="absolute top-5 left-0 h-1 bg-gradient-to-r from-pink-500 to-pink-400 rounded-full transition-all duration-500"
+                className="absolute top-5 left-0 h-1 bg-primary rounded-full transition-all duration-500"
                 style={{ 
                   width: `${estadoActualIndex >= 0 ? ((estadoActualIndex + 1) / ESTADOS_PROCESO.length) * 100 : 0}%` 
                 }}
@@ -212,9 +212,9 @@ const RastrearPedidoOnline = () => {
                         className={`
                           w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300
                           ${isCompleted 
-                            ? 'bg-pink-500 border-pink-500 text-white' 
-                            : 'bg-white border-gray-300 text-gray-400'}
-                          ${isCurrent ? 'ring-4 ring-pink-200 scale-110' : ''}
+                            ? 'bg-primary border-primary text-primary-foreground' 
+                            : 'bg-background border-border text-muted-foreground'}
+                          ${isCurrent ? 'ring-4 ring-primary/20 scale-110' : ''}
                         `}
                       >
                         {isCompleted ? (
@@ -227,7 +227,7 @@ const RastrearPedidoOnline = () => {
                       {/* Label */}
                       <p className={`
                         mt-3 text-xs text-center font-medium leading-tight
-                        ${isCompleted ? 'text-pink-600' : 'text-gray-400'}
+                        ${isCompleted ? 'text-primary' : 'text-muted-foreground'}
                       `}>
                         {estado.label}
                       </p>
@@ -238,16 +238,16 @@ const RastrearPedidoOnline = () => {
             </div>
 
             {/* Estado actual descripción */}
-            <div className="mt-8 p-4 bg-pink-50 rounded-xl border border-pink-200">
+            <div className="mt-8 p-4 bg-muted rounded-xl border border-border">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <div>
-                  <p className="font-semibold text-pink-700">
+                  <p className="font-semibold text-foreground">
                     {pedido.estado_detallado || 'Pedido Pagado'}
                   </p>
-                  <p className="text-sm text-pink-600">
+                  <p className="text-sm text-muted-foreground">
                     {ESTADOS_PROCESO.find(e => e.id === pedido.estado_detallado)?.descripcion || 
                      '¡Tu pedido ha sido pagado con éxito!'}
                   </p>
@@ -259,11 +259,11 @@ const RastrearPedidoOnline = () => {
 
         {/* Información de envío si está disponible */}
         {pedido.empresas_envio && pedido.tracking_envio && (
-          <Card className="mb-8 border-pink-200">
+          <Card className="mb-8 border-border">
             <CardContent className="py-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
-                  <Truck className="w-6 h-6 text-pink-600" />
+                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                  <Truck className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold">Enviado con {pedido.empresas_envio.nombre}</p>
@@ -295,7 +295,7 @@ const RastrearPedidoOnline = () => {
                   <div key={index} className="flex items-start gap-4 pb-4 border-b last:border-0">
                     <div className={`
                       w-3 h-3 rounded-full mt-1.5
-                      ${index === 0 ? 'bg-pink-500' : 'bg-gray-300'}
+                      ${index === 0 ? 'bg-primary' : 'bg-muted'}
                     `} />
                     <div className="flex-1">
                       <p className="font-medium">{historial.estado}</p>

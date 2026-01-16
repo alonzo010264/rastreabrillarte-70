@@ -236,7 +236,7 @@ export const MisPedidos = () => {
               {isRecentOrder(pedido.created_at) && (
                 <Button 
                   onClick={() => handleRastrear(pedido.codigo_pedido)}
-                  className="flex-1 bg-pink-500 hover:bg-pink-600 text-white"
+                  className="flex-1"
                 >
                   <MapPin className="w-4 h-4 mr-2" />
                   Rastrear Pedido

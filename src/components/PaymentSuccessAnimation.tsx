@@ -24,10 +24,10 @@ export const PaymentSuccessAnimation = ({ onComplete }: PaymentSuccessAnimationP
       <div className="text-center animate-fade-in">
         {/* Círculo animado con checkmark */}
         <div className="relative mb-6">
-          <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center animate-scale-up">
+          <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center animate-scale-up">
             <div className="w-28 h-28 rounded-full bg-background flex items-center justify-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center animate-bounce-once">
-                <Check className="w-14 h-14 text-white stroke-[3]" />
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center animate-bounce-once">
+                <Check className="w-14 h-14 text-primary-foreground stroke-[3]" />
               </div>
             </div>
           </div>
@@ -37,7 +37,7 @@ export const PaymentSuccessAnimation = ({ onComplete }: PaymentSuccessAnimationP
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
-                className="absolute w-3 h-3 rounded-full bg-pink-400 animate-particle"
+                className="absolute w-3 h-3 rounded-full bg-primary animate-particle"
                 style={{
                   left: '50%',
                   top: '50%',
