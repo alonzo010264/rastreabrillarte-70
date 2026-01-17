@@ -95,20 +95,36 @@ const AgentLogin = () => {
     setIsLoading(true);
 
     try {
+      // Validar campos
+      if (!nombre.trim() || !apellido.trim()) {
+        throw new Error("Nombre y apellido son requeridos");
+      }
+      if (password.length < 6) {
+        throw new Error("La contraseña debe tener al menos 6 caracteres");
+      }
+
       // Crear usuario en auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/agente/dashboard`,
         },
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        if (authError.message.includes("already registered")) {
+          throw new Error("Este correo ya está registrado. Intenta iniciar sesión.");
+        }
+        throw authError;
+      }
 
       if (!authData.user) {
         throw new Error("No se pudo crear el usuario");
       }
+
+      // Esperar un momento para que la sesión se establezca
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Crear perfil de agente
       const avatarInicial = nombre.charAt(0).toUpperCase() + (apellido.charAt(0)?.toUpperCase() || "");
@@ -117,27 +133,33 @@ const AgentLogin = () => {
         .from("agent_profiles")
         .insert({
           user_id: authData.user.id,
-          nombre,
-          apellido,
+          nombre: nombre.trim(),
+          apellido: apellido.trim(),
           email,
-          telefono,
+          telefono: telefono || null,
           avatar_inicial: avatarInicial,
           activo: true,
           en_linea: true,
         });
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Error creating profile:", profileError);
+        // Si falla la creación del perfil, eliminar la cuenta de auth
+        await supabase.auth.signOut();
+        throw new Error("Error al crear el perfil de agente: " + profileError.message);
+      }
 
       toast({
-        title: "Cuenta creada",
-        description: "Tu cuenta de agente ha sido creada exitosamente.",
+        title: "¡Cuenta creada!",
+        description: "Tu cuenta de agente ha sido creada exitosamente. Bienvenido.",
       });
 
       navigate("/agente/dashboard");
     } catch (error: any) {
+      console.error("Registration error:", error);
       toast({
-        title: "Error",
-        description: error.message || "Error al registrar",
+        title: "Error al registrar",
+        description: error.message || "Error al registrar. Intenta nuevamente.",
         variant: "destructive",
       });
     } finally {
