@@ -20,24 +20,45 @@ const AgentLogin = () => {
   const [apellido, setApellido] = useState("");
   const [telefono, setTelefono] = useState("");
 
+  const [checkingSession, setCheckingSession] = useState(true);
+
   useEffect(() => {
-    checkExistingSession();
-  }, []);
+    let mounted = true;
+    
+    const checkExistingSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && mounted) {
+          const { data: agentProfile } = await supabase
+            .from("agent_profiles")
+            .select("id")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
 
-  const checkExistingSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      const { data: agentProfile } = await supabase
-        .from("agent_profiles")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .single();
-
-      if (agentProfile) {
-        navigate("/agente/dashboard");
+          if (agentProfile && mounted) {
+            navigate("/agente/dashboard", { replace: true });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Session check error:", error);
+      } finally {
+        if (mounted) setCheckingSession(false);
       }
-    }
-  };
+    };
+
+    checkExistingSession();
+    return () => { mounted = false; };
+  }, [navigate]);
+
+  // Mostrar loader mientras verifica sesión
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,17 +116,23 @@ const AgentLogin = () => {
     setIsLoading(true);
 
     try {
-      // Validar campos
-      if (!nombre.trim() || !apellido.trim()) {
+      // Validar campos primero (antes de llamadas a servidor)
+      const trimmedNombre = nombre.trim();
+      const trimmedApellido = apellido.trim();
+      
+      if (!trimmedNombre || !trimmedApellido) {
         throw new Error("Nombre y apellido son requeridos");
       }
       if (password.length < 6) {
         throw new Error("La contraseña debe tener al menos 6 caracteres");
       }
+      if (!email.includes("@")) {
+        throw new Error("Por favor ingresa un correo válido");
+      }
 
       // Crear usuario en auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: email.toLowerCase().trim(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/agente/dashboard`,
@@ -113,7 +140,7 @@ const AgentLogin = () => {
       });
 
       if (authError) {
-        if (authError.message.includes("already registered")) {
+        if (authError.message.includes("already registered") || authError.message.includes("User already registered")) {
           throw new Error("Este correo ya está registrado. Intenta iniciar sesión.");
         }
         throw authError;
@@ -123,20 +150,17 @@ const AgentLogin = () => {
         throw new Error("No se pudo crear el usuario");
       }
 
-      // Esperar un momento para que la sesión se establezca
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       // Crear perfil de agente
-      const avatarInicial = nombre.charAt(0).toUpperCase() + (apellido.charAt(0)?.toUpperCase() || "");
+      const avatarInicial = trimmedNombre.charAt(0).toUpperCase() + (trimmedApellido.charAt(0)?.toUpperCase() || "");
       
       const { error: profileError } = await supabase
         .from("agent_profiles")
         .insert({
           user_id: authData.user.id,
-          nombre: nombre.trim(),
-          apellido: apellido.trim(),
-          email,
-          telefono: telefono || null,
+          nombre: trimmedNombre,
+          apellido: trimmedApellido,
+          email: email.toLowerCase().trim(),
+          telefono: telefono?.trim() || null,
           avatar_inicial: avatarInicial,
           activo: true,
           en_linea: true,
