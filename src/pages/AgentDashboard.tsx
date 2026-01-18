@@ -17,10 +17,12 @@ import {
   Clock,
   AlertCircle,
   Phone,
-  FileText
+  Star,
+  Mail
 } from "lucide-react";
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
 import { AgentNotifications } from "@/components/agent/AgentNotifications";
+import { ContactQueue } from "@/components/agent/ContactQueue";
 
 interface AgentProfile {
   id: string;
@@ -30,6 +32,7 @@ interface AgentProfile {
   avatar_inicial: string;
   en_linea: boolean;
   chats_atendidos: number;
+  calificacion_promedio: number | null;
 }
 
 interface ChatSession {
@@ -328,14 +331,14 @@ const AgentDashboard = () => {
             </Card>
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-blue-500/10 rounded-lg">
-                  <Users className="h-5 w-5 text-blue-500" />
+                <div className="p-2 bg-yellow-500/10 rounded-lg">
+                  <Star className="h-5 w-5 text-yellow-500" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {chatSessions.filter(s => s.agente_id === agentProfile?.id).length}
+                    {agentProfile?.calificacion_promedio?.toFixed(1) || "N/A"}
                   </p>
-                  <p className="text-xs text-muted-foreground">Mis Chats</p>
+                  <p className="text-xs text-muted-foreground">Calificación</p>
                 </div>
               </CardContent>
             </Card>
@@ -408,7 +411,7 @@ const AgentDashboard = () => {
           </Card>
 
           {/* Panel de chat */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-4">
             {selectedSession && agentProfile ? (
               <AgentChatPanel
                 sessionId={selectedSession}
@@ -419,14 +422,17 @@ const AgentDashboard = () => {
                 }}
               />
             ) : (
-              <Card className="h-[calc(100vh-320px)] flex items-center justify-center">
+              <Card className="h-[calc(100vh-420px)] flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
                   <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium">Selecciona una conversacion</p>
+                  <p className="text-lg font-medium">Selecciona una conversación</p>
                   <p className="text-sm">Elige un chat de la lista para comenzar a atender</p>
                 </div>
               </Card>
             )}
+            
+            {/* Contact Queue */}
+            {agentProfile && <ContactQueue agentId={agentProfile.id} />}
           </div>
         </div>
       </div>

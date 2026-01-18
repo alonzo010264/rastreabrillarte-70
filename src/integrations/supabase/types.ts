@@ -303,6 +303,51 @@ export type Database = {
           },
         ]
       }
+      chat_ratings: {
+        Row: {
+          agente_id: string | null
+          calificacion: number
+          cliente_email: string | null
+          created_at: string
+          id: string
+          mensaje: string | null
+          session_id: string
+        }
+        Insert: {
+          agente_id?: string | null
+          calificacion: number
+          cliente_email?: string | null
+          created_at?: string
+          id?: string
+          mensaje?: string | null
+          session_id: string
+        }
+        Update: {
+          agente_id?: string | null
+          calificacion?: number
+          cliente_email?: string | null
+          created_at?: string
+          id?: string
+          mensaje?: string | null
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_ratings_agente_id_fkey"
+            columns: ["agente_id"]
+            isOneToOne: false
+            referencedRelation: "agent_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_ratings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_sessions: {
         Row: {
           agente_id: string | null
@@ -480,6 +525,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      contact_queue: {
+        Row: {
+          agente_asignado: string | null
+          atendido: boolean | null
+          created_at: string
+          email: string
+          id: string
+          nombre: string | null
+          preguntas_ia: Json | null
+          problema: string
+          updated_at: string
+        }
+        Insert: {
+          agente_asignado?: string | null
+          atendido?: boolean | null
+          created_at?: string
+          email: string
+          id?: string
+          nombre?: string | null
+          preguntas_ia?: Json | null
+          problema: string
+          updated_at?: string
+        }
+        Update: {
+          agente_asignado?: string | null
+          atendido?: boolean | null
+          created_at?: string
+          email?: string
+          id?: string
+          nombre?: string | null
+          preguntas_ia?: Json | null
+          problema?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_queue_agente_asignado_fkey"
+            columns: ["agente_asignado"]
+            isOneToOne: false
+            referencedRelation: "agent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_requests: {
         Row: {
