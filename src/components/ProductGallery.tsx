@@ -209,7 +209,7 @@ const ProductGallery = () => {
               <span className="flex items-center gap-2 text-lg">
                 
                 Contáctanos por Instagram
-                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
+                
               </span>
             </a>
           </div>
