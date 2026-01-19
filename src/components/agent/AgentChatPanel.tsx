@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { containsSensitiveDataRequest, removeEmojis } from "@/utils/sensitiveDataFilter";
 import { 
   Send, 
   Phone, 
@@ -269,12 +270,25 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
   const sendMessage = async (content: string, tipo: string = "texto", metadata?: any) => {
     if (!content.trim()) return;
 
+    // Remove emojis from message
+    let cleanContent = removeEmojis(content);
+    
+    // Check if agent is requesting sensitive data
+    if (containsSensitiveDataRequest(cleanContent)) {
+      toast({
+        title: "Mensaje bloqueado",
+        description: "No puedes solicitar datos personales sensibles (direccion, telefono, Instagram, etc.) por seguridad.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     await supabase.from("chat_messages").insert({
       session_id: sessionId,
       sender_type: "agente",
       sender_id: agentProfile.id,
       sender_nombre: agentProfile.nombre,
-      contenido: content,
+      contenido: cleanContent,
       tipo,
       metadata,
     });
@@ -306,21 +320,21 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
       })
       .eq("id", sessionId);
 
-    // Send personalized welcome message
-    const welcomeMessage = `¡Hola! 👋 Soy ${agentProfile.nombre}, gracias por preferir BRILLARTE. Estoy aquí para ayudarte.\n\nPermíteme revisar los mensajes anteriores para entender mejor tu situación...`;
+    // Send personalized welcome message (no emojis)
+    const welcomeMessage = `Hola, soy ${agentProfile.nombre}, gracias por preferir BRILLARTE. Estoy aqui para ayudarte.\n\nPermiteme revisar los mensajes anteriores para entender mejor tu situacion...`;
     await sendMessage(welcomeMessage, "texto");
     
     loadSession();
   };
 
   const handleEndChat = async () => {
-    // Request rating before ending
+    // Request rating before ending (no emojis)
     await sendMessage(
-      `Gracias por contactar a BRILLARTE. Ha sido un placer ayudarte. 😊\n\n⭐ Por favor, califica esta conversación para ayudarnos a mejorar.`,
+      `Gracias por contactar a BRILLARTE. Ha sido un placer ayudarte.\n\nPor favor, califica esta conversacion para ayudarnos a mejorar.`,
       "sistema"
     );
 
-    await sendMessage(`${agentProfile.nombre} ha finalizado el chat. El asistente virtual continuará atendiéndote si necesitas algo más.`, "sistema");
+    await sendMessage(`${agentProfile.nombre} ha finalizado el chat. El asistente virtual continuara atendiendote si necesitas algo mas.`, "sistema");
     
     await supabase
       .from("chat_sessions")

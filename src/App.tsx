@@ -65,6 +65,7 @@ const AdminBrillartePay = lazy(() => import("./pages/AdminBrillartePay"));
 const RastrearPedidoOnline = lazy(() => import("./pages/RastrearPedidoOnline"));
 const AgentLogin = lazy(() => import("./pages/AgentLogin"));
 const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
+const RastrearTicket = lazy(() => import("./pages/RastrearTicket"));
 
 // Chatbot se carga de forma diferida
 const ChatbotWrapper = lazy(() => import("./components/ChatbotWrapper").then(m => ({ default: m.ChatbotWrapper })));
@@ -139,6 +140,8 @@ const App = () => (
             <Route path="/cuenta" element={<Account />} />
             <Route path="/agente/login" element={<AgentLogin />} />
             <Route path="/agente/dashboard" element={<AgentDashboard />} />
+            <Route path="/rastrear-ticket" element={<RastrearTicket />} />
+            <Route path="*" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatbotWrapper />

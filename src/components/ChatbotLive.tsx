@@ -16,7 +16,8 @@ import {
   Headset,
   Minimize2,
   Maximize2,
-  Star
+  Star,
+  Ticket
 } from "lucide-react";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 
@@ -65,6 +66,7 @@ export const ChatbotLive = () => {
   const [waitingForAgentQuestions, setWaitingForAgentQuestions] = useState(false);
   const [agentQuestionStep, setAgentQuestionStep] = useState(0);
   const [collectedInfo, setCollectedInfo] = useState<{problema?: string; detalles?: string; urgencia?: string}>({});
+  const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const inactivityTimeoutRef = useRef<NodeJS.Timeout>();
@@ -392,29 +394,48 @@ export const ChatbotLive = () => {
       if (hasAgents) {
         await requestAgent();
       } else {
-        // No agents available - save to contact queue
-        await supabase.from("contact_queue").insert({
-          email: email,
-          nombre: name || null,
-          problema: `Problema: ${collectedInfo.problema}\nDetalles: ${collectedInfo.detalles}\nUrgencia: ${messageContent}`,
-          preguntas_ia: { ...collectedInfo, urgencia: messageContent },
-        });
+        // No agents available - create a ticket
+        const ticketInfo = {
+          problema: collectedInfo.problema || 'No especificado',
+          detalles: collectedInfo.detalles || 'No especificado',
+          urgencia: messageContent
+        };
+        
+        const { data: ticketData } = await supabase.from("tickets_ayuda").insert({
+          asunto: `Chat: ${ticketInfo.problema.slice(0, 50)}`,
+          descripcion: `Problema: ${ticketInfo.problema}\n\nDetalles: ${ticketInfo.detalles}\n\nUrgencia: ${ticketInfo.urgencia}\n\nCorreo: ${email}\nNombre: ${name || 'No proporcionado'}`,
+          estado: "abierto",
+          prioridad: parseInt(ticketInfo.urgencia) >= 4 ? "alta" : parseInt(ticketInfo.urgencia) >= 3 ? "media" : "baja",
+          categoria: "chatbot"
+        }).select().single();
 
-        await supabase.from("chat_messages").insert({
-          session_id: session!.id,
-          sender_type: "ia",
-          sender_nombre: "Asistente Virtual",
-          contenido: `No hay agentes disponibles ahora. He guardado tu caso y correo (${email}). Te contactaremos pronto. Puedo ayudarte en algo mas?`,
-          tipo: "texto",
-        });
+        if (ticketData) {
+          setCreatedTicketId(ticketData.id);
+          
+          await supabase.from("chat_messages").insert({
+            session_id: session!.id,
+            sender_type: "ia",
+            sender_nombre: "Asistente Virtual",
+            contenido: `No hay agentes disponibles en este momento. He creado un ticket para ti.\n\nNumero de ticket: ${ticketData.id.slice(0, 8)}\n\nUn agente revisara tu caso y te contactara por correo a ${email}. Puedes dar seguimiento a tu ticket en cualquier momento.`,
+            tipo: "texto",
+          });
 
-        // Notify all agents about new contact request
-        await supabase.from("agent_notifications").insert({
-          agente_id: null,
-          tipo: "contacto_pendiente",
-          titulo: "Nueva solicitud de contacto",
-          mensaje: `${name || email} necesita ayuda y no había agentes disponibles.`,
-        });
+          // Notify all agents about new ticket
+          await supabase.from("agent_notifications").insert({
+            agente_id: null,
+            tipo: "ticket_nuevo",
+            titulo: "Nuevo ticket desde chat",
+            mensaje: `${name || email} creo un ticket porque no habia agentes disponibles.`,
+          });
+        } else {
+          await supabase.from("chat_messages").insert({
+            session_id: session!.id,
+            sender_type: "ia",
+            sender_nombre: "Asistente Virtual",
+            contenido: `No hay agentes disponibles ahora. He guardado tu caso y te contactaremos a ${email} pronto.`,
+            tipo: "texto",
+          });
+        }
       }
     }
   };
@@ -525,7 +546,7 @@ export const ChatbotLive = () => {
       session_id: session.id,
       sender_type: "sistema",
       sender_nombre: "Sistema",
-      contenido: "✅ Tu solicitud ha sido enviada. Un agente se conectará contigo en breve. Mientras esperas, puedo seguir ayudándote.",
+      contenido: "Tu solicitud ha sido enviada. Un agente se conectara contigo en breve. Mientras esperas, puedo seguir ayudandote.",
       tipo: "sistema",
     });
   };
@@ -568,7 +589,7 @@ export const ChatbotLive = () => {
       session_id: session.id,
       sender_type: "ia",
       sender_nombre: "Asistente Virtual",
-      contenido: `¡Gracias por tu calificación! ${rating >= 4 ? "😊 Nos alegra haberte ayudado." : "Trabajaremos para mejorar."} ¿Hay algo más en lo que pueda ayudarte?`,
+      contenido: `Gracias por tu calificacion. ${rating >= 4 ? "Nos alegra haberte ayudado." : "Trabajaremos para mejorar."} Hay algo mas en lo que pueda ayudarte?`,
       tipo: "texto",
     });
 
@@ -854,8 +875,19 @@ export const ChatbotLive = () => {
                 </div>
                 {session?.estado === "esperando_agente" && (
                   <p className="text-xs text-center text-muted-foreground mt-2">
-                    ⏳ Esperando a que un agente se conecte...
+                    Esperando a que un agente se conecte...
                   </p>
+                )}
+                {createdTicketId && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
+                    onClick={() => window.open(`/rastrear-ticket?id=${createdTicketId.slice(0, 8)}`, '_blank')}
+                  >
+                    <Ticket className="h-4 w-4 mr-2" />
+                    Seguimiento de Ticket
+                  </Button>
                 )}
               </div>
             </>
