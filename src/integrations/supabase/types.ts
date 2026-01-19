@@ -117,12 +117,14 @@ export type Database = {
           created_at: string | null
           email: string
           en_linea: boolean | null
+          es_ia: boolean | null
           id: string
           nombre: string
           telefono: string | null
+          tipo_agente: string | null
           ultimo_acceso: string | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           activo?: boolean | null
@@ -133,12 +135,14 @@ export type Database = {
           created_at?: string | null
           email: string
           en_linea?: boolean | null
+          es_ia?: boolean | null
           id?: string
           nombre: string
           telefono?: string | null
+          tipo_agente?: string | null
           ultimo_acceso?: string | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           activo?: boolean | null
@@ -149,12 +153,14 @@ export type Database = {
           created_at?: string | null
           email?: string
           en_linea?: boolean | null
+          es_ia?: boolean | null
           id?: string
           nombre?: string
           telefono?: string | null
+          tipo_agente?: string | null
           ultimo_acceso?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
