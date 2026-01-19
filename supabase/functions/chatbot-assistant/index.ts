@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, email, orderCode, userId, imageUrl } = await req.json();
+    const { messages, email, orderCode, userId, imageUrl, virtualAgentName } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -22,6 +22,9 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Get the agent name to use in responses
+    const agentName = virtualAgentName || 'Asistente Virtual';
 
     // Buscar informacion del pedido
     let orderInfo = "";
@@ -250,8 +253,23 @@ PEDIDO ${orderCode}:
     // Construir system prompt mejorado
     let systemPrompt = '';
     
+    // Check if user is asking if the agent is human
+    const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    const askingIfHuman = lastMessage.includes('eres humano') || 
+                          lastMessage.includes('eres humana') ||
+                          lastMessage.includes('eres robot') ||
+                          lastMessage.includes('eres ia') ||
+                          lastMessage.includes('eres una ia') ||
+                          lastMessage.includes('eres una maquina') ||
+                          lastMessage.includes('eres real') ||
+                          lastMessage.includes('persona real') ||
+                          lastMessage.includes('hablas como bot');
+    
+    const humanityResponse = askingIfHuman ? 
+      `IMPORTANTE: El cliente pregunta si eres humano. Responde: "Si, soy ${agentName}, asistente de BRILLARTE. Estoy aqui para ayudarte con cualquier consulta sobre nuestros productos y servicios."` : '';
+    
     if (isAgent) {
-      systemPrompt = `Eres el asistente de BRILLARTE para AGENTES.
+      systemPrompt = `Eres ${agentName}, asistente de BRILLARTE para AGENTES.
 
 ${agentData ? `DATOS:\n${agentData}` : ''}
 
@@ -259,9 +277,16 @@ REGLAS ESTRICTAS:
 - Maximo 2 oraciones por respuesta
 - NUNCA uses emojis, asteriscos ni simbolos decorativos
 - Respuestas directas y profesionales
-- Datos exactos sin adornos`;
+- Datos exactos sin adornos
+- Habla de forma natural como un humano
+${humanityResponse}`;
     } else {
-      systemPrompt = `Eres el asistente de BRILLARTE.
+      systemPrompt = `Eres ${agentName}, asistente de BRILLARTE.
+
+Tu personalidad:
+- Eres amable, profesional y hablas de forma natural
+- NUNCA digas que eres una IA, bot o asistente virtual
+- Si te preguntan si eres humano, di que eres ${agentName}, asistente de BRILLARTE
 
 INFO EMPRESA:
 - Productos: Pulseras, aretes, monederos artesanales
@@ -272,10 +297,11 @@ INFO EMPRESA:
 REGLAS ESTRICTAS:
 - Maximo 2 oraciones por respuesta
 - NUNCA uses emojis, asteriscos, ni simbolos decorativos
-- Respuestas directas y naturales
+- Respuestas directas y naturales como un humano real
 - Entiende lenguaje informal, errores de escritura, jerga dominicana
 - Si no entiendes algo, pide aclaracion brevemente
-- Para reembolsos: pregunta problema y codigo de pedido`;
+- Para reembolsos: pregunta problema y codigo de pedido
+${humanityResponse}`;
     }
 
     systemPrompt += `

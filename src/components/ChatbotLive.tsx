@@ -50,6 +50,16 @@ interface AgentProfile {
   nombre: string;
   apellido: string;
   avatar_inicial: string;
+  es_ia?: boolean;
+  tipo_agente?: string;
+}
+
+interface VirtualAgent {
+  id: string;
+  nombre: string;
+  apellido: string;
+  avatar_inicial: string;
+  es_ia: boolean;
 }
 
 export const ChatbotLive = () => {
@@ -76,6 +86,8 @@ export const ChatbotLive = () => {
   const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
   const [assignedAgentName, setAssignedAgentName] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [virtualAgent, setVirtualAgent] = useState<VirtualAgent | null>(null);
+  const [aiTypingDelay, setAiTypingDelay] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const inactivityTimeoutRef = useRef<NodeJS.Timeout>();
@@ -301,13 +313,32 @@ export const ChatbotLive = () => {
       setSession(sessionData);
       setHasStarted(true);
 
-      await supabase.from("chat_messages").insert({
-        session_id: sessionData.id,
-        sender_type: "ia",
-        sender_nombre: "Asistente Virtual",
-        contenido: `Hola${name ? ` ${name}` : ""}. Soy el asistente de BRILLARTE. Como puedo ayudarte? Si prefieres un agente humano, escribeme "hablar con agente".`,
-        tipo: "texto",
-      });
+      // Assign a virtual AI agent to make it feel human
+      const agentCheck = await checkAvailableAgents();
+      
+      if (agentCheck.available && !agentCheck.isHuman) {
+        setVirtualAgent(agentCheck.agent);
+        setAssignedAgentName(agentCheck.agent.nombre);
+        
+        // Simulate typing delay before greeting
+        setTimeout(async () => {
+          await supabase.from("chat_messages").insert({
+            session_id: sessionData.id,
+            sender_type: "ia",
+            sender_nombre: agentCheck.agent.nombre,
+            contenido: `Hola${name ? ` ${name}` : ""}. Soy ${agentCheck.agent.nombre}, asistente de BRILLARTE. En que puedo ayudarte hoy?`,
+            tipo: "texto",
+          });
+        }, getRandomTypingDelay());
+      } else {
+        await supabase.from("chat_messages").insert({
+          session_id: sessionData.id,
+          sender_type: "ia",
+          sender_nombre: "Asistente Virtual",
+          contenido: `Hola${name ? ` ${name}` : ""}. Bienvenido a BRILLARTE. En que puedo ayudarte?`,
+          tipo: "texto",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -361,19 +392,46 @@ export const ChatbotLive = () => {
     }, 2000);
   };
 
-  const checkAvailableAgents = async (): Promise<{available: boolean; agent?: any}> => {
-    const { data } = await supabase
+  const checkAvailableAgents = async (): Promise<{available: boolean; agent?: any; isHuman?: boolean}> => {
+    // First check for human agents (logged in specialists)
+    const { data: humanAgents } = await supabase
       .from("agent_profiles")
-      .select("id, nombre, apellido")
+      .select("id, nombre, apellido, es_ia, tipo_agente")
       .eq("en_linea", true)
-      .eq("activo", true);
+      .eq("activo", true)
+      .eq("es_ia", false);
     
-    if (data && data.length > 0) {
-      // Select a random agent for assignment
-      const randomAgent = data[Math.floor(Math.random() * data.length)];
-      return { available: true, agent: randomAgent };
+    if (humanAgents && humanAgents.length > 0) {
+      const randomAgent = humanAgents[Math.floor(Math.random() * humanAgents.length)];
+      return { available: true, agent: randomAgent, isHuman: true };
     }
+    
+    // If no human agents, use virtual AI agents
+    const { data: aiAgents } = await supabase
+      .from("agent_profiles")
+      .select("id, nombre, apellido, avatar_inicial, es_ia")
+      .eq("activo", true)
+      .eq("es_ia", true);
+    
+    if (aiAgents && aiAgents.length > 0) {
+      const randomAiAgent = aiAgents[Math.floor(Math.random() * aiAgents.length)];
+      return { available: true, agent: randomAiAgent, isHuman: false };
+    }
+    
     return { available: false };
+  };
+
+  const getRandomTypingDelay = () => {
+    // Random delay between 1.5 and 4 seconds to simulate human typing
+    return Math.floor(Math.random() * 2500) + 1500;
+  };
+
+  const simulateHumanTyping = async (callback: () => Promise<void>) => {
+    setAiTypingDelay(true);
+    const delay = getRandomTypingDelay();
+    await new Promise(resolve => setTimeout(resolve, delay));
+    await callback();
+    setAiTypingDelay(false);
   };
 
   const handleFileUpload = async (file: File) => {
@@ -576,7 +634,9 @@ export const ChatbotLive = () => {
       return;
     }
 
-    setIsLoading(true);
+    // Show typing indicator
+    setAiTypingDelay(true);
+
     try {
       const { data, error } = await supabase.functions.invoke("chatbot-assistant", {
         body: {
@@ -588,14 +648,18 @@ export const ChatbotLive = () => {
             { role: "user", content: messageContent },
           ],
           email,
+          virtualAgentName: virtualAgent?.nombre,
         },
       });
+
+      // Add realistic typing delay
+      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay()));
 
       if (!error && data?.response) {
         await supabase.from("chat_messages").insert({
           session_id: session.id,
           sender_type: "ia",
-          sender_nombre: "Asistente Virtual",
+          sender_nombre: virtualAgent?.nombre || "Asistente Virtual",
           contenido: data.response,
           tipo: "texto",
         });
@@ -603,7 +667,7 @@ export const ChatbotLive = () => {
     } catch (error) {
       console.error("Error calling AI:", error);
     } finally {
-      setIsLoading(false);
+      setAiTypingDelay(false);
     }
   };
 
@@ -705,6 +769,16 @@ export const ChatbotLive = () => {
     }
 
     if (message.sender_type === "ia") {
+      // If we have a virtual agent assigned, show their initial
+      if (virtualAgent && message.sender_nombre === virtualAgent.nombre) {
+        return (
+          <Avatar className="h-8 w-8 bg-primary">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
+              {virtualAgent.avatar_inicial}
+            </AvatarFallback>
+          </Avatar>
+        );
+      }
       return (
         <Avatar className="h-8 w-8">
           <AvatarImage src={brillarteLogo} alt="BRILLARTE" />
@@ -768,8 +842,20 @@ export const ChatbotLive = () => {
                 <p className="text-sm font-medium">{currentAgent.nombre}</p>
                 <p className="text-xs opacity-80 flex items-center gap-1">
                   <Headset className="h-3 w-3" />
-                  Agente de Soporte
+                  Especialista de Soporte
                 </p>
+              </div>
+            </>
+          ) : virtualAgent ? (
+            <>
+              <Avatar className="h-8 w-8 border-2 border-primary-foreground/20 bg-primary-foreground">
+                <AvatarFallback className="bg-primary-foreground text-primary text-sm font-bold">
+                  {virtualAgent.avatar_inicial}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium">{virtualAgent.nombre}</p>
+                <p className="text-xs opacity-80">Asistente BRILLARTE</p>
               </div>
             </>
           ) : (
@@ -945,12 +1031,16 @@ export const ChatbotLive = () => {
                     </div>
                   ))}
                   
-                  {(agentTyping || isLoading || isUploading) && (
+                  {(agentTyping || aiTypingDelay || isUploading) && (
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
                         {currentAgent ? (
                           <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
                             {currentAgent.nombre.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        ) : virtualAgent ? (
+                          <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                            {virtualAgent.avatar_inicial}
                           </AvatarFallback>
                         ) : (
                           <>

@@ -186,12 +186,12 @@ const AgentDashboard = () => {
       return;
     }
 
-    // Send personalized welcome message (no emojis)
+    // Send personalized welcome message (no emojis) - Specialist
     await supabase.from("chat_messages").insert({
       session_id: sessionId,
       sender_type: "sistema",
       sender_nombre: "Sistema",
-      contenido: `${agentProfile.nombre} se ha unido al chat para ayudarte.`,
+      contenido: `El especialista ${agentProfile.nombre} se ha unido al chat para ayudarte.`,
       tipo: "sistema",
     });
 
@@ -202,9 +202,9 @@ const AgentDashboard = () => {
   const getStatusBadge = (session: ChatSession) => {
     switch (session.estado) {
       case "esperando_agente":
-        return <Badge variant="destructive" className="animate-pulse">Solicita Agente</Badge>;
+        return <Badge variant="destructive" className="animate-pulse">Solicita Especialista</Badge>;
       case "con_agente":
-        return <Badge variant="default">Con Agente</Badge>;
+        return <Badge variant="default">Con Especialista</Badge>;
       default:
         return <Badge variant="secondary">Con IA</Badge>;
     }
@@ -239,7 +239,7 @@ const AgentDashboard = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Headset className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg">Panel de Agente</span>
+              <span className="font-bold text-lg">Panel de Especialista</span>
             </div>
             {agentProfile && (
               <div className="flex items-center gap-2">
@@ -250,9 +250,9 @@ const AgentDashboard = () => {
                 </Avatar>
                 <div className="hidden sm:block">
                   <p className="text-sm font-medium">{agentProfile.nombre} {agentProfile.apellido}</p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    En linea
+                    Especialista en linea
                   </p>
                 </div>
               </div>
@@ -315,7 +315,7 @@ const AgentDashboard = () => {
                   <p className="text-2xl font-bold">
                     {chatSessions.filter(s => s.estado === "esperando_agente").length}
                   </p>
-                  <p className="text-xs text-muted-foreground">Esperando Agente</p>
+                  <p className="text-xs text-muted-foreground">Esperando Especialista</p>
                 </div>
               </CardContent>
             </Card>
