@@ -23,6 +23,7 @@ import {
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
 import { AgentNotifications } from "@/components/agent/AgentNotifications";
 import { ContactQueue } from "@/components/agent/ContactQueue";
+import { AgentTickets } from "@/components/agent/AgentTickets";
 
 interface AgentProfile {
   id: string;
@@ -185,7 +186,7 @@ const AgentDashboard = () => {
       return;
     }
 
-    // Enviar mensaje de sistema
+    // Send personalized welcome message (no emojis)
     await supabase.from("chat_messages").insert({
       session_id: sessionId,
       sender_type: "sistema",
@@ -431,6 +432,9 @@ const AgentDashboard = () => {
               </Card>
             )}
             
+            {/* Tickets Section */}
+            {agentProfile && <AgentTickets agentId={agentProfile.id} />}
+
             {/* Contact Queue */}
             {agentProfile && <ContactQueue agentId={agentProfile.id} />}
           </div>
