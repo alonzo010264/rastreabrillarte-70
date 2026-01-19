@@ -207,9 +207,9 @@ const ProductGallery = () => {
           <div className="inline-block p-1 rounded-2xl bg-primary animate-glow">
             <a href="https://www.instagram.com/brillarte.do.oficial/" target="_blank" rel="noopener noreferrer" className="block bg-background px-8 py-4 rounded-xl font-medium hover:bg-transparent hover:text-primary-foreground transition-all duration-300 group">
               <span className="flex items-center gap-2 text-lg">
-                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
-                Contáctanos por Instagram
                 
+                Contáctanos por Instagram
+                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
               </span>
             </a>
           </div>
