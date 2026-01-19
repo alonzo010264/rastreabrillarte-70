@@ -73,7 +73,7 @@ const Home = () => {
           <div className="animate-blur-in animation-delay-600 relative group">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl hover:shadow-primary/20 transition-all duration-700 card-3d">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-secondary/30 opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10" />
-              <img src={teamWork} alt="Equipo BRILLARTE" width="800" height="533" fetchPriority="high" className="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-110" />
+              <img src={teamWork} alt="Equipo BRILLARTE" width="800" height="533" loading="eager" className="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-110" />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
             </div>
             <div className="absolute -bottom-4 -right-4 bg-gradient-to-r from-primary to-secondary text-primary-foreground px-6 py-3 rounded-2xl shadow-xl animate-pulse-glow hover:scale-110 transition-all duration-500 cursor-pointer group/badge">
