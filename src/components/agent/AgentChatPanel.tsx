@@ -18,7 +18,10 @@ import {
   User,
   Headset,
   Eye,
-  Package
+  Package,
+  Paperclip,
+  Download,
+  Image as ImageIcon
 } from "lucide-react";
 import { AgentFormModal } from "./AgentFormModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -38,6 +41,9 @@ interface ChatMessage {
   tipo: string;
   created_at: string;
   metadata?: any;
+  archivo_url?: string;
+  archivo_tipo?: string;
+  archivo_nombre?: string;
 }
 
 interface ChatSession {
@@ -87,8 +93,10 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
   const [showClientProfile, setShowClientProfile] = useState(false);
   const [clientProfile, setClientProfile] = useState<ClientProfile | null>(null);
   const [clientOrders, setClientOrders] = useState<ClientOrder[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
@@ -304,6 +312,70 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
     setNewMessage("");
     updateTypingStatus(false);
     setIsTyping(false);
+  };
+
+  const handleFileUpload = async (file: File) => {
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast({
+        title: "Archivo muy grande",
+        description: "El archivo no puede superar 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${sessionId}/${Date.now()}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('chat-attachments')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('chat-attachments')
+        .getPublicUrl(fileName);
+
+      const fileType = file.type.startsWith('image/') ? 'imagen' : 'documento';
+
+      await supabase.from("chat_messages").insert({
+        session_id: sessionId,
+        sender_type: "agente",
+        sender_id: agentProfile.id,
+        sender_nombre: agentProfile.nombre,
+        contenido: fileType === 'imagen' ? 'Imagen enviada' : `Documento: ${file.name}`,
+        tipo: "archivo",
+        archivo_url: urlData.publicUrl,
+        archivo_tipo: fileType,
+        archivo_nombre: file.name,
+      });
+
+      await supabase
+        .from("chat_sessions")
+        .update({ ultima_actividad: new Date().toISOString() })
+        .eq("id", sessionId);
+
+      toast({
+        title: "Archivo enviado",
+        description: `${file.name} se ha enviado correctamente`,
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo subir el archivo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleSendMessage = async () => {
@@ -556,7 +628,36 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
                         </span>
                       </div>
                     )}
-                    <p className="text-sm whitespace-pre-wrap">{message.contenido}</p>
+                    
+                    {/* File attachment display */}
+                    {message.archivo_url && (
+                      <div className="mb-2">
+                        {message.archivo_tipo === 'imagen' ? (
+                          <a href={message.archivo_url} target="_blank" rel="noopener noreferrer">
+                            <img 
+                              src={message.archivo_url} 
+                              alt={message.archivo_nombre || 'Imagen'} 
+                              className="max-w-full rounded-lg max-h-48 object-cover cursor-pointer hover:opacity-80 transition"
+                            />
+                          </a>
+                        ) : (
+                          <a 
+                            href={message.archivo_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 p-2 bg-background/50 rounded-lg hover:bg-background/80 transition"
+                          >
+                            <FileText className="h-5 w-5" />
+                            <span className="text-sm truncate flex-1">{message.archivo_nombre || 'Documento'}</span>
+                            <Download className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    
+                    {!message.archivo_url && (
+                      <p className="text-sm whitespace-pre-wrap">{message.contenido}</p>
+                    )}
                     <p className="text-[10px] opacity-50 mt-1">
                       {new Date(message.created_at).toLocaleTimeString("es-DO", {
                         hour: "2-digit",
@@ -581,7 +682,26 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
 
           {isMyChat && (
             <div className="p-3 border-t">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*,.pdf,.doc,.docx,.txt,.xls,.xlsx"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file);
+                }}
+              />
               <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  title="Adjuntar archivo"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
                 <Input
                   placeholder="Escribe un mensaje..."
                   value={newMessage}

@@ -17,7 +17,11 @@ import {
   Minimize2,
   Maximize2,
   Star,
-  Ticket
+  Ticket,
+  Paperclip,
+  Image as ImageIcon,
+  FileText,
+  Download
 } from "lucide-react";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 
@@ -29,6 +33,9 @@ interface Message {
   tipo: string;
   created_at: string;
   metadata?: any;
+  archivo_url?: string;
+  archivo_tipo?: string;
+  archivo_nombre?: string;
 }
 
 interface ChatSession {
@@ -67,9 +74,12 @@ export const ChatbotLive = () => {
   const [agentQuestionStep, setAgentQuestionStep] = useState(0);
   const [collectedInfo, setCollectedInfo] = useState<{problema?: string; detalles?: string; urgencia?: string}>({});
   const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
+  const [assignedAgentName, setAssignedAgentName] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const inactivityTimeoutRef = useRef<NodeJS.Timeout>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const INACTIVITY_WARNING_TIME = 3 * 60 * 1000;
   const INACTIVITY_CLOSE_TIME = 5 * 60 * 1000;
@@ -351,14 +361,84 @@ export const ChatbotLive = () => {
     }, 2000);
   };
 
-  const checkAvailableAgents = async (): Promise<boolean> => {
+  const checkAvailableAgents = async (): Promise<{available: boolean; agent?: any}> => {
     const { data } = await supabase
       .from("agent_profiles")
-      .select("id")
+      .select("id, nombre, apellido")
       .eq("en_linea", true)
       .eq("activo", true);
     
-    return (data?.length || 0) > 0;
+    if (data && data.length > 0) {
+      // Select a random agent for assignment
+      const randomAgent = data[Math.floor(Math.random() * data.length)];
+      return { available: true, agent: randomAgent };
+    }
+    return { available: false };
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!session) return;
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast({
+        title: "Archivo muy grande",
+        description: "El archivo no puede superar 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${session.id}/${Date.now()}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('chat-attachments')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('chat-attachments')
+        .getPublicUrl(fileName);
+
+      const fileType = file.type.startsWith('image/') ? 'imagen' : 'documento';
+
+      await supabase.from("chat_messages").insert({
+        session_id: session.id,
+        sender_type: "cliente",
+        sender_nombre: name || email,
+        contenido: fileType === 'imagen' ? 'Imagen enviada' : `Documento: ${file.name}`,
+        tipo: "archivo",
+        archivo_url: urlData.publicUrl,
+        archivo_tipo: fileType,
+        archivo_nombre: file.name,
+      });
+
+      await supabase
+        .from("chat_sessions")
+        .update({ ultima_actividad: new Date().toISOString() })
+        .eq("id", session.id);
+
+      toast({
+        title: "Archivo enviado",
+        description: `${file.name} se ha enviado correctamente`,
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo subir el archivo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleAgentQuestionResponse = async (messageContent: string) => {
@@ -389,10 +469,11 @@ export const ChatbotLive = () => {
       setWaitingForAgentQuestions(false);
       setAgentQuestionStep(0);
       
-      const hasAgents = await checkAvailableAgents();
+      const agentCheck = await checkAvailableAgents();
       
-      if (hasAgents) {
-        await requestAgent();
+      if (agentCheck.available && agentCheck.agent) {
+        setAssignedAgentName(agentCheck.agent.nombre);
+        await requestAgent(agentCheck.agent);
       } else {
         // No agents available - create a ticket
         const ticketInfo = {
@@ -526,7 +607,7 @@ export const ChatbotLive = () => {
     }
   };
 
-  const requestAgent = async () => {
+  const requestAgent = async (assignedAgent?: {id: string; nombre: string; apellido: string}) => {
     if (!session) return;
 
     await supabase
@@ -534,19 +615,27 @@ export const ChatbotLive = () => {
       .update({ estado: "esperando_agente" })
       .eq("id", session.id);
 
+    const agentMessage = assignedAgent 
+      ? `${name || email} ha solicitado hablar con un agente.\nProblema: ${collectedInfo.problema || 'No especificado'}\nAgente asignado: ${assignedAgent.nombre}`
+      : `${name || email} ha solicitado hablar con un agente.\nProblema: ${collectedInfo.problema || 'No especificado'}`;
+
     await supabase.from("agent_notifications").insert({
-      agente_id: null,
+      agente_id: assignedAgent?.id || null,
       tipo: "nueva_solicitud",
       titulo: "Nuevo cliente solicita agente",
-      mensaje: `${name || email} ha solicitado hablar con un agente.\nProblema: ${collectedInfo.problema || 'No especificado'}`,
+      mensaje: agentMessage,
       session_id: session.id,
     });
+
+    const clientMessage = assignedAgent 
+      ? `Tu solicitud ha sido enviada. El agente ${assignedAgent.nombre} atendera tu caso en breve. Mientras esperas, puedo seguir ayudandote.`
+      : "Tu solicitud ha sido enviada. Un agente se conectara contigo en breve. Mientras esperas, puedo seguir ayudandote.";
 
     await supabase.from("chat_messages").insert({
       session_id: session.id,
       sender_type: "sistema",
       sender_nombre: "Sistema",
-      contenido: "Tu solicitud ha sido enviada. Un agente se conectara contigo en breve. Mientras esperas, puedo seguir ayudandote.",
+      contenido: clientMessage,
       tipo: "sistema",
     });
   };
@@ -816,7 +905,36 @@ export const ChatbotLive = () => {
                             {getSenderName(message)}
                           </p>
                         )}
-                        <p className="text-sm whitespace-pre-wrap">{message.contenido}</p>
+                        
+                        {/* File attachment display */}
+                        {message.archivo_url && (
+                          <div className="mb-2">
+                            {message.archivo_tipo === 'imagen' ? (
+                              <a href={message.archivo_url} target="_blank" rel="noopener noreferrer">
+                                <img 
+                                  src={message.archivo_url} 
+                                  alt={message.archivo_nombre || 'Imagen'} 
+                                  className="max-w-full rounded-lg max-h-48 object-cover cursor-pointer hover:opacity-80 transition"
+                                />
+                              </a>
+                            ) : (
+                              <a 
+                                href={message.archivo_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 p-2 bg-background/50 rounded-lg hover:bg-background/80 transition"
+                              >
+                                <FileText className="h-5 w-5" />
+                                <span className="text-sm truncate flex-1">{message.archivo_nombre || 'Documento'}</span>
+                                <Download className="h-4 w-4" />
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        
+                        {!message.archivo_url && (
+                          <p className="text-sm whitespace-pre-wrap">{message.contenido}</p>
+                        )}
                         <p className="text-[10px] opacity-50 mt-1">
                           {new Date(message.created_at).toLocaleTimeString("es-DO", {
                             hour: "2-digit",
@@ -827,7 +945,7 @@ export const ChatbotLive = () => {
                     </div>
                   ))}
                   
-                  {(agentTyping || isLoading) && (
+                  {(agentTyping || isLoading || isUploading) && (
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
                         {currentAgent ? (
@@ -857,13 +975,33 @@ export const ChatbotLive = () => {
 
               {/* Input */}
               <div className="p-3 border-t">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*,.pdf,.doc,.docx,.txt,.xls,.xlsx"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file);
+                  }}
+                />
                 <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={session?.estado === "abandonado" || isUploading}
+                    title="Adjuntar archivo"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
                   <Input
                     placeholder="Escribe un mensaje..."
                     value={newMessage}
                     onChange={(e) => handleInputChange(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && sendMessage()}
                     disabled={session?.estado === "abandonado"}
+                    className="flex-1"
                   />
                   <Button 
                     onClick={sendMessage} 
@@ -875,7 +1013,10 @@ export const ChatbotLive = () => {
                 </div>
                 {session?.estado === "esperando_agente" && (
                   <p className="text-xs text-center text-muted-foreground mt-2">
-                    Esperando a que un agente se conecte...
+                    {assignedAgentName 
+                      ? `El agente ${assignedAgentName} atendera tu caso pronto...`
+                      : "Esperando a que un agente se conecte..."
+                    }
                   </p>
                 )}
                 {createdTicketId && (
