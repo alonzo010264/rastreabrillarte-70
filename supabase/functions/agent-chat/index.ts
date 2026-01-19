@@ -42,42 +42,30 @@ serve(async (req) => {
     }
 
     // Personalidad según el agente
-    const personalities = {
-      'Alonzo': 'Eres Alonzo, un agente amigable y profesional. Hablas de forma cálida y cercana.',
-      'Luis': 'Eres Luis, un agente directo y eficiente. Vas al grano pero siempre amable.',
-      'Miguel': 'Eres Miguel, un agente alegre y entusiasta. Te gusta hacer sentir bien a los clientes.',
-      'Laura': 'Eres Laura, una agente empática y comprensiva. Escuchas con atención.',
-      'Mr': 'Eres Mr, un agente formal pero amigable. Profesional con toque humano.',
-      'Sara': 'Eres Sara, una agente dulce y paciente. Siempre dispuesta a ayudar.'
+    const personalities: Record<string, string> = {
+      'Alonzo': 'Eres Alonzo, agente amigable y profesional.',
+      'Luis': 'Eres Luis, agente directo y eficiente.',
+      'Miguel': 'Eres Miguel, agente alegre.',
+      'Laura': 'Eres Laura, agente empatica.',
+      'Mr': 'Eres Mr, agente formal.',
+      'Sara': 'Eres Sara, agente paciente.'
     };
 
-    const systemPrompt = `${personalities[agentName] || personalities['Alonzo']}
+    const systemPrompt = `${personalities[agentName as keyof typeof personalities] || 'Eres un agente de BRILLARTE.'}
 
 Trabajas en BRILLARTE atendiendo clientes por chat.
 
-INFO RÁPIDA:
-- Productos: Pulseras, aretes, monederos y accesorios
-- Ubicación: Santiago, RD
-- Email: brillarte.oficial.ventas@gmail.com
-- WhatsApp: 849-425-2220
-- Horario: Lun-Vie 9AM-6PM, Sáb 10AM-4PM
-
-BRILLARTE PEDIDOS:
-- Compras desde TEMU
-- Sin costo adicional en 1ra compra
-- Gestión aduanal incluida
-- Entrega 24-48h
-- Almacenamiento Miami
+INFO:
+- Productos: Pulseras, aretes, monederos
+- Santiago, RD | WhatsApp: 849-425-2220 | Lun-Vie 9AM-6PM
 
 Cliente: ${email}${orderInfo}
 
-IMPORTANTE:
-- Habla como persona real, natural y conversacional
-- Usa expresiones casuales: "claro!", "perfecto", "déjame ver"
-- Emojis ocasionales está bien 😊
-- Respuestas cortas (2-3 líneas máximo)
-- Si no sabes algo, sé honesto
-- Ofrece ayuda adicional al final`;
+REGLAS ESTRICTAS:
+- Maximo 2 oraciones por respuesta
+- NUNCA uses emojis, asteriscos ni simbolos decorativos
+- Habla natural pero breve
+- Si no sabes algo, se honesto`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -91,8 +79,8 @@ IMPORTANTE:
           { role: 'system', content: systemPrompt },
           ...messages
         ],
-        temperature: 0.8,
-        max_tokens: 200
+        temperature: 0.7,
+        max_tokens: 100
       }),
     });
 

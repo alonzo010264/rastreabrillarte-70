@@ -293,7 +293,7 @@ export const ChatbotLive = () => {
         session_id: sessionData.id,
         sender_type: "ia",
         sender_nombre: "Asistente Virtual",
-        contenido: `¡Hola${name ? ` ${name}` : ""}! 👋 Soy el asistente virtual de BRILLARTE. ¿Cómo puedo ayudarte hoy?\n\nSi prefieres hablar con un agente humano, solo escribe "hablar con un agente".`,
+        contenido: `Hola${name ? ` ${name}` : ""}. Soy el asistente de BRILLARTE. Como puedo ayudarte? Si prefieres un agente humano, escribeme "hablar con agente".`,
         tipo: "texto",
       });
     } catch (error) {
@@ -368,7 +368,7 @@ export const ChatbotLive = () => {
         session_id: session!.id,
         sender_type: "ia",
         sender_nombre: "Asistente Virtual",
-        contenido: "Entendido. ¿Podrías darme más detalles sobre tu situación? Por ejemplo, ¿cuándo ocurrió esto o qué has intentado hasta ahora?",
+        contenido: "Entendido. Puedes darme mas detalles? Por ejemplo, cuando ocurrio o que has intentado.",
         tipo: "texto",
       });
     } else if (agentQuestionStep === 1) {
@@ -379,7 +379,7 @@ export const ChatbotLive = () => {
         session_id: session!.id,
         sender_type: "ia",
         sender_nombre: "Asistente Virtual",
-        contenido: "Perfecto. En una escala del 1 al 5, ¿qué tan urgente consideras este problema? (1 = puedo esperar, 5 = muy urgente)",
+        contenido: "Perfecto. Del 1 al 5, que tan urgente es esto? (1 = puedo esperar, 5 = muy urgente)",
         tipo: "texto",
       });
     } else if (agentQuestionStep === 2) {
@@ -404,7 +404,7 @@ export const ChatbotLive = () => {
           session_id: session!.id,
           sender_type: "ia",
           sender_nombre: "Asistente Virtual",
-          contenido: `Actualmente no hay agentes disponibles, pero no te preocupes. 📝\n\nHe guardado toda la información de tu caso y tu correo (${email}). Un agente te contactará lo antes posible.\n\n¿Hay algo más en lo que pueda ayudarte mientras tanto?`,
+          contenido: `No hay agentes disponibles ahora. He guardado tu caso y correo (${email}). Te contactaremos pronto. Puedo ayudarte en algo mas?`,
           tipo: "texto",
         });
 
@@ -464,7 +464,7 @@ export const ChatbotLive = () => {
         session_id: session.id,
         sender_type: "ia",
         sender_nombre: "Asistente Virtual",
-        contenido: "¡Por supuesto! Para que el agente pueda ayudarte mejor, permíteme hacerte algunas preguntas.\n\n¿Cuál es el problema o consulta que necesitas resolver?",
+        contenido: "Claro! Para que el agente te ayude mejor, cual es tu problema o consulta?",
         tipo: "texto",
       });
       return;
