@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, email, orderCode, userId, imageUrl, virtualAgentName } = await req.json();
+    const { messages, email, orderCode, userId, imageUrl, virtualAgentName, agentRole } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -23,8 +23,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get the agent name to use in responses
+    // Get the agent name and role to use in responses
     const agentName = virtualAgentName || 'Asistente BRILLARTE';
+    const role = agentRole || 'asistente';
 
     // Buscar informacion del pedido si se proporciona codigo
     let orderInfo = "";
@@ -92,6 +93,16 @@ PEDIDO ${orderCode}:
                               lastMessage.includes('seguimiento') ||
                               lastMessage.includes('mi codigo') ||
                               lastMessage.includes('codigo de pedido');
+
+    // Detect urgent cases that need escalation
+    const isUrgentCase = lastMessage.includes('reembolso') ||
+                         lastMessage.includes('devolucion') ||
+                         lastMessage.includes('dinero de vuelta') ||
+                         lastMessage.includes('me estafaron') ||
+                         lastMessage.includes('no llego mi pedido') ||
+                         lastMessage.includes('producto danado') ||
+                         lastMessage.includes('queja formal') ||
+                         lastMessage.includes('hablar con supervisor');
     
     // Buscar pedidos del usuario si pregunta por estado
     let userOrdersInfo = '';
@@ -110,14 +121,36 @@ PEDIDO ${orderCode}:
       }
     }
 
+    // Build role-specific instructions
+    let roleInstructions = '';
+    switch (role) {
+      case 'Asistente de soporte':
+        roleInstructions = `Eres especialista en resolver problemas tecnicos y consultas generales. Ayuda al cliente con cualquier duda sobre pedidos, envios o productos.`;
+        break;
+      case 'Asistente de compras':
+        roleInstructions = `Eres especialista en ayudar a los clientes a elegir productos. Conoces todo el catalogo de pulseras, aretes y accesorios de BRILLARTE. Recomienda productos basados en las preferencias del cliente.`;
+        break;
+      case 'Asistente de promociones':
+        roleInstructions = `Eres especialista en promociones y ofertas de BRILLARTE. Informa sobre descuentos actuales, codigos promocionales y ofertas especiales.`;
+        break;
+      case 'Especialista':
+        roleInstructions = `Eres un especialista senior de BRILLARTE. Evaluas casos complejos como reembolsos, quejas o problemas serios. Recopilas toda la informacion necesaria y aseguras al cliente que su caso sera resuelto en 24-48 horas.`;
+        break;
+      default:
+        roleInstructions = `Eres un asistente general de BRILLARTE.`;
+    }
+
     // Build system prompt
-    const systemPrompt = `Eres ${agentName}, asistente de atencion al cliente de BRILLARTE.
+    const systemPrompt = `Eres ${agentName}, ${role} de BRILLARTE.
+
+TU ROL: ${roleInstructions}
 
 TU PERSONALIDAD:
 - Eres profesional, amable y hablas de forma natural como un humano real
 - NUNCA digas que eres una IA, bot, robot o asistente virtual
-- Si te preguntan si eres humano, responde: "Si, soy ${agentName}, asistente de BRILLARTE. Estoy aqui para ayudarte."
+- Si te preguntan si eres humano, responde: "Si, soy ${agentName}, ${role} de BRILLARTE. Estoy aqui para ayudarte."
 - Habla en espanol dominicano informal pero profesional
+- Responde de forma pausada y natural, como si estuvieras pensando
 
 INFORMACION DE BRILLARTE:
 - Productos: Pulseras artesanales, aretes, accesorios hechos a mano
@@ -131,13 +164,22 @@ REGLAS ESTRICTAS:
 - Maximo 2-3 oraciones por respuesta
 - NUNCA uses emojis, asteriscos, ni simbolos decorativos
 - Respuestas directas, claras y profesionales
+- NO reveles informacion confidencial de BRILLARTE (costos internos, proveedores, procesos internos)
 - Entiende lenguaje informal, errores de escritura, jerga dominicana
 - Si no entiendes algo, pide aclaracion de forma breve
 - Para problemas con pedidos: pide el codigo de pedido
-- Para reembolsos: pregunta cual es el problema y pide codigo de pedido
 - Si el cliente envia una imagen, pregunta que sucedio o cual es el problema
 
-${askingIfHuman ? `IMPORTANTE: El cliente pregunta si eres humano. Responde que si eres ${agentName}, asistente de BRILLARTE.` : ''}
+${isUrgentCase ? `
+CASO URGENTE DETECTADO:
+El cliente tiene un problema serio. Debes:
+1. Mostrar empatia y entender su situacion
+2. Recopilar informacion: codigo de pedido, descripcion del problema, que espera como solucion
+3. Informar que un especialista revisara su caso en 24-48 horas
+4. Asegurar que se comunicaran por correo electronico
+` : ''}
+
+${askingIfHuman ? `IMPORTANTE: El cliente pregunta si eres humano. Responde que si eres ${agentName}, ${role} de BRILLARTE.` : ''}
 
 CLIENTE: ${email}
 ${userProfile ? `Nombre: ${userProfile.nombre_completo}` : ''}
@@ -176,7 +218,8 @@ ${userOrdersInfo}`;
 
     return new Response(
       JSON.stringify({ 
-        response: assistantMessage
+        response: assistantMessage,
+        isUrgentCase: isUrgentCase
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
