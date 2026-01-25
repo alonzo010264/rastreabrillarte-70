@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart as CartIcon, Trash2, Plus, Minus, Tag } from "lucide-react";
+import { ShoppingCart as CartIcon, Trash2, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { useRealtimeCart } from "@/hooks/useRealtimeCart";
-import { Checkout } from "@/components/Checkout";
+import { WhatsAppCheckoutButton } from "@/components/WhatsAppCheckoutButton";
 
 interface CartItem {
   id: string;
@@ -23,18 +22,10 @@ interface CartItem {
   };
 }
 
-interface CodigoDescuento {
-  codigo: string;
-  porcentaje_descuento: number;
-}
-
 export const ShoppingCart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [codigoInput, setCodigoInput] = useState("");
-  const [descuentoAplicado, setDescuentoAplicado] = useState<CodigoDescuento | null>(null);
-  const [loading, setLoading] = useState(false);
-  const itemCount = useRealtimeCart(); // Hook para contador en tiempo real
+  const itemCount = useRealtimeCart();
 
   const loadCart = async () => {
     try {
@@ -135,42 +126,11 @@ export const ShoppingCart = () => {
     }
   };
 
-  const aplicarCodigo = async () => {
-    if (!codigoInput.trim()) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('codigos_descuento')
-        .select('codigo, porcentaje_descuento')
-        .eq('codigo', codigoInput.toUpperCase())
-        .eq('activo', true)
-        .single();
-
-      if (error || !data) {
-        toast.error("Código de descuento no válido o expirado");
-        return;
-      }
-
-      setDescuentoAplicado(data);
-      toast.success(`¡Descuento del ${data.porcentaje_descuento}% aplicado!`);
-    } catch (error) {
-      console.error('Error applying code:', error);
-      toast.error("Error al aplicar código");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const subtotal = cartItems.reduce((sum, item) => {
     return sum + (item.producto.precio * item.cantidad);
   }, 0);
 
-  const descuento = descuentoAplicado 
-    ? (subtotal * descuentoAplicado.porcentaje_descuento) / 100 
-    : 0;
-
-  const total = subtotal - descuento;
+  const total = subtotal;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -266,73 +226,32 @@ export const ShoppingCart = () => {
                 ))}
               </div>
 
-              {/* Código de descuento */}
+              {/* Aviso de compra por WhatsApp */}
               <div className="border-t pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Tag className="h-4 w-4" />
-                  <span className="text-sm font-medium">Código de descuento</span>
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg mb-4">
+                  <p className="text-sm text-green-700 dark:text-green-300 text-center">
+                    Completa tu compra por WhatsApp para una atencion personalizada
+                  </p>
                 </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Ingresa tu código"
-                    value={codigoInput}
-                    onChange={(e) => setCodigoInput(e.target.value.toUpperCase())}
-                    disabled={!!descuentoAplicado}
-                  />
-                  {descuentoAplicado ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setDescuentoAplicado(null);
-                        setCodigoInput("");
-                      }}
-                    >
-                      Quitar
-                    </Button>
-                  ) : (
-                    <Button onClick={aplicarCodigo} disabled={loading}>
-                      Aplicar
-                    </Button>
-                  )}
-                </div>
-                {descuentoAplicado && (
-                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
-                    <p className="text-sm text-green-700">
-                      ✓ Código <strong>{descuentoAplicado.codigo}</strong> aplicado ({descuentoAplicado.porcentaje_descuento}% de descuento)
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* Resumen */}
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal:</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>RD${subtotal.toFixed(2)}</span>
                 </div>
-                {descuentoAplicado && (
-                  <div className="flex justify-between text-sm text-green-600">
-                    <span>Descuento ({descuentoAplicado.porcentaje_descuento}%):</span>
-                    <span>-${descuento.toFixed(2)}</span>
-                  </div>
-                )}
                 <div className="flex justify-between text-lg font-bold border-t pt-2">
                   <span>Total:</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>RD${total.toFixed(2)}</span>
                 </div>
               </div>
 
-              <Checkout
-                cartItems={cartItems}
-                subtotal={subtotal}
-                descuento={descuento}
+              {/* Botón de WhatsApp */}
+              <WhatsAppCheckoutButton 
+                cartItems={cartItems} 
                 total={total}
-                codigoDescuento={descuentoAplicado?.codigo}
-                onSuccess={() => {
-                  setIsOpen(false);
-                  setDescuentoAplicado(null);
-                  setCodigoInput("");
-                }}
+                onSuccess={() => setIsOpen(false)}
               />
             </>
           )}
