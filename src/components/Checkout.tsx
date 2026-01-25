@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { PaymentSuccessAnimation } from "./PaymentSuccessAnimation";
-import { FaShoppingCart, FaSpinner, FaFileAlt, FaKey, FaQuestionCircle, FaCheckCircle, FaTimesCircle, FaTruck, FaMoneyBillWave, FaStore, FaCreditCard } from "react-icons/fa";
+import { FaShoppingCart, FaSpinner, FaFileAlt, FaKey, FaQuestionCircle, FaCheckCircle, FaTimesCircle, FaTruck, FaMoneyBillWave, FaStore, FaCreditCard, FaWhatsapp } from "react-icons/fa";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CheckoutProps {
@@ -399,6 +399,17 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
     onSuccess?.();
   };
 
+  const openWhatsAppOrder = () => {
+    const productList = cartItems.map(item => 
+      `- ${item.producto.nombre} (x${item.cantidad}) - RD$${(item.producto.precio * item.cantidad).toFixed(2)}${item.color ? `, Color: ${item.color}` : ''}${item.talla ? `, Talla: ${item.talla}` : ''}`
+    ).join('\n');
+    
+    const message = `Hola BRILLARTE! Me gustaria hacer un pedido:\n\n${productList}\n\nSubtotal: RD$${subtotal.toFixed(2)}${descuento > 0 ? `\nDescuento: -RD$${descuento.toFixed(2)}` : ''}\nTotal: RD$${total.toFixed(2)}\n\nQuedo atento a su respuesta.`;
+    
+    const whatsappUrl = `https://wa.me/18494252220?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   const isPagoValido = () => {
     if (metodoEntrega !== 'envio') return true;
     if (metodoPago === 'code_pay') return codeValid === true;
@@ -412,10 +423,16 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
       
       <Dialog open={open} onOpenChange={handleOpen}>
         <DialogTrigger asChild>
-          <Button className="w-full" size="lg">
-            <FaShoppingCart className="w-4 h-4 mr-2" />
-            Proceder al Pago
-          </Button>
+          <div className="flex gap-2">
+            <Button className="flex-1" size="lg" onClick={(e) => { e.stopPropagation(); openWhatsAppOrder(); }} variant="outline">
+              <FaWhatsapp className="w-4 h-4 mr-2" />
+              Pedir por WhatsApp
+            </Button>
+            <Button className="flex-1" size="lg">
+              <FaShoppingCart className="w-4 h-4 mr-2" />
+              Pagar en linea
+            </Button>
+          </div>
         </DialogTrigger>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>

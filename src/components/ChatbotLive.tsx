@@ -88,6 +88,8 @@ export const ChatbotLive = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [virtualAgent, setVirtualAgent] = useState<VirtualAgent | null>(null);
   const [aiTypingDelay, setAiTypingDelay] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const inactivityTimeoutRef = useRef<NodeJS.Timeout>();
@@ -95,6 +97,56 @@ export const ChatbotLive = () => {
 
   const INACTIVITY_WARNING_TIME = 3 * 60 * 1000;
   const INACTIVITY_CLOSE_TIME = 5 * 60 * 1000;
+
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsAuthenticated(true);
+        // Get profile info
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('nombre_completo, correo')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile) {
+          setName(profile.nombre_completo || '');
+          setEmail(profile.correo || user.email || '');
+        } else {
+          setEmail(user.email || '');
+        }
+      }
+      setCheckingAuth(false);
+    };
+    
+    checkAuth();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        setIsAuthenticated(true);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('nombre_completo, correo')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (profile) {
+          setName(profile.nombre_completo || '');
+          setEmail(profile.correo || session.user.email || '');
+        }
+      } else {
+        setIsAuthenticated(false);
+        setEmail('');
+        setName('');
+        setHasStarted(false);
+        setSession(null);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Auto-scroll to bottom when messages change
   const scrollToBottom = useCallback(() => {
@@ -895,28 +947,41 @@ export const ChatbotLive = () => {
 
       {!isMinimized && (
         <>
-          {!hasStarted ? (
+          {checkingAuth ? (
+            <div className="p-4 flex items-center justify-center h-[350px]">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : !isAuthenticated ? (
             <div className="p-4 space-y-4">
               <p className="text-sm text-muted-foreground text-center">
-                ¡Bienvenido al chat de soporte de BRILLARTE! Por favor ingresa tus datos para comenzar.
+                Para acceder al chat de soporte debes iniciar sesion.
               </p>
-              <div className="space-y-3">
-                <Input
-                  placeholder="Tu nombre (opcional)"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <Input
-                  placeholder="Tu correo electrónico"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <Button onClick={startChat} className="w-full" disabled={isLoading}>
-                  {isLoading ? "Iniciando..." : "Iniciar Chat"}
-                </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Tus datos seran protegidos en BRILLARTE.
+              </p>
+              <Button 
+                onClick={() => window.location.href = '/auth'} 
+                className="w-full"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Iniciar Sesion / Registrarse
+              </Button>
+            </div>
+          ) : !hasStarted ? (
+            <div className="p-4 space-y-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Hola {name || 'cliente'}! Estas listo para chatear con BRILLARTE.
+              </p>
+              <div className="bg-muted/50 p-3 rounded-lg text-xs text-muted-foreground">
+                <p><strong>Correo:</strong> {email}</p>
+                {name && <p><strong>Nombre:</strong> {name}</p>}
               </div>
+              <p className="text-xs text-muted-foreground text-center">
+                Tus datos estan protegidos. No compartimos tu informacion con terceros.
+              </p>
+              <Button onClick={startChat} className="w-full" disabled={isLoading}>
+                {isLoading ? "Iniciando..." : "Iniciar Chat"}
+              </Button>
             </div>
           ) : (
             <>
