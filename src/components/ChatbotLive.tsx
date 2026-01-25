@@ -539,11 +539,15 @@ export const ChatbotLive = memo(() => {
     }
   };
 
-  // Transfer to virtual agent with join message
+  // Transfer to virtual agent with join message - fast transfer
   const transferToAgent = async (agent: AgentProfile, caseDescription?: string) => {
     if (!session) return;
     
     setAiTypingDelay(true);
+    
+    // Random delay between 2-8 seconds for realistic join
+    const joinDelay = 2000 + Math.floor(Math.random() * 6000);
+    await new Promise(resolve => setTimeout(resolve, joinDelay));
     
     // Show join message
     await supabase.from("chat_messages").insert({
@@ -554,27 +558,45 @@ export const ChatbotLive = memo(() => {
       tipo: "sistema",
     });
 
-    await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(80)));
-
+    // Set agent immediately after join message
     setVirtualAgent({
       id: agent.id,
       nombre: agent.nombre,
       apellido: agent.apellido,
-      avatar_inicial: agent.avatar_inicial,
+      avatar_inicial: agent.nombre.charAt(0).toUpperCase(),
       es_ia: agent.es_ia || true,
       tipo_agente: agent.tipo_agente
     });
     setAssignedAgentName(agent.nombre);
 
+    // Small delay before first message
+    await new Promise(resolve => setTimeout(resolve, 1500 + Math.floor(Math.random() * 2000)));
+
     const roleDisplay = agent.tipo_agente || "Asistente de soporte";
+    const greetings = [
+      `Hola${name ? ` ${name}` : ""}! Soy ${agent.nombre}, ${roleDisplay} de BRILLARTE. En que puedo ayudarte hoy?`,
+      `Buenas${name ? ` ${name}` : ""}! Mi nombre es ${agent.nombre} y sere tu ${roleDisplay}. Cuentame tu situacion.`,
+      `Hola! Soy ${agent.nombre}, ${roleDisplay}. Estoy aqui para asistirte. Cual es tu consulta?`
+    ];
+    
+    const greeting = greetings[Math.floor(Math.random() * greetings.length)];
     
     await supabase.from("chat_messages").insert({
       session_id: session.id,
       sender_type: "ia",
       sender_nombre: agent.nombre,
-      contenido: `Hola${name ? ` ${name}` : ""}! Soy ${agent.nombre}, ${roleDisplay} de BRILLARTE. Estoy aqui para ayudarte. ${caseDescription ? "Ya revise tu caso." : "Cuentame"} en que puedo asistirte?`,
+      contenido: greeting,
       tipo: "texto",
     });
+
+    // Notify admin of new chat
+    if (caseDescription) {
+      await notifyUrgentCase(
+        caseDescription,
+        `Nuevo chat atendido por ${agent.nombre}. Cliente: ${email}`,
+        "Nuevo chat asignado"
+      );
+    }
 
     setAiTypingDelay(false);
     setPendingTransfer(false);
@@ -657,15 +679,15 @@ export const ChatbotLive = memo(() => {
       lowerMessage.includes("conectame con un agente");
       
     if (wantsHuman && !pendingTransfer) {
-      // Ask for case type to assign correct agent
+      // Ask for case type - quick response
       setAiTypingDelay(true);
-      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(60)));
+      await new Promise(resolve => setTimeout(resolve, 800 + Math.floor(Math.random() * 1200)));
       
       await supabase.from("chat_messages").insert({
         session_id: session.id,
         sender_type: "ia",
         sender_nombre: "Asistente BRILLARTE",
-        contenido: "Por supuesto! Describeme brevemente tu caso para conectarte con el agente mas adecuado.",
+        contenido: "Claro! Describeme tu caso brevemente para conectarte con el especialista indicado.",
         tipo: "texto",
       });
       
@@ -781,7 +803,7 @@ export const ChatbotLive = memo(() => {
     if (!session || rating === 0) {
       toast({
         title: "Error",
-        description: "Por favor selecciona una calificación",
+        description: "Por favor selecciona una calificacion",
         variant: "destructive",
       });
       return;
@@ -800,9 +822,12 @@ export const ChatbotLive = memo(() => {
 
     toast({
       title: "Gracias",
-      description: "Tu calificación ha sido enviada",
+      description: "Tu calificacion ha sido enviada",
     });
 
+    // Reset to Brillarte AI after rating
+    setVirtualAgent(null);
+    setCurrentAgent(null);
     setShowRating(false);
     setRating(0);
     setRatingMessage("");
