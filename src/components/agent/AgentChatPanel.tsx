@@ -400,12 +400,11 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
   };
 
   const handleEndChat = async () => {
+    // Get final message from agent before ending
+    const finalMessage = `Gracias por contactar a BRILLARTE. Ha sido un placer ayudarte. Si tienes mas preguntas, no dudes en contactarnos.`;
+    
     // Request rating before ending (no emojis)
-    await sendMessage(
-      `Gracias por contactar a BRILLARTE. Ha sido un placer ayudarte.\n\nPor favor, califica esta conversacion para ayudarnos a mejorar.`,
-      "sistema"
-    );
-
+    await sendMessage(finalMessage, "sistema");
     await sendMessage(`${agentProfile.nombre} ha finalizado el chat. El asistente virtual continuara atendiendote si necesitas algo mas.`, "sistema");
     
     await supabase
@@ -428,9 +427,27 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
       .update({ chats_atendidos: (currentProfile?.chats_atendidos || 0) + 1 })
       .eq("id", agentProfile.id);
 
+    // Send chat summary email
+    if (session?.cliente_email) {
+      try {
+        await supabase.functions.invoke('send-chat-summary', {
+          body: {
+            sessionId,
+            clientEmail: session.cliente_email,
+            clientName: session.cliente_nombre || 'Cliente',
+            agentName: agentProfile.nombre,
+            finalMessage,
+            resolved: true
+          }
+        });
+      } catch (error) {
+        console.error('Error sending chat summary email:', error);
+      }
+    }
+
     toast({
       title: "Chat finalizado",
-      description: "La IA continuará atendiendo al cliente.",
+      description: "Correo de resumen enviado al cliente.",
     });
 
     onEndChat();

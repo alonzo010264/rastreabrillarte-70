@@ -31,7 +31,7 @@ const Footer = () => {
               Pulseras, aretes, monederos y accesorios exclusivos para hacer brillar tu estilo.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="group p-3 rounded-xl bg-white/5 hover:bg-primary/20 transition-all duration-300 hover:scale-110 hover:-translate-y-1">
+              <a href="https://www.instagram.com/brillarte.do/" target="_blank" rel="noopener noreferrer" className="group p-3 rounded-xl bg-white/5 hover:bg-primary/20 transition-all duration-300 hover:scale-110 hover:-translate-y-1">
                 <FaInstagram size={20} className="text-gray-300 group-hover:text-primary transition-colors" />
               </a>
               <a href="#" className="group p-3 rounded-xl bg-white/5 hover:bg-primary/20 transition-all duration-300 hover:scale-110 hover:-translate-y-1" style={{ transitionDelay: '50ms' }}>
@@ -51,23 +51,37 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3 text-sm">
               {[
-                { to: "/", label: "Inicio" },
-                { to: "/nosotros", label: "Nosotros" },
-                { to: "/productos", label: "Tienda" },
-                { to: "/comunidad", label: "Comunidad" },
-                { to: "/rastrear", label: "Rastrear Pedidos" },
-                { to: "/politicas-privacidad", label: "Políticas de Privacidad" },
-                { to: "/politicas-envio", label: "Políticas de Envío" },
+                { to: "/", label: "Inicio", external: false },
+                { to: "/nosotros", label: "Nosotros", external: false },
+                { to: "/productos", label: "Tienda", external: false },
+                { to: "https://pedidos.brillarte.lat/", label: "Pedir pulsera", external: true },
+                { to: "/comunidad", label: "Comunidad", external: false },
+                { to: "/rastrear", label: "Rastrear Pedidos", external: false },
+                { to: "/politicas-privacidad", label: "Políticas de Privacidad", external: false },
+                { to: "/politicas-envio", label: "Políticas de Envío", external: false },
               ].map((link, index) => (
                 <li key={link.to}>
-                  <Link 
-                    to={link.to} 
-                    className="text-gray-400 hover:text-primary transition-all duration-300 hover:translate-x-2 inline-flex items-center gap-2 group"
-                    style={{ transitionDelay: `${index * 30}ms` }}
-                  >
-                    <span className="w-0 group-hover:w-2 h-0.5 bg-primary transition-all duration-300 rounded-full" />
-                    {link.label}
-                  </Link>
+                  {link.external ? (
+                    <a 
+                      href={link.to}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-primary transition-all duration-300 hover:translate-x-2 inline-flex items-center gap-2 group"
+                      style={{ transitionDelay: `${index * 30}ms` }}
+                    >
+                      <span className="w-0 group-hover:w-2 h-0.5 bg-primary transition-all duration-300 rounded-full" />
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link 
+                      to={link.to} 
+                      className="text-gray-400 hover:text-primary transition-all duration-300 hover:translate-x-2 inline-flex items-center gap-2 group"
+                      style={{ transitionDelay: `${index * 30}ms` }}
+                    >
+                      <span className="w-0 group-hover:w-2 h-0.5 bg-primary transition-all duration-300 rounded-full" />
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

@@ -233,17 +233,13 @@ export default function Perfil() {
           </div>
 
           <Tabs defaultValue={defaultTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="perfil">
                 <UserIcon className="w-4 h-4 mr-2" />
                 Perfil
               </TabsTrigger>
               {!isBrillarteAccount && (
                 <>
-                  <TabsTrigger value="pedidos">
-                    <Package className="w-4 h-4 mr-2" />
-                    Mis Pedidos
-                  </TabsTrigger>
                   <TabsTrigger value="saldo">
                     <DollarSign className="w-4 h-4 mr-2" />
                     Mi Saldo
@@ -415,10 +411,6 @@ export default function Perfil() {
 
             {!isBrillarteAccount && (
               <>
-                <TabsContent value="pedidos">
-                  <MisPedidos />
-                </TabsContent>
-
                 <TabsContent value="saldo">
                   <MiSaldo />
                 </TabsContent>

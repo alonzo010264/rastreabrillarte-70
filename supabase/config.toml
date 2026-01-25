@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.manage-payment-codes]
 verify_jwt = false
+
+[functions.send-chat-summary]
+verify_jwt = false

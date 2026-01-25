@@ -254,16 +254,41 @@ PEDIDO ${orderCode}:
     let systemPrompt = '';
     
     // Check if user is asking if the agent is human
-    const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
-    const askingIfHuman = lastMessage.includes('eres humano') || 
-                          lastMessage.includes('eres humana') ||
-                          lastMessage.includes('eres robot') ||
-                          lastMessage.includes('eres ia') ||
-                          lastMessage.includes('eres una ia') ||
-                          lastMessage.includes('eres una maquina') ||
-                          lastMessage.includes('eres real') ||
-                          lastMessage.includes('persona real') ||
-                          lastMessage.includes('hablas como bot');
+    const lastMsgLower = lastMessage.toLowerCase();
+    const askingIfHuman = lastMsgLower.includes('eres humano') || 
+                          lastMsgLower.includes('eres humana') ||
+                          lastMsgLower.includes('eres robot') ||
+                          lastMsgLower.includes('eres ia') ||
+                          lastMsgLower.includes('eres una ia') ||
+                          lastMsgLower.includes('eres una maquina') ||
+                          lastMsgLower.includes('eres real') ||
+                          lastMsgLower.includes('persona real') ||
+                          lastMsgLower.includes('hablas como bot');
+    
+    // Check if asking about order status
+    const askingOrderStatus = lastMsgLower.includes('estado de mi pedido') ||
+                              lastMsgLower.includes('donde esta mi pedido') ||
+                              lastMsgLower.includes('rastrear pedido') ||
+                              lastMsgLower.includes('seguimiento') ||
+                              lastMsgLower.includes('mi codigo') ||
+                              lastMsgLower.includes('codigo de pedido');
+    
+    // Buscar pedidos del usuario si pregunta por estado
+    let userOrdersInfo = '';
+    if (askingOrderStatus && email) {
+      const { data: userOrders } = await supabase
+        .from('pedidos_online')
+        .select('codigo_pedido, estado, total, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      if (userOrders && userOrders.length > 0) {
+        userOrdersInfo = '\n\nPEDIDOS DEL CLIENTE:\n' + userOrders.map(o => 
+          `- ${o.codigo_pedido}: ${o.estado} (RD$${o.total})`
+        ).join('\n');
+      }
+    }
     
     const humanityResponse = askingIfHuman ? 
       `IMPORTANTE: El cliente pregunta si eres humano. Responde: "Si, soy ${agentName}, asistente de BRILLARTE. Estoy aqui para ayudarte con cualquier consulta sobre nuestros productos y servicios."` : '';
@@ -315,7 +340,9 @@ Cliente: ${email}
 ${userProfile ? `Nombre: ${userProfile.nombre_completo}` : ''}
 ${userProfile?.verificado ? 'Estado: Cuenta verificada (AGENTE BRILLARTE)' : ''}
 ${userProfile?.saldo ? `Saldo: RD$${userProfile.saldo}` : ''}
-${orderInfo}`;
+${orderInfo}
+${userOrdersInfo}`;
+
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
