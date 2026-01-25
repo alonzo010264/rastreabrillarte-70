@@ -708,18 +708,101 @@ export const ChatbotLive = () => {
       lowerMessage.includes("queja formal") ||
       lowerMessage.includes("hablar con supervisor");
     
-    // Check if user wants to talk to a human agent
+    // Check if user wants to talk to a human agent - DIRECT TRANSFER
     const wantsHuman = 
+      lowerMessage.includes("transfiereme con un agente") ||
+      lowerMessage.includes("transfiereme a un agente") ||
+      lowerMessage.includes("pasame con un agente") ||
       lowerMessage.includes("hablar con un agente") ||
       lowerMessage.includes("agente humano") ||
       lowerMessage.includes("persona real") ||
       lowerMessage.includes("quiero un agente") ||
       lowerMessage.includes("hablar con alguien") ||
       lowerMessage.includes("un humano") ||
-      lowerMessage.includes("necesito ayuda real");
+      lowerMessage.includes("necesito ayuda real") ||
+      lowerMessage.includes("quiero hablar con alguien") ||
+      lowerMessage.includes("conectame con un agente");
       
-    if (wantsHuman || isUrgentCase) {
-      // Assign a virtual AI agent that acts human with specific role
+    if (wantsHuman) {
+      // Direct transfer - ask for case type to assign correct agent
+      setAiTypingDelay(true);
+      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(60)));
+      
+      await supabase.from("chat_messages").insert({
+        session_id: session.id,
+        sender_type: "ia",
+        sender_nombre: "Asistente BRILLARTE",
+        contenido: "Por supuesto, te transfiero con uno de nuestros especialistas. Podrias describirme brevemente tu caso para conectarte con el agente mas adecuado?",
+        tipo: "texto",
+      });
+      
+      setAiTypingDelay(false);
+      
+      // Set flag to capture next message as case description
+      setWaitingForAgentQuestions(true);
+      setAgentQuestionStep(99); // Special step for direct transfer
+      return;
+    }
+    
+    // Handle case description for direct transfer
+    if (waitingForAgentQuestions && agentQuestionStep === 99) {
+      setWaitingForAgentQuestions(false);
+      setAgentQuestionStep(0);
+      
+      setAiTypingDelay(true);
+      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(100)));
+      
+      // Analyze case to select appropriate agent
+      const { data: aiAgents } = await supabase
+        .from("agent_profiles")
+        .select("id, nombre, apellido, avatar_inicial, es_ia, tipo_agente")
+        .eq("activo", true)
+        .eq("es_ia", true);
+      
+      if (aiAgents && aiAgents.length > 0) {
+        let selectedAgent;
+        const caseLower = messageContent.toLowerCase();
+        
+        // Route to appropriate specialist based on case
+        if (caseLower.includes("compra") || caseLower.includes("producto") || caseLower.includes("precio") || caseLower.includes("disponible")) {
+          selectedAgent = aiAgents.find(a => a.nombre === "Shary") || aiAgents[0];
+        } else if (caseLower.includes("promocion") || caseLower.includes("descuento") || caseLower.includes("oferta")) {
+          selectedAgent = aiAgents.find(a => a.nombre === "Marisol") || aiAgents[0];
+        } else if (caseLower.includes("reembolso") || caseLower.includes("problema") || caseLower.includes("queja") || caseLower.includes("devolucion")) {
+          selectedAgent = aiAgents.find(a => a.nombre === "Victor" || a.nombre === "Julian") || aiAgents[0];
+        } else {
+          selectedAgent = aiAgents.find(a => a.nombre === "Maria") || aiAgents[0];
+        }
+        
+        setVirtualAgent({...selectedAgent, tipo_agente: selectedAgent.tipo_agente || 'Asistente de soporte'});
+        setAssignedAgentName(selectedAgent.nombre);
+        
+        const roleDisplay = selectedAgent.tipo_agente || "Asistente de soporte";
+        
+        await supabase.from("chat_messages").insert({
+          session_id: session.id,
+          sender_type: "ia",
+          sender_nombre: selectedAgent.nombre,
+          contenido: `Hola${name ? ` ${name}` : ""}. Soy ${selectedAgent.nombre}, ${roleDisplay} de BRILLARTE. He revisado tu caso y estoy aqui para ayudarte. Cuentame mas detalles sobre lo que necesitas.`,
+          tipo: "texto",
+        });
+        
+        // If urgent case, notify admin
+        if (isUrgentCase || caseLower.includes("reembolso") || caseLower.includes("devolucion")) {
+          await notifyUrgentCase(
+            messageContent,
+            `Transferencia directa solicitada. Caso: ${messageContent}`,
+            "Transferencia a especialista"
+          );
+        }
+      }
+      
+      setAiTypingDelay(false);
+      return;
+    }
+    
+    // Handle urgent cases - assign specialist directly
+    if (isUrgentCase && !virtualAgent) {
       setAiTypingDelay(true);
       await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(80)));
       
@@ -730,44 +813,27 @@ export const ChatbotLive = () => {
         .eq("es_ia", true);
       
       if (aiAgents && aiAgents.length > 0) {
-        // Choose agent based on context
-        let selectedAgent;
-        if (isUrgentCase) {
-          // For urgent cases, assign a Specialist (Victor or Julian)
-          selectedAgent = aiAgents.find(a => a.tipo_agente === "Especialista") || aiAgents[0];
-        } else {
-          selectedAgent = aiAgents[Math.floor(Math.random() * aiAgents.length)];
-        }
+        // For urgent cases, assign a Specialist (Victor or Julian)
+        const selectedAgent = aiAgents.find(a => a.tipo_agente === "Especialista") || aiAgents[0];
         
-        setVirtualAgent({...selectedAgent, tipo_agente: selectedAgent.tipo_agente || 'asistente'});
+        setVirtualAgent({...selectedAgent, tipo_agente: selectedAgent.tipo_agente || 'Especialista'});
         setAssignedAgentName(selectedAgent.nombre);
         
-        const roleDisplay = selectedAgent.tipo_agente || "Asistente";
+        const roleDisplay = selectedAgent.tipo_agente || "Especialista";
         
         await supabase.from("chat_messages").insert({
           session_id: session.id,
           sender_type: "ia",
           sender_nombre: selectedAgent.nombre,
-          contenido: `Hola${name ? ` ${name}` : ""}. Soy ${selectedAgent.nombre}, ${roleDisplay} de BRILLARTE. En que puedo ayudarte?`,
+          contenido: `Hola${name ? ` ${name}` : ""}. Soy ${selectedAgent.nombre}, ${roleDisplay} de BRILLARTE. Veo que tienes un caso que requiere atencion especial. Voy a revisar tu situacion. Podrias darme mas detalles?`,
           tipo: "texto",
         });
 
-        // If urgent case, notify admin
-        if (isUrgentCase) {
-          await notifyUrgentCase(
-            messageContent,
-            `El cliente mencionó: ${messageContent}`,
-            "Caso urgente detectado automaticamente"
-          );
-        }
-      } else {
-        await supabase.from("chat_messages").insert({
-          session_id: session.id,
-          sender_type: "ia",
-          sender_nombre: "Asistente BRILLARTE",
-          contenido: "Te estoy transfiriendo con un especialista. Un momento por favor.",
-          tipo: "texto",
-        });
+        await notifyUrgentCase(
+          messageContent,
+          `El cliente mencionó: ${messageContent}`,
+          "Caso urgente detectado automaticamente"
+        );
       }
       
       setAiTypingDelay(false);

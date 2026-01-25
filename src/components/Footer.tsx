@@ -1,6 +1,7 @@
 import { FaInstagram, FaFacebookF, FaTwitter, FaEnvelope, FaPhone, FaMapMarkerAlt, FaHeart } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import NewsletterForm from "./NewsletterForm";
 
 const Footer = () => {
   return (
@@ -96,40 +97,7 @@ const Footer = () => {
             <p className="text-gray-400 text-sm mb-4">
               Recibe ofertas exclusivas y novedades
             </p>
-            <form onSubmit={async e => {
-              e.preventDefault();
-              const form = e.currentTarget;
-              const email = (form.elements.namedItem('newsletter-email') as HTMLInputElement).value;
-              try {
-                const { supabase } = await import("@/integrations/supabase/client");
-                await supabase.functions.invoke('send-newsletter-subscription', {
-                  body: { correo: email }
-                });
-                const { useToast } = await import("@/hooks/use-toast");
-                const { toast } = useToast();
-                toast({
-                  title: "¡Suscrito exitosamente!",
-                  description: "Revisa tu correo para confirmar."
-                });
-                form.reset();
-              } catch (error) {
-                console.error('Error:', error);
-              }
-            }} className="space-y-3 mb-6">
-              <input 
-                type="email" 
-                name="newsletter-email" 
-                placeholder="tu@email.com" 
-                required 
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300" 
-              />
-              <button 
-                type="submit" 
-                className="w-full px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-[1.02] btn-shine"
-              >
-                Suscribirse
-              </button>
-            </form>
+            <NewsletterForm />
             
             <div className="space-y-3 text-sm">
               {[
