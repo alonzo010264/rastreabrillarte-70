@@ -60,6 +60,7 @@ interface VirtualAgent {
   apellido: string;
   avatar_inicial: string;
   es_ia: boolean;
+  tipo_agente?: string;
 }
 
 export const ChatbotLive = () => {
@@ -435,7 +436,7 @@ export const ChatbotLive = () => {
     // First check for human agents (logged in specialists)
     const { data: humanAgents } = await supabase
       .from("agent_profiles")
-      .select("id, nombre, apellido, es_ia, tipo_agente")
+      .select("id, nombre, apellido, es_ia, tipo_agente, avatar_inicial")
       .eq("en_linea", true)
       .eq("activo", true)
       .eq("es_ia", false);
@@ -448,7 +449,7 @@ export const ChatbotLive = () => {
     // If no human agents, use virtual AI agents
     const { data: aiAgents } = await supabase
       .from("agent_profiles")
-      .select("id, nombre, apellido, avatar_inicial, es_ia")
+      .select("id, nombre, apellido, avatar_inicial, es_ia, tipo_agente")
       .eq("activo", true)
       .eq("es_ia", true);
     
@@ -460,9 +461,11 @@ export const ChatbotLive = () => {
     return { available: false };
   };
 
-  const getRandomTypingDelay = () => {
-    // Random delay between 1.5 and 4 seconds to simulate human typing
-    return Math.floor(Math.random() * 2500) + 1500;
+  const getRandomTypingDelay = (messageLength: number = 50) => {
+    // Longer messages = longer typing time (simulates human behavior)
+    const baseDelay = 1500;
+    const perCharDelay = Math.min(messageLength * 30, 3000);
+    return baseDelay + Math.floor(Math.random() * 1500) + perCharDelay;
   };
 
   const simulateHumanTyping = async (callback: () => Promise<void>) => {
@@ -471,6 +474,34 @@ export const ChatbotLive = () => {
     await new Promise(resolve => setTimeout(resolve, delay));
     await callback();
     setAiTypingDelay(false);
+  };
+
+  const notifyUrgentCase = async (
+    problema: string,
+    detalles: string,
+    tipoUrgencia: string
+  ) => {
+    try {
+      const chatMessages = messages.map(m => `${m.sender_nombre}: ${m.contenido}`);
+      
+      await supabase.functions.invoke("notify-urgent-case", {
+        body: {
+          clientEmail: email,
+          clientName: name,
+          problema,
+          detalles,
+          agentName: virtualAgent?.nombre || "Asistente BRILLARTE",
+          agentRole: virtualAgent?.tipo_agente || "asistente",
+          sessionId: session?.id,
+          tipoUrgencia,
+          mensajesChat: chatMessages,
+        },
+      });
+      
+      console.log("Urgent case notification sent");
+    } catch (error) {
+      console.error("Error sending urgent case notification:", error);
+    }
   };
 
   const handleFileUpload = async (file: File) => {
@@ -666,6 +697,17 @@ export const ChatbotLive = () => {
 
     const lowerMessage = messageContent.toLowerCase();
     
+    // Detect urgent cases
+    const isUrgentCase = 
+      lowerMessage.includes("reembolso") ||
+      lowerMessage.includes("devolucion") ||
+      lowerMessage.includes("dinero de vuelta") ||
+      lowerMessage.includes("me estafaron") ||
+      lowerMessage.includes("no llego mi pedido") ||
+      lowerMessage.includes("producto danado") ||
+      lowerMessage.includes("queja formal") ||
+      lowerMessage.includes("hablar con supervisor");
+    
     // Check if user wants to talk to a human agent
     const wantsHuman = 
       lowerMessage.includes("hablar con un agente") ||
@@ -676,29 +718,48 @@ export const ChatbotLive = () => {
       lowerMessage.includes("un humano") ||
       lowerMessage.includes("necesito ayuda real");
       
-    if (wantsHuman) {
-      // Assign a virtual AI agent that acts human
+    if (wantsHuman || isUrgentCase) {
+      // Assign a virtual AI agent that acts human with specific role
       setAiTypingDelay(true);
-      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay()));
+      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(80)));
       
       const { data: aiAgents } = await supabase
         .from("agent_profiles")
-        .select("id, nombre, apellido, avatar_inicial, es_ia")
+        .select("id, nombre, apellido, avatar_inicial, es_ia, tipo_agente")
         .eq("activo", true)
         .eq("es_ia", true);
       
       if (aiAgents && aiAgents.length > 0) {
-        const randomAgent = aiAgents[Math.floor(Math.random() * aiAgents.length)];
-        setVirtualAgent(randomAgent);
-        setAssignedAgentName(randomAgent.nombre);
+        // Choose agent based on context
+        let selectedAgent;
+        if (isUrgentCase) {
+          // For urgent cases, assign a Specialist (Victor or Julian)
+          selectedAgent = aiAgents.find(a => a.tipo_agente === "Especialista") || aiAgents[0];
+        } else {
+          selectedAgent = aiAgents[Math.floor(Math.random() * aiAgents.length)];
+        }
+        
+        setVirtualAgent({...selectedAgent, tipo_agente: selectedAgent.tipo_agente || 'asistente'});
+        setAssignedAgentName(selectedAgent.nombre);
+        
+        const roleDisplay = selectedAgent.tipo_agente || "Asistente";
         
         await supabase.from("chat_messages").insert({
           session_id: session.id,
           sender_type: "ia",
-          sender_nombre: randomAgent.nombre,
-          contenido: `Hola${name ? ` ${name}` : ""}. Soy ${randomAgent.nombre}, especialista de BRILLARTE. En que puedo ayudarte?`,
+          sender_nombre: selectedAgent.nombre,
+          contenido: `Hola${name ? ` ${name}` : ""}. Soy ${selectedAgent.nombre}, ${roleDisplay} de BRILLARTE. En que puedo ayudarte?`,
           tipo: "texto",
         });
+
+        // If urgent case, notify admin
+        if (isUrgentCase) {
+          await notifyUrgentCase(
+            messageContent,
+            `El cliente mencionó: ${messageContent}`,
+            "Caso urgente detectado automaticamente"
+          );
+        }
       } else {
         await supabase.from("chat_messages").insert({
           session_id: session.id,
@@ -723,6 +784,7 @@ export const ChatbotLive = () => {
 
     try {
       const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
+      const agentRole = virtualAgent?.tipo_agente || "asistente";
       
       const { data, error } = await supabase.functions.invoke("chatbot-assistant", {
         body: {
@@ -735,11 +797,13 @@ export const ChatbotLive = () => {
           ],
           email,
           virtualAgentName: agentName,
+          agentRole: agentRole,
         },
       });
 
-      // Add realistic typing delay
-      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay()));
+      // Add realistic typing delay based on response length
+      const responseLength = data?.response?.length || 50;
+      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(responseLength)));
 
       if (!error && data?.response) {
         await supabase.from("chat_messages").insert({
@@ -749,6 +813,15 @@ export const ChatbotLive = () => {
           contenido: data.response,
           tipo: "texto",
         });
+
+        // If AI detected urgent case, notify admin
+        if (data.isUrgentCase) {
+          await notifyUrgentCase(
+            messageContent,
+            data.response,
+            "Caso escalado por IA"
+          );
+        }
       } else {
         // Fallback message if AI fails
         await supabase.from("chat_messages").insert({
@@ -871,11 +944,11 @@ export const ChatbotLive = () => {
     }
 
     if (message.sender_type === "ia") {
-      // If we have a virtual agent assigned, show their initial
+      // If we have a virtual agent assigned, show their initial with black background
       if (virtualAgent && message.sender_nombre === virtualAgent.nombre) {
         return (
-          <Avatar className="h-8 w-8 bg-primary">
-            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
+          <Avatar className="h-8 w-8 bg-black">
+            <AvatarFallback className="bg-black text-white text-sm font-bold">
               {virtualAgent.avatar_inicial}
             </AvatarFallback>
           </Avatar>
@@ -950,14 +1023,14 @@ export const ChatbotLive = () => {
             </>
           ) : virtualAgent ? (
             <>
-              <Avatar className="h-8 w-8 border-2 border-primary-foreground/20 bg-primary-foreground">
-                <AvatarFallback className="bg-primary-foreground text-primary text-sm font-bold">
+              <Avatar className="h-8 w-8 border-2 border-primary-foreground/20 bg-black">
+                <AvatarFallback className="bg-black text-white text-sm font-bold">
                   {virtualAgent.avatar_inicial}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <p className="text-sm font-medium">{virtualAgent.nombre}</p>
-                <p className="text-xs opacity-80">Asistente BRILLARTE</p>
+                <p className="text-xs opacity-80">{virtualAgent.tipo_agente || 'Asistente BRILLARTE'}</p>
               </div>
             </>
           ) : (

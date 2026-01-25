@@ -104,3 +104,6 @@ verify_jwt = false
 
 [functions.send-chat-summary]
 verify_jwt = false
+
+[functions.notify-urgent-case]
+verify_jwt = false
