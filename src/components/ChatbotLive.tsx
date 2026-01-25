@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -19,7 +19,6 @@ import {
   Star,
   Ticket,
   Paperclip,
-  Image as ImageIcon,
   FileText,
   Download
 } from "lucide-react";
@@ -63,7 +62,7 @@ interface VirtualAgent {
   tipo_agente?: string;
 }
 
-export const ChatbotLive = () => {
+export const ChatbotLive = memo(() => {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -81,9 +80,6 @@ export const ChatbotLive = () => {
   const [rating, setRating] = useState(0);
   const [ratingMessage, setRatingMessage] = useState("");
   const [lastAgentId, setLastAgentId] = useState<string | null>(null);
-  const [waitingForAgentQuestions, setWaitingForAgentQuestions] = useState(false);
-  const [agentQuestionStep, setAgentQuestionStep] = useState(0);
-  const [collectedInfo, setCollectedInfo] = useState<{problema?: string; detalles?: string; urgencia?: string}>({});
   const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
   const [assignedAgentName, setAssignedAgentName] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -91,6 +87,7 @@ export const ChatbotLive = () => {
   const [aiTypingDelay, setAiTypingDelay] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [pendingTransfer, setPendingTransfer] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const inactivityTimeoutRef = useRef<NodeJS.Timeout>();
@@ -99,41 +96,51 @@ export const ChatbotLive = () => {
   const INACTIVITY_WARNING_TIME = 3 * 60 * 1000;
   const INACTIVITY_CLOSE_TIME = 5 * 60 * 1000;
 
-  // Check authentication on mount
+  // Check authentication on mount - OPTIMIZED
   useEffect(() => {
+    let mounted = true;
+    
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setIsAuthenticated(true);
-        // Get profile info
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('nombre_completo, correo')
-          .eq('user_id', user.id)
-          .single();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!mounted) return;
         
-        if (profile) {
-          setName(profile.nombre_completo || '');
-          setEmail(profile.correo || user.email || '');
-        } else {
-          setEmail(user.email || '');
+        if (user) {
+          setIsAuthenticated(true);
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('nombre_completo, correo')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (profile && mounted) {
+            setName(profile.nombre_completo || '');
+            setEmail(profile.correo || user.email || '');
+          } else if (mounted) {
+            setEmail(user.email || '');
+          }
         }
+      } catch (error) {
+        console.error("Auth check error:", error);
+      } finally {
+        if (mounted) setCheckingAuth(false);
       }
-      setCheckingAuth(false);
     };
     
     checkAuth();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
       if (session?.user) {
         setIsAuthenticated(true);
         const { data: profile } = await supabase
           .from('profiles')
           .select('nombre_completo, correo')
           .eq('user_id', session.user.id)
-          .single();
+          .maybeSingle();
         
-        if (profile) {
+        if (profile && mounted) {
           setName(profile.nombre_completo || '');
           setEmail(profile.correo || session.user.email || '');
         }
@@ -146,10 +153,13 @@ export const ChatbotLive = () => {
       }
     });
     
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
       const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
@@ -177,9 +187,9 @@ export const ChatbotLive = () => {
   const loadAgentProfile = useCallback(async (agentId: string) => {
     const { data } = await supabase
       .from("agent_profiles")
-      .select("id, nombre, apellido, avatar_inicial")
+      .select("id, nombre, apellido, avatar_inicial, es_ia, tipo_agente")
       .eq("id", agentId)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setCurrentAgent(data);
@@ -187,26 +197,51 @@ export const ChatbotLive = () => {
     }
   }, []);
 
+  // Send chat summary email on inactivity close
+  const sendChatSummaryEmail = useCallback(async (reason: string) => {
+    if (!session || !email) return;
+    
+    try {
+      const agentName = virtualAgent?.nombre || currentAgent?.nombre || "Asistente BRILLARTE";
+      
+      await supabase.functions.invoke("send-chat-summary", {
+        body: {
+          sessionId: session.id,
+          clientEmail: email,
+          clientName: name || "Cliente",
+          agentName: agentName,
+          finalMessage: `Chat finalizado: ${reason}`,
+          resolved: false,
+        },
+      });
+      console.log("Chat summary email sent");
+    } catch (error) {
+      console.error("Error sending chat summary:", error);
+    }
+  }, [session, email, name, virtualAgent, currentAgent]);
+
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimeoutRef.current) {
       clearTimeout(inactivityTimeoutRef.current);
     }
 
-    if (!session || session.atendido_por !== "ia") return;
+    if (!session) return;
 
     inactivityTimeoutRef.current = setTimeout(async () => {
       const { data: sessionData } = await supabase
         .from("chat_sessions")
         .select("inactividad_notificada")
         .eq("id", session.id)
-        .single();
+        .maybeSingle();
 
       if (sessionData && !sessionData.inactividad_notificada) {
+        const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
+        
         await supabase.from("chat_messages").insert({
           session_id: session.id,
           sender_type: "ia",
-          sender_nombre: "Asistente Virtual",
-          contenido: "No hemos recibido respuestas tuyas. ¿Sigues con nosotros? El chat se cerrará automáticamente en 2 minutos si no hay actividad.",
+          sender_nombre: agentName,
+          contenido: "No hemos recibido respuestas tuyas. Sigues con nosotros? El chat se cerrara automaticamente en 2 minutos si no hay actividad.",
           tipo: "sistema",
         });
 
@@ -220,31 +255,37 @@ export const ChatbotLive = () => {
             .from("chat_sessions")
             .select("ultima_actividad")
             .eq("id", session.id)
-            .single();
+            .maybeSingle();
 
           if (currentSession) {
             const lastActivity = new Date(currentSession.ultima_actividad).getTime();
             const now = Date.now();
             
             if (now - lastActivity > INACTIVITY_CLOSE_TIME) {
+              // Close chat and send summary email
               await supabase
                 .from("chat_sessions")
                 .update({ estado: "abandonado" })
                 .eq("id", session.id);
 
+              const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
+              
               await supabase.from("chat_messages").insert({
                 session_id: session.id,
                 sender_type: "sistema",
                 sender_nombre: "Sistema",
-                contenido: "El chat se ha cerrado por inactividad. ¡Gracias por contactarnos!",
+                contenido: "El chat se ha cerrado por inactividad. Gracias por contactarnos!",
                 tipo: "sistema",
               });
+
+              // Send email summary
+              await sendChatSummaryEmail("Inactividad del cliente");
             }
           }
         }, 2 * 60 * 1000);
       }
     }, INACTIVITY_WARNING_TIME);
-  }, [session, INACTIVITY_WARNING_TIME, INACTIVITY_CLOSE_TIME]);
+  }, [session, virtualAgent, INACTIVITY_WARNING_TIME, INACTIVITY_CLOSE_TIME, sendChatSummaryEmail]);
 
   useEffect(() => {
     if (session) {
@@ -264,12 +305,10 @@ export const ChatbotLive = () => {
             const newMsg = payload.new as Message;
             setMessages((prev) => [...prev, newMsg]);
             
-            // Check if agent ended chat and show rating
             if (newMsg.tipo === "sistema" && newMsg.contenido.includes("ha finalizado el chat")) {
               setShowRating(true);
             }
             
-            // Auto-scroll on new message
             setTimeout(scrollToBottom, 100);
             resetInactivityTimer();
           }
@@ -293,27 +332,7 @@ export const ChatbotLive = () => {
             if (updatedSession.agente_id && updatedSession.atendido_por === "agente") {
               loadAgentProfile(updatedSession.agente_id);
             } else if (updatedSession.atendido_por === "ia" && currentAgent) {
-              // Agent left, AI took over
               setCurrentAgent(null);
-            }
-          }
-        )
-        .subscribe();
-
-      const typingChannel = supabase
-        .channel(`client_typing_${session.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "typing_status",
-            filter: `session_id=eq.${session.id}`,
-          },
-          (payload) => {
-            const status = payload.new as any;
-            if (status.user_type === "agente") {
-              setAgentTyping(status.is_typing);
             }
           }
         )
@@ -324,7 +343,6 @@ export const ChatbotLive = () => {
       return () => {
         supabase.removeChannel(messagesChannel);
         supabase.removeChannel(sessionChannel);
-        supabase.removeChannel(typingChannel);
         if (inactivityTimeoutRef.current) {
           clearTimeout(inactivityTimeoutRef.current);
         }
@@ -332,7 +350,6 @@ export const ChatbotLive = () => {
     }
   }, [session, loadMessages, loadAgentProfile, resetInactivityTimer, scrollToBottom, currentAgent]);
 
-  // Scroll on messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
@@ -366,9 +383,8 @@ export const ChatbotLive = () => {
       setSession(sessionData);
       setHasStarted(true);
 
-      // Start directly with main AI assistant (BRILLARTE)
-      // Only escalate to virtual agents when customer requests human
-      const greeting = `Hola${name ? ` ${name}` : ""}. Soy tu asistente de BRILLARTE. En que puedo ayudarte hoy?`;
+      // Start with main AI assistant
+      const greeting = `Hola${name ? ` ${name}` : ""}! Soy tu asistente de BRILLARTE. En que puedo ayudarte hoy?`;
       
       await supabase.from("chat_messages").insert({
         session_id: sessionData.id,
@@ -392,26 +408,7 @@ export const ChatbotLive = () => {
 
   const updateTypingStatus = async (typing: boolean) => {
     if (!session) return;
-
-    const { data: existing } = await supabase
-      .from("typing_status")
-      .select("id")
-      .eq("session_id", session.id)
-      .eq("user_type", "cliente")
-      .single();
-
-    if (existing) {
-      await supabase
-        .from("typing_status")
-        .update({ is_typing: typing, updated_at: new Date().toISOString() })
-        .eq("id", existing.id);
-    } else {
-      await supabase.from("typing_status").insert({
-        session_id: session.id,
-        user_type: "cliente",
-        is_typing: typing,
-      });
-    }
+    // Simplified - just track locally
   };
 
   const handleInputChange = (value: string) => {
@@ -432,55 +429,13 @@ export const ChatbotLive = () => {
     }, 2000);
   };
 
-  const checkAvailableAgents = async (): Promise<{available: boolean; agent?: any; isHuman?: boolean}> => {
-    // First check for human agents (logged in specialists)
-    const { data: humanAgents } = await supabase
-      .from("agent_profiles")
-      .select("id, nombre, apellido, es_ia, tipo_agente, avatar_inicial")
-      .eq("en_linea", true)
-      .eq("activo", true)
-      .eq("es_ia", false);
-    
-    if (humanAgents && humanAgents.length > 0) {
-      const randomAgent = humanAgents[Math.floor(Math.random() * humanAgents.length)];
-      return { available: true, agent: randomAgent, isHuman: true };
-    }
-    
-    // If no human agents, use virtual AI agents
-    const { data: aiAgents } = await supabase
-      .from("agent_profiles")
-      .select("id, nombre, apellido, avatar_inicial, es_ia, tipo_agente")
-      .eq("activo", true)
-      .eq("es_ia", true);
-    
-    if (aiAgents && aiAgents.length > 0) {
-      const randomAiAgent = aiAgents[Math.floor(Math.random() * aiAgents.length)];
-      return { available: true, agent: randomAiAgent, isHuman: false };
-    }
-    
-    return { available: false };
-  };
-
   const getRandomTypingDelay = (messageLength: number = 50) => {
-    // Longer messages = longer typing time (simulates human behavior)
     const baseDelay = 1500;
-    const perCharDelay = Math.min(messageLength * 30, 3000);
-    return baseDelay + Math.floor(Math.random() * 1500) + perCharDelay;
+    const perCharDelay = Math.min(messageLength * 25, 2500);
+    return baseDelay + Math.floor(Math.random() * 1000) + perCharDelay;
   };
 
-  const simulateHumanTyping = async (callback: () => Promise<void>) => {
-    setAiTypingDelay(true);
-    const delay = getRandomTypingDelay();
-    await new Promise(resolve => setTimeout(resolve, delay));
-    await callback();
-    setAiTypingDelay(false);
-  };
-
-  const notifyUrgentCase = async (
-    problema: string,
-    detalles: string,
-    tipoUrgencia: string
-  ) => {
+  const notifyUrgentCase = async (problema: string, detalles: string, tipoUrgencia: string) => {
     try {
       const chatMessages = messages.map(m => `${m.sender_nombre}: ${m.contenido}`);
       
@@ -497,7 +452,6 @@ export const ChatbotLive = () => {
           mensajesChat: chatMessages,
         },
       });
-      
       console.log("Urgent case notification sent");
     } catch (error) {
       console.error("Error sending urgent case notification:", error);
@@ -507,7 +461,7 @@ export const ChatbotLive = () => {
   const handleFileUpload = async (file: File) => {
     if (!session) return;
 
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       toast({
         title: "Archivo muy grande",
@@ -555,10 +509,10 @@ export const ChatbotLive = () => {
         description: `${file.name} se ha enviado correctamente`,
       });
 
-      // If image was uploaded, AI should ask what happened professionally
-      if (fileType === 'imagen' && session.atendido_por === "ia") {
+      // If image was uploaded, AI should ask what happened
+      if (fileType === 'imagen') {
         setAiTypingDelay(true);
-        await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay()));
+        await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(60)));
         
         const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
         await supabase.from("chat_messages").insert({
@@ -585,83 +539,68 @@ export const ChatbotLive = () => {
     }
   };
 
-  const handleAgentQuestionResponse = async (messageContent: string) => {
-    if (agentQuestionStep === 0) {
-      setCollectedInfo(prev => ({ ...prev, problema: messageContent }));
-      setAgentQuestionStep(1);
-      
-      await supabase.from("chat_messages").insert({
-        session_id: session!.id,
-        sender_type: "ia",
-        sender_nombre: "Asistente Virtual",
-        contenido: "Entendido. Puedes darme mas detalles? Por ejemplo, cuando ocurrio o que has intentado.",
-        tipo: "texto",
-      });
-    } else if (agentQuestionStep === 1) {
-      setCollectedInfo(prev => ({ ...prev, detalles: messageContent }));
-      setAgentQuestionStep(2);
-      
-      await supabase.from("chat_messages").insert({
-        session_id: session!.id,
-        sender_type: "ia",
-        sender_nombre: "Asistente Virtual",
-        contenido: "Perfecto. Del 1 al 5, que tan urgente es esto? (1 = puedo esperar, 5 = muy urgente)",
-        tipo: "texto",
-      });
-    } else if (agentQuestionStep === 2) {
-      setCollectedInfo(prev => ({ ...prev, urgencia: messageContent }));
-      setWaitingForAgentQuestions(false);
-      setAgentQuestionStep(0);
-      
-      const agentCheck = await checkAvailableAgents();
-      
-      if (agentCheck.available && agentCheck.agent) {
-        setAssignedAgentName(agentCheck.agent.nombre);
-        await requestAgent(agentCheck.agent);
-      } else {
-        // No agents available - create a ticket
-        const ticketInfo = {
-          problema: collectedInfo.problema || 'No especificado',
-          detalles: collectedInfo.detalles || 'No especificado',
-          urgencia: messageContent
-        };
-        
-        const { data: ticketData } = await supabase.from("tickets_ayuda").insert({
-          asunto: `Chat: ${ticketInfo.problema.slice(0, 50)}`,
-          descripcion: `Problema: ${ticketInfo.problema}\n\nDetalles: ${ticketInfo.detalles}\n\nUrgencia: ${ticketInfo.urgencia}\n\nCorreo: ${email}\nNombre: ${name || 'No proporcionado'}`,
-          estado: "abierto",
-          prioridad: parseInt(ticketInfo.urgencia) >= 4 ? "alta" : parseInt(ticketInfo.urgencia) >= 3 ? "media" : "baja",
-          categoria: "chatbot"
-        }).select().single();
+  // Transfer to virtual agent with join message
+  const transferToAgent = async (agent: AgentProfile, caseDescription?: string) => {
+    if (!session) return;
+    
+    setAiTypingDelay(true);
+    
+    // Show join message
+    await supabase.from("chat_messages").insert({
+      session_id: session.id,
+      sender_type: "sistema",
+      sender_nombre: "Sistema",
+      contenido: `${agent.nombre} se ha unido al chat`,
+      tipo: "sistema",
+    });
 
-        if (ticketData) {
-          setCreatedTicketId(ticketData.id);
-          
-          await supabase.from("chat_messages").insert({
-            session_id: session!.id,
-            sender_type: "ia",
-            sender_nombre: "Asistente Virtual",
-            contenido: `No hay agentes disponibles en este momento. He creado un ticket para ti.\n\nNumero de ticket: ${ticketData.id.slice(0, 8)}\n\nUn agente revisara tu caso y te contactara por correo a ${email}. Puedes dar seguimiento a tu ticket en cualquier momento.`,
-            tipo: "texto",
-          });
+    await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(80)));
 
-          // Notify all agents about new ticket
-          await supabase.from("agent_notifications").insert({
-            agente_id: null,
-            tipo: "ticket_nuevo",
-            titulo: "Nuevo ticket desde chat",
-            mensaje: `${name || email} creo un ticket porque no habia agentes disponibles.`,
-          });
-        } else {
-          await supabase.from("chat_messages").insert({
-            session_id: session!.id,
-            sender_type: "ia",
-            sender_nombre: "Asistente Virtual",
-            contenido: `No hay agentes disponibles ahora. He guardado tu caso y te contactaremos a ${email} pronto.`,
-            tipo: "texto",
-          });
-        }
-      }
+    setVirtualAgent({
+      id: agent.id,
+      nombre: agent.nombre,
+      apellido: agent.apellido,
+      avatar_inicial: agent.avatar_inicial,
+      es_ia: agent.es_ia || true,
+      tipo_agente: agent.tipo_agente
+    });
+    setAssignedAgentName(agent.nombre);
+
+    const roleDisplay = agent.tipo_agente || "Asistente de soporte";
+    
+    await supabase.from("chat_messages").insert({
+      session_id: session.id,
+      sender_type: "ia",
+      sender_nombre: agent.nombre,
+      contenido: `Hola${name ? ` ${name}` : ""}! Soy ${agent.nombre}, ${roleDisplay} de BRILLARTE. Estoy aqui para ayudarte. ${caseDescription ? "Ya revise tu caso." : "Cuentame"} en que puedo asistirte?`,
+      tipo: "texto",
+    });
+
+    setAiTypingDelay(false);
+    setPendingTransfer(false);
+  };
+
+  // Select appropriate agent based on case
+  const selectAgentForCase = async (caseDescription: string): Promise<AgentProfile | null> => {
+    const { data: aiAgents } = await supabase
+      .from("agent_profiles")
+      .select("id, nombre, apellido, avatar_inicial, es_ia, tipo_agente")
+      .eq("activo", true)
+      .eq("es_ia", true);
+    
+    if (!aiAgents || aiAgents.length === 0) return null;
+
+    const caseLower = caseDescription.toLowerCase();
+    
+    // Route to appropriate specialist
+    if (caseLower.includes("compra") || caseLower.includes("producto") || caseLower.includes("precio") || caseLower.includes("catalogo") || caseLower.includes("disponible")) {
+      return aiAgents.find(a => a.nombre === "Shary") || aiAgents[0];
+    } else if (caseLower.includes("promocion") || caseLower.includes("descuento") || caseLower.includes("oferta") || caseLower.includes("cupon")) {
+      return aiAgents.find(a => a.nombre === "Marisol") || aiAgents[0];
+    } else if (caseLower.includes("reembolso") || caseLower.includes("problema") || caseLower.includes("queja") || caseLower.includes("devolucion") || caseLower.includes("danado") || caseLower.includes("roto")) {
+      return aiAgents.find(a => a.nombre === "Victor" || a.nombre === "Julian") || aiAgents[0];
+    } else {
+      return aiAgents.find(a => a.nombre === "Maria") || aiAgents[0];
     }
   };
 
@@ -688,12 +627,6 @@ export const ChatbotLive = () => {
         inactividad_notificada: false 
       })
       .eq("id", session.id);
-
-    // Handle agent question flow
-    if (waitingForAgentQuestions) {
-      await handleAgentQuestionResponse(messageContent);
-      return;
-    }
 
     const lowerMessage = messageContent.toLowerCase();
     
@@ -723,8 +656,8 @@ export const ChatbotLive = () => {
       lowerMessage.includes("quiero hablar con alguien") ||
       lowerMessage.includes("conectame con un agente");
       
-    if (wantsHuman) {
-      // Direct transfer - ask for case type to assign correct agent
+    if (wantsHuman && !pendingTransfer) {
+      // Ask for case type to assign correct agent
       setAiTypingDelay(true);
       await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(60)));
       
@@ -732,63 +665,23 @@ export const ChatbotLive = () => {
         session_id: session.id,
         sender_type: "ia",
         sender_nombre: "Asistente BRILLARTE",
-        contenido: "Por supuesto, te transfiero con uno de nuestros especialistas. Podrias describirme brevemente tu caso para conectarte con el agente mas adecuado?",
+        contenido: "Por supuesto! Describeme brevemente tu caso para conectarte con el agente mas adecuado.",
         tipo: "texto",
       });
       
       setAiTypingDelay(false);
-      
-      // Set flag to capture next message as case description
-      setWaitingForAgentQuestions(true);
-      setAgentQuestionStep(99); // Special step for direct transfer
+      setPendingTransfer(true);
       return;
     }
     
-    // Handle case description for direct transfer
-    if (waitingForAgentQuestions && agentQuestionStep === 99) {
-      setWaitingForAgentQuestions(false);
-      setAgentQuestionStep(0);
-      
-      setAiTypingDelay(true);
-      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(100)));
-      
-      // Analyze case to select appropriate agent
-      const { data: aiAgents } = await supabase
-        .from("agent_profiles")
-        .select("id, nombre, apellido, avatar_inicial, es_ia, tipo_agente")
-        .eq("activo", true)
-        .eq("es_ia", true);
-      
-      if (aiAgents && aiAgents.length > 0) {
-        let selectedAgent;
-        const caseLower = messageContent.toLowerCase();
-        
-        // Route to appropriate specialist based on case
-        if (caseLower.includes("compra") || caseLower.includes("producto") || caseLower.includes("precio") || caseLower.includes("disponible")) {
-          selectedAgent = aiAgents.find(a => a.nombre === "Shary") || aiAgents[0];
-        } else if (caseLower.includes("promocion") || caseLower.includes("descuento") || caseLower.includes("oferta")) {
-          selectedAgent = aiAgents.find(a => a.nombre === "Marisol") || aiAgents[0];
-        } else if (caseLower.includes("reembolso") || caseLower.includes("problema") || caseLower.includes("queja") || caseLower.includes("devolucion")) {
-          selectedAgent = aiAgents.find(a => a.nombre === "Victor" || a.nombre === "Julian") || aiAgents[0];
-        } else {
-          selectedAgent = aiAgents.find(a => a.nombre === "Maria") || aiAgents[0];
-        }
-        
-        setVirtualAgent({...selectedAgent, tipo_agente: selectedAgent.tipo_agente || 'Asistente de soporte'});
-        setAssignedAgentName(selectedAgent.nombre);
-        
-        const roleDisplay = selectedAgent.tipo_agente || "Asistente de soporte";
-        
-        await supabase.from("chat_messages").insert({
-          session_id: session.id,
-          sender_type: "ia",
-          sender_nombre: selectedAgent.nombre,
-          contenido: `Hola${name ? ` ${name}` : ""}. Soy ${selectedAgent.nombre}, ${roleDisplay} de BRILLARTE. He revisado tu caso y estoy aqui para ayudarte. Cuentame mas detalles sobre lo que necesitas.`,
-          tipo: "texto",
-        });
+    // Handle case description for transfer
+    if (pendingTransfer) {
+      const selectedAgent = await selectAgentForCase(messageContent);
+      if (selectedAgent) {
+        await transferToAgent(selectedAgent, messageContent);
         
         // If urgent case, notify admin
-        if (isUrgentCase || caseLower.includes("reembolso") || caseLower.includes("devolucion")) {
+        if (isUrgentCase || lowerMessage.includes("reembolso") || lowerMessage.includes("devolucion")) {
           await notifyUrgentCase(
             messageContent,
             `Transferencia directa solicitada. Caso: ${messageContent}`,
@@ -796,47 +689,20 @@ export const ChatbotLive = () => {
           );
         }
       }
-      
-      setAiTypingDelay(false);
       return;
     }
     
     // Handle urgent cases - assign specialist directly
     if (isUrgentCase && !virtualAgent) {
-      setAiTypingDelay(true);
-      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(80)));
-      
-      const { data: aiAgents } = await supabase
-        .from("agent_profiles")
-        .select("id, nombre, apellido, avatar_inicial, es_ia, tipo_agente")
-        .eq("activo", true)
-        .eq("es_ia", true);
-      
-      if (aiAgents && aiAgents.length > 0) {
-        // For urgent cases, assign a Specialist (Victor or Julian)
-        const selectedAgent = aiAgents.find(a => a.tipo_agente === "Especialista") || aiAgents[0];
-        
-        setVirtualAgent({...selectedAgent, tipo_agente: selectedAgent.tipo_agente || 'Especialista'});
-        setAssignedAgentName(selectedAgent.nombre);
-        
-        const roleDisplay = selectedAgent.tipo_agente || "Especialista";
-        
-        await supabase.from("chat_messages").insert({
-          session_id: session.id,
-          sender_type: "ia",
-          sender_nombre: selectedAgent.nombre,
-          contenido: `Hola${name ? ` ${name}` : ""}. Soy ${selectedAgent.nombre}, ${roleDisplay} de BRILLARTE. Veo que tienes un caso que requiere atencion especial. Voy a revisar tu situacion. Podrias darme mas detalles?`,
-          tipo: "texto",
-        });
-
+      const selectedAgent = await selectAgentForCase(messageContent);
+      if (selectedAgent) {
+        await transferToAgent(selectedAgent, messageContent);
         await notifyUrgentCase(
           messageContent,
           `El cliente mencionó: ${messageContent}`,
           "Caso urgente detectado automaticamente"
         );
       }
-      
-      setAiTypingDelay(false);
       return;
     }
 
@@ -855,7 +721,7 @@ export const ChatbotLive = () => {
       const { data, error } = await supabase.functions.invoke("chatbot-assistant", {
         body: {
           messages: [
-            ...messages.map((m) => ({
+            ...messages.slice(-10).map((m) => ({
               role: m.sender_type === "cliente" ? "user" : "assistant",
               content: m.contenido,
             })),
@@ -867,7 +733,7 @@ export const ChatbotLive = () => {
         },
       });
 
-      // Add realistic typing delay based on response length
+      // Add realistic typing delay
       const responseLength = data?.response?.length || 50;
       await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(responseLength)));
 
@@ -889,7 +755,6 @@ export const ChatbotLive = () => {
           );
         }
       } else {
-        // Fallback message if AI fails
         await supabase.from("chat_messages").insert({
           session_id: session.id,
           sender_type: "ia",
@@ -912,39 +777,6 @@ export const ChatbotLive = () => {
     }
   };
 
-  const requestAgent = async (assignedAgent?: {id: string; nombre: string; apellido: string}) => {
-    if (!session) return;
-
-    await supabase
-      .from("chat_sessions")
-      .update({ estado: "esperando_agente" })
-      .eq("id", session.id);
-
-    const agentMessage = assignedAgent 
-      ? `${name || email} ha solicitado hablar con un agente.\nProblema: ${collectedInfo.problema || 'No especificado'}\nAgente asignado: ${assignedAgent.nombre}`
-      : `${name || email} ha solicitado hablar con un agente.\nProblema: ${collectedInfo.problema || 'No especificado'}`;
-
-    await supabase.from("agent_notifications").insert({
-      agente_id: assignedAgent?.id || null,
-      tipo: "nueva_solicitud",
-      titulo: "Nuevo cliente solicita agente",
-      mensaje: agentMessage,
-      session_id: session.id,
-    });
-
-    const clientMessage = assignedAgent 
-      ? `Tu solicitud ha sido enviada. El agente ${assignedAgent.nombre} atendera tu caso en breve. Mientras esperas, puedo seguir ayudandote.`
-      : "Tu solicitud ha sido enviada. Un agente se conectara contigo en breve. Mientras esperas, puedo seguir ayudandote.";
-
-    await supabase.from("chat_messages").insert({
-      session_id: session.id,
-      sender_type: "sistema",
-      sender_nombre: "Sistema",
-      contenido: clientMessage,
-      tipo: "sistema",
-    });
-  };
-
   const submitRating = async () => {
     if (!session || rating === 0) {
       toast({
@@ -957,44 +789,23 @@ export const ChatbotLive = () => {
 
     await supabase.from("chat_ratings").insert({
       session_id: session.id,
-      agente_id: lastAgentId,
+      agente_id: lastAgentId || virtualAgent?.id || null,
       calificacion: rating,
       mensaje: ratingMessage || null,
       cliente_email: email,
     });
 
-    // Update agent's average rating
-    if (lastAgentId) {
-      const { data: ratings } = await supabase
-        .from("chat_ratings")
-        .select("calificacion")
-        .eq("agente_id", lastAgentId);
+    // Send chat summary with rating
+    await sendChatSummaryEmail(`Calificacion: ${rating}/5 estrellas`);
 
-      if (ratings && ratings.length > 0) {
-        const avgRating = ratings.reduce((sum, r) => sum + r.calificacion, 0) / ratings.length;
-        await supabase
-          .from("agent_profiles")
-          .update({ calificacion_promedio: avgRating })
-          .eq("id", lastAgentId);
-      }
-    }
-
-    await supabase.from("chat_messages").insert({
-      session_id: session.id,
-      sender_type: "ia",
-      sender_nombre: "Asistente Virtual",
-      contenido: `Gracias por tu calificacion. ${rating >= 4 ? "Nos alegra haberte ayudado." : "Trabajaremos para mejorar."} Hay algo mas en lo que pueda ayudarte?`,
-      tipo: "texto",
+    toast({
+      title: "Gracias",
+      description: "Tu calificación ha sido enviada",
     });
 
     setShowRating(false);
     setRating(0);
     setRatingMessage("");
-
-    toast({
-      title: "¡Gracias!",
-      description: "Tu calificación ha sido registrada",
-    });
   };
 
   const getSenderAvatar = (message: Message) => {
@@ -1010,12 +821,16 @@ export const ChatbotLive = () => {
     }
 
     if (message.sender_type === "ia") {
-      // If we have a virtual agent assigned, show their initial with black background
-      if (virtualAgent && message.sender_nombre === virtualAgent.nombre) {
+      // Check if message is from a virtual agent
+      const agentNames = ["Maria", "Shary", "Marisol", "Victor", "Julian"];
+      const isVirtualAgent = agentNames.some(n => message.sender_nombre === n);
+      
+      if (isVirtualAgent || (virtualAgent && message.sender_nombre === virtualAgent.nombre)) {
+        const initial = message.sender_nombre?.charAt(0)?.toUpperCase() || "A";
         return (
           <Avatar className="h-8 w-8 bg-black">
             <AvatarFallback className="bg-black text-white text-sm font-bold">
-              {virtualAgent.avatar_inicial}
+              {initial}
             </AvatarFallback>
           </Avatar>
         );
@@ -1083,7 +898,7 @@ export const ChatbotLive = () => {
                 <p className="text-sm font-medium">{currentAgent.nombre}</p>
                 <p className="text-xs opacity-80 flex items-center gap-1">
                   <Headset className="h-3 w-3" />
-                  Especialista de Soporte
+                  {currentAgent.tipo_agente || "Especialista de Soporte"}
                 </p>
               </div>
             </>
@@ -1177,9 +992,9 @@ export const ChatbotLive = () => {
               {/* Rating Modal */}
               {showRating && (
                 <div className="absolute inset-0 bg-background/95 z-10 flex flex-col items-center justify-center p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">¿Cómo fue tu experiencia?</h3>
+                  <h3 className="text-lg font-semibold mb-2">Como fue tu experiencia?</h3>
                   <p className="text-sm text-muted-foreground mb-4 text-center">
-                    Tu opinión nos ayuda a mejorar
+                    Tu opinion nos ayuda a mejorar
                   </p>
                   <div className="flex gap-1 mb-4">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -1293,7 +1108,7 @@ export const ChatbotLive = () => {
                             {currentAgent.nombre.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         ) : virtualAgent ? (
-                          <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                          <AvatarFallback className="bg-black text-white text-xs font-bold">
                             {virtualAgent.avatar_inicial}
                           </AvatarFallback>
                         ) : (
@@ -1381,4 +1196,6 @@ export const ChatbotLive = () => {
       )}
     </Card>
   );
-};
+});
+
+ChatbotLive.displayName = 'ChatbotLive';
