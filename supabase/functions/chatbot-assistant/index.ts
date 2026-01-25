@@ -24,9 +24,9 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get the agent name to use in responses
-    const agentName = virtualAgentName || 'Asistente Virtual';
+    const agentName = virtualAgentName || 'Asistente BRILLARTE';
 
-    // Buscar informacion del pedido
+    // Buscar informacion del pedido si se proporciona codigo
     let orderInfo = "";
     if (orderCode) {
       const { data: pedidoOnline } = await supabase
@@ -60,226 +60,46 @@ PEDIDO ${orderCode}:
       }
     }
 
-    // Buscar perfil del usuario
+    // Buscar perfil del usuario por email
     let userProfile = null;
-    let isAgent = false;
-    if (userId) {
+    if (email) {
       const { data } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('correo', email)
         .single();
       userProfile = data;
-      
-      // Check if user is verified (official agent)
-      isAgent = data?.verificado === true;
     }
 
     // Detectar intenciones en el ultimo mensaje
     const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
-    let actionTaken = null;
-    let ticketCreated = null;
-    let agentData = null;
-
-    // Si es un agente verificado, permitir consultas especiales
-    if (isAgent) {
-      // Consultar códigos de pago usados
-      if (lastMessage.includes('codigos usados') || lastMessage.includes('códigos usados') || 
-          lastMessage.includes('codigos de pago') || lastMessage.includes('códigos de pago')) {
-        const { data: codigosUsados } = await supabase
-          .from('codigos_pago')
-          .select('codigo, usado_at, usado_por')
-          .eq('usado', true)
-          .order('usado_at', { ascending: false })
-          .limit(10);
-
-        if (codigosUsados && codigosUsados.length > 0) {
-          const codigosList = codigosUsados.map(c => 
-            `- ${c.codigo} (usado el ${new Date(c.usado_at).toLocaleDateString()})`
-          ).join('\n');
-          agentData = `CODIGOS DE PAGO USADOS (ultimos 10):\n${codigosList}`;
-        } else {
-          agentData = 'No hay codigos de pago usados recientemente.';
-        }
-        actionTaken = 'CONSULTA_AGENTE';
-      }
-
-      // Consultar códigos disponibles
-      if (lastMessage.includes('codigos disponibles') || lastMessage.includes('códigos disponibles')) {
-        const { data: codigosDisponibles } = await supabase
-          .from('codigos_pago')
-          .select('codigo')
-          .eq('usado', false);
-
-        if (codigosDisponibles && codigosDisponibles.length > 0) {
-          const codigosList = codigosDisponibles.map(c => `- ${c.codigo}`).join('\n');
-          agentData = `CODIGOS DE PAGO DISPONIBLES:\n${codigosList}`;
-        } else {
-          agentData = 'No hay codigos de pago disponibles. Se generaran automaticamente.';
-        }
-        actionTaken = 'CONSULTA_AGENTE';
-      }
-
-      // Consultar solicitudes pendientes
-      if (lastMessage.includes('solicitudes pendientes') || lastMessage.includes('pendientes')) {
-        const { data: solicitudesPendientes } = await supabase
-          .from('solicitudes_ia')
-          .select('tipo, descripcion, created_at')
-          .eq('estado', 'pendiente')
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (solicitudesPendientes && solicitudesPendientes.length > 0) {
-          const solList = solicitudesPendientes.map(s => 
-            `- ${s.tipo.toUpperCase()}: ${s.descripcion.slice(0, 50)}...`
-          ).join('\n');
-          agentData = `SOLICITUDES PENDIENTES:\n${solList}`;
-        } else {
-          agentData = 'No hay solicitudes pendientes.';
-        }
-        actionTaken = 'CONSULTA_AGENTE';
-      }
-    }
-
-    // Detectar solicitud de credito (solo para usuarios verificados)
-    if (lastMessage.includes('credito') || lastMessage.includes('crédito') || 
-        lastMessage.includes('solicitar credito') || lastMessage.includes('quiero credito')) {
-      if (userId && userProfile?.verificado) {
-        const { data: solicitud, error } = await supabase
-          .from('solicitudes_ia')
-          .insert({
-            user_id: userId,
-            tipo: 'credito',
-            descripcion: `Solicitud de credito via chatbot. Mensaje: "${messages[messages.length - 1]?.content}"`,
-            monto: null
-          })
-          .select()
-          .single();
-
-        if (!error) {
-          actionTaken = 'SOLICITUD_CREDITO';
-          
-          const { data: brillarteProfile } = await supabase
-            .from('profiles')
-            .select('user_id')
-            .eq('correo', 'oficial@brillarte.lat')
-            .single();
-
-          if (brillarteProfile) {
-            await supabase.from('notifications').insert({
-              user_id: brillarteProfile.user_id,
-              tipo: 'solicitud_credito',
-              titulo: 'Nueva solicitud de credito',
-              mensaje: `${userProfile?.nombre_completo || email} ha solicitado credito`,
-              accion_url: '/admin/solicitudes-ia'
-            });
-          }
-        }
-      }
-    }
-
-    // Detectar solicitud de reembolso - mejorado para recopilar más información
-    if (lastMessage.includes('reembolso') || lastMessage.includes('devolucion') || 
-        lastMessage.includes('devolver dinero') || lastMessage.includes('me devuelvan') ||
-        lastMessage.includes('devolver') || lastMessage.includes('reembolsar')) {
-      if (userId) {
-        // Crear solicitud de reembolso con información adicional
-        const { data: solicitud, error } = await supabase
-          .from('solicitudes_ia')
-          .insert({
-            user_id: userId,
-            tipo: 'reembolso',
-            descripcion: `Solicitud de reembolso via chatbot. Pedido: ${orderCode || 'No especificado'}. Mensaje: "${messages[messages.length - 1]?.content}"${imageUrl ? `. Imagen adjunta: ${imageUrl}` : ''}`,
-            monto: null
-          })
-          .select()
-          .single();
-
-        if (!error) {
-          actionTaken = 'SOLICITUD_REEMBOLSO';
-          
-          // Notificar a admin
-          const { data: brillarteProfile } = await supabase
-            .from('profiles')
-            .select('user_id')
-            .eq('correo', 'oficial@brillarte.lat')
-            .single();
-
-          if (brillarteProfile) {
-            await supabase.from('notifications').insert({
-              user_id: brillarteProfile.user_id,
-              tipo: 'solicitud_reembolso',
-              titulo: 'Nueva solicitud de reembolso',
-              mensaje: `${userProfile?.nombre_completo || email} solicita reembolso${orderCode ? ` para pedido ${orderCode}` : ''}`,
-              accion_url: '/admin/solicitudes-ia'
-            });
-          }
-        }
-      }
-    }
-
-    // Detectar problemas que requieren ticket
-    const ticketKeywords = ['problema', 'ayuda', 'no funciona', 'error', 'queja', 'reclamo', 
-                           'no llego', 'no llegó', 'defectuoso', 'roto', 'malo', 'incorrecto'];
-    const needsTicket = ticketKeywords.some(keyword => lastMessage.includes(keyword));
-
-    if (needsTicket && userId && !actionTaken) {
-      const { data: ticket, error } = await supabase
-        .from('tickets_ayuda')
-        .insert({
-          user_id: userId,
-          asunto: `Ticket automatico - ${orderCode ? `Pedido ${orderCode}` : 'Consulta general'}`,
-          descripcion: messages[messages.length - 1]?.content || 'Sin descripcion',
-          estado: 'Abierto',
-          prioridad: 'Media',
-          categoria: 'chatbot',
-          codigo_membresia: userProfile?.codigo_membresia
-        })
-        .select()
-        .single();
-
-      if (!error && ticket) {
-        ticketCreated = ticket;
-        actionTaken = 'TICKET_CREADO';
-
-        await supabase.from('respuestas_tickets').insert({
-          ticket_id: ticket.id,
-          mensaje: 'Ticket creado automaticamente por el asistente virtual. Un agente revisara tu caso pronto.',
-          es_admin: true
-        });
-      }
-    }
-
-    // Construir system prompt mejorado
-    let systemPrompt = '';
     
     // Check if user is asking if the agent is human
-    const lastMsgLower = lastMessage.toLowerCase();
-    const askingIfHuman = lastMsgLower.includes('eres humano') || 
-                          lastMsgLower.includes('eres humana') ||
-                          lastMsgLower.includes('eres robot') ||
-                          lastMsgLower.includes('eres ia') ||
-                          lastMsgLower.includes('eres una ia') ||
-                          lastMsgLower.includes('eres una maquina') ||
-                          lastMsgLower.includes('eres real') ||
-                          lastMsgLower.includes('persona real') ||
-                          lastMsgLower.includes('hablas como bot');
+    const askingIfHuman = lastMessage.includes('eres humano') || 
+                          lastMessage.includes('eres humana') ||
+                          lastMessage.includes('eres robot') ||
+                          lastMessage.includes('eres ia') ||
+                          lastMessage.includes('eres una ia') ||
+                          lastMessage.includes('eres una maquina') ||
+                          lastMessage.includes('eres real') ||
+                          lastMessage.includes('persona real') ||
+                          lastMessage.includes('hablas como bot');
     
     // Check if asking about order status
-    const askingOrderStatus = lastMsgLower.includes('estado de mi pedido') ||
-                              lastMsgLower.includes('donde esta mi pedido') ||
-                              lastMsgLower.includes('rastrear pedido') ||
-                              lastMsgLower.includes('seguimiento') ||
-                              lastMsgLower.includes('mi codigo') ||
-                              lastMsgLower.includes('codigo de pedido');
+    const askingOrderStatus = lastMessage.includes('estado de mi pedido') ||
+                              lastMessage.includes('donde esta mi pedido') ||
+                              lastMessage.includes('rastrear pedido') ||
+                              lastMessage.includes('seguimiento') ||
+                              lastMessage.includes('mi codigo') ||
+                              lastMessage.includes('codigo de pedido');
     
     // Buscar pedidos del usuario si pregunta por estado
     let userOrdersInfo = '';
-    if (askingOrderStatus && email) {
+    if (askingOrderStatus && userProfile?.user_id) {
       const { data: userOrders } = await supabase
         .from('pedidos_online')
         .select('codigo_pedido, estado, total, created_at')
-        .eq('user_id', userId)
+        .eq('user_id', userProfile.user_id)
         .order('created_at', { ascending: false })
         .limit(3);
       
@@ -289,60 +109,41 @@ PEDIDO ${orderCode}:
         ).join('\n');
       }
     }
-    
-    const humanityResponse = askingIfHuman ? 
-      `IMPORTANTE: El cliente pregunta si eres humano. Responde: "Si, soy ${agentName}, asistente de BRILLARTE. Estoy aqui para ayudarte con cualquier consulta sobre nuestros productos y servicios."` : '';
-    
-    if (isAgent) {
-      systemPrompt = `Eres ${agentName}, asistente de BRILLARTE para AGENTES.
 
-${agentData ? `DATOS:\n${agentData}` : ''}
+    // Build system prompt
+    const systemPrompt = `Eres ${agentName}, asistente de atencion al cliente de BRILLARTE.
 
-REGLAS ESTRICTAS:
-- Maximo 2 oraciones por respuesta
-- NUNCA uses emojis, asteriscos ni simbolos decorativos
-- Respuestas directas y profesionales
-- Datos exactos sin adornos
-- Habla de forma natural como un humano
-${humanityResponse}`;
-    } else {
-      systemPrompt = `Eres ${agentName}, asistente de BRILLARTE.
+TU PERSONALIDAD:
+- Eres profesional, amable y hablas de forma natural como un humano real
+- NUNCA digas que eres una IA, bot, robot o asistente virtual
+- Si te preguntan si eres humano, responde: "Si, soy ${agentName}, asistente de BRILLARTE. Estoy aqui para ayudarte."
+- Habla en espanol dominicano informal pero profesional
 
-Tu personalidad:
-- Eres amable, profesional y hablas de forma natural
-- NUNCA digas que eres una IA, bot o asistente virtual
-- Si te preguntan si eres humano, di que eres ${agentName}, asistente de BRILLARTE
-
-INFO EMPRESA:
-- Productos: Pulseras, aretes, monederos artesanales
-- Santiago, RD | WhatsApp: 849-425-2220 | Lun-Vie 9AM-6PM
+INFORMACION DE BRILLARTE:
+- Productos: Pulseras artesanales, aretes, accesorios hechos a mano
+- Ubicacion: Santiago, Republica Dominicana
+- WhatsApp: 849-425-2220
+- Horario: Lunes a Viernes 9AM-6PM
 - Pagos: Codigos prepago, contra entrega, retiro en tienda
-- Envios: Vimenpaq
+- Envios: Por Vimenpaq a todo el pais
 
 REGLAS ESTRICTAS:
-- Maximo 2 oraciones por respuesta
+- Maximo 2-3 oraciones por respuesta
 - NUNCA uses emojis, asteriscos, ni simbolos decorativos
-- Respuestas directas y naturales como un humano real
+- Respuestas directas, claras y profesionales
 - Entiende lenguaje informal, errores de escritura, jerga dominicana
-- Si no entiendes algo, pide aclaracion brevemente
-- Para reembolsos: pregunta problema y codigo de pedido
-${humanityResponse}`;
-    }
+- Si no entiendes algo, pide aclaracion de forma breve
+- Para problemas con pedidos: pide el codigo de pedido
+- Para reembolsos: pregunta cual es el problema y pide codigo de pedido
+- Si el cliente envia una imagen, pregunta que sucedio o cual es el problema
 
-    systemPrompt += `
+${askingIfHuman ? `IMPORTANTE: El cliente pregunta si eres humano. Responde que si eres ${agentName}, asistente de BRILLARTE.` : ''}
 
-${actionTaken === 'SOLICITUD_CREDITO' ? 'ACCION: Se registro solicitud de credito. Informar que sera revisada por el equipo.' : ''}
-${actionTaken === 'SOLICITUD_REEMBOLSO' ? 'ACCION: Se registro solicitud de reembolso. Informar que sera revisada por un agente. Pregunta si desea agregar mas informacion o imagenes.' : ''}
-${actionTaken === 'TICKET_CREADO' ? `ACCION: Se creo ticket #${ticketCreated?.id?.slice(0, 8)}. Informar que un agente lo atendera pronto.` : ''}
-${actionTaken === 'CONSULTA_AGENTE' ? 'ACCION: Consulta de agente procesada. Muestra los datos solicitados.' : ''}
-
-Cliente: ${email}
+CLIENTE: ${email}
 ${userProfile ? `Nombre: ${userProfile.nombre_completo}` : ''}
-${userProfile?.verificado ? 'Estado: Cuenta verificada (AGENTE BRILLARTE)' : ''}
-${userProfile?.saldo ? `Saldo: RD$${userProfile.saldo}` : ''}
+${userProfile?.saldo ? `Saldo disponible: RD$${userProfile.saldo}` : ''}
 ${orderInfo}
 ${userOrdersInfo}`;
-
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -368,14 +169,14 @@ ${userOrdersInfo}`;
     }
 
     const data = await response.json();
-    const assistantMessage = data.choices[0].message.content;
+    let assistantMessage = data.choices[0].message.content;
+    
+    // Remove any emojis from response
+    assistantMessage = assistantMessage.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23F3}]|[\u{23F8}-\u{23FA}]|[\u{25AA}-\u{25AB}]|[\u{25B6}]|[\u{25C0}]|[\u{25FB}-\u{25FE}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{267F}]|[\u{2693}]|[\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2702}]|[\u{2705}]|[\u{2708}-\u{270D}]|[\u{270F}]|[\u{2712}]|[\u{2714}]|[\u{2716}]|[\u{271D}]|[\u{2721}]|[\u{2728}]|[\u{2733}-\u{2734}]|[\u{2744}]|[\u{2747}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2763}-\u{2764}]|[\u{2795}-\u{2797}]|[\u{27A1}]|[\u{27B0}]|[\u{27BF}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{2B50}]|[\u{2B55}]|[\u{3030}]|[\u{303D}]|[\u{3297}]|[\u{3299}]|[\u{1F004}]|[\u{1F0CF}]|[\u{1F170}-\u{1F171}]|[\u{1F17E}-\u{1F17F}]|[\u{1F18E}]|[\u{1F191}-\u{1F19A}]|[\u{1F201}-\u{1F202}]|[\u{1F21A}]|[\u{1F22F}]|[\u{1F232}-\u{1F23A}]|[\u{1F250}-\u{1F251}]/gu, '').trim();
 
     return new Response(
       JSON.stringify({ 
-        response: assistantMessage,
-        action: actionTaken,
-        ticketId: ticketCreated?.id,
-        isAgent
+        response: assistantMessage
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
