@@ -86,7 +86,7 @@ export const ChatbotLive = memo(() => {
   const [virtualAgent, setVirtualAgent] = useState<VirtualAgent | null>(null);
   const [aiTypingDelay, setAiTypingDelay] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(false);
   const [pendingTransfer, setPendingTransfer] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -96,54 +96,59 @@ export const ChatbotLive = memo(() => {
   const INACTIVITY_WARNING_TIME = 3 * 60 * 1000;
   const INACTIVITY_CLOSE_TIME = 5 * 60 * 1000;
 
-  // Check authentication on mount - OPTIMIZED
+  // Ultra-fast auth check - only when chat opens
   useEffect(() => {
+    if (!isOpen) return;
+    
     let mounted = true;
+    setCheckingAuth(true);
     
-    const checkAuth = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!mounted) return;
-        
-        if (user) {
-          setIsAuthenticated(true);
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('nombre_completo, correo')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          
-          if (profile && mounted) {
-            setName(profile.nombre_completo || '');
-            setEmail(profile.correo || user.email || '');
-          } else if (mounted) {
-            setEmail(user.email || '');
-          }
-        }
-      } catch (error) {
-        console.error("Auth check error:", error);
-      } finally {
-        if (mounted) setCheckingAuth(false);
-      }
-    };
-    
-    checkAuth();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Fast sync check first
+    supabase.auth.getSession().then(({ data: { session: authSession } }) => {
       if (!mounted) return;
       
-      if (session?.user) {
+      if (authSession?.user) {
         setIsAuthenticated(true);
-        const { data: profile } = await supabase
+        setEmail(authSession.user.email || '');
+        
+        // Load profile in background
+        supabase
           .from('profiles')
           .select('nombre_completo, correo')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-        
-        if (profile && mounted) {
-          setName(profile.nombre_completo || '');
-          setEmail(profile.correo || session.user.email || '');
-        }
+          .eq('user_id', authSession.user.id)
+          .maybeSingle()
+          .then(({ data: profile }) => {
+            if (profile && mounted) {
+              setName(profile.nombre_completo || '');
+              setEmail(profile.correo || authSession.user.email || '');
+            }
+          });
+      }
+      setCheckingAuth(false);
+    }).catch(() => {
+      if (mounted) setCheckingAuth(false);
+    });
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, authSession) => {
+      if (!mounted) return;
+      
+      if (authSession?.user) {
+        setIsAuthenticated(true);
+        setEmail(authSession.user.email || '');
+        // Defer profile fetch
+        setTimeout(() => {
+          supabase
+            .from('profiles')
+            .select('nombre_completo, correo')
+            .eq('user_id', authSession.user.id)
+            .maybeSingle()
+            .then(({ data: profile }) => {
+              if (profile && mounted) {
+                setName(profile.nombre_completo || '');
+                setEmail(profile.correo || authSession.user.email || '');
+              }
+            });
+        }, 0);
       } else {
         setIsAuthenticated(false);
         setEmail('');
@@ -157,7 +162,7 @@ export const ChatbotLive = memo(() => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isOpen]);
 
   // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {

@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, LogIn, Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { UserPlus, LogIn, Mail, ArrowLeft, CheckCircle, ShieldCheck } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PageHeader from "@/components/PageHeader";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 type Step = 'email' | 'verify' | 'complete';
 
@@ -18,6 +23,7 @@ const Register = () => {
   const [step, setStep] = useState<Step>('email');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
+  const [countdown, setCountdown] = useState(0);
   const [formData, setFormData] = useState({
     nombre: "",
     correo: "",
@@ -25,13 +31,35 @@ const Register = () => {
     confirmPassword: ""
   });
 
+  // Countdown timer for resend
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nombre || !formData.correo) {
+    if (!formData.nombre.trim()) {
       toast({
-        title: "Campos requeridos",
-        description: "Por favor completa nombre y correo",
+        title: "Nombre requerido",
+        description: "Por favor ingresa tu nombre completo",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.correo.trim() || !validateEmail(formData.correo)) {
+      toast({
+        title: "Correo invalido",
+        description: "Por favor ingresa un correo electronico valido",
         variant: "destructive"
       });
       return;
@@ -42,8 +70,8 @@ const Register = () => {
     try {
       const { data, error } = await supabase.functions.invoke("send-verification-code", {
         body: {
-          email: formData.correo,
-          nombre: formData.nombre
+          email: formData.correo.toLowerCase().trim(),
+          nombre: formData.nombre.trim()
         }
       });
 
@@ -54,15 +82,16 @@ const Register = () => {
       }
 
       toast({
-        title: "Codigo enviado",
-        description: "Revisa tu correo electronico"
+        title: "Codigo enviado!",
+        description: "Revisa tu bandeja de entrada y spam"
       });
       setStep('verify');
+      setCountdown(60); // 60 second cooldown
     } catch (error: any) {
       console.error('Error sending code:', error);
       toast({
         title: "Error",
-        description: error.message || "No pudimos enviar el codigo",
+        description: error.message || "No pudimos enviar el codigo. Intenta de nuevo.",
         variant: "destructive"
       });
     } finally {
@@ -75,7 +104,7 @@ const Register = () => {
     
     if (verificationCode.length !== 6) {
       toast({
-        title: "Codigo invalido",
+        title: "Codigo incompleto",
         description: "El codigo debe tener 6 digitos",
         variant: "destructive"
       });
@@ -87,7 +116,7 @@ const Register = () => {
     try {
       const { data, error } = await supabase.functions.invoke("verify-registration-code", {
         body: {
-          email: formData.correo,
+          email: formData.correo.toLowerCase().trim(),
           code: verificationCode
         }
       });
@@ -99,17 +128,18 @@ const Register = () => {
       }
 
       toast({
-        title: "Correo verificado",
-        description: "Ahora crea tu contrasena"
+        title: "Correo verificado!",
+        description: "Ahora crea tu contraseña"
       });
       setStep('complete');
     } catch (error: any) {
       console.error('Error verifying code:', error);
       toast({
-        title: "Error",
-        description: error.message || "Codigo invalido o expirado",
+        title: "Codigo invalido",
+        description: error.message || "Codigo invalido o expirado. Solicita uno nuevo.",
         variant: "destructive"
       });
+      setVerificationCode("");
     } finally {
       setIsSubmitting(false);
     }
@@ -192,21 +222,32 @@ const Register = () => {
   };
 
   const resendCode = async () => {
+    if (countdown > 0) {
+      toast({
+        title: "Espera",
+        description: `Puedes reenviar en ${countdown} segundos`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("send-verification-code", {
         body: {
-          email: formData.correo,
-          nombre: formData.nombre
+          email: formData.correo.toLowerCase().trim(),
+          nombre: formData.nombre.trim()
         }
       });
 
       if (error) throw error;
       
       toast({
-        title: "Codigo reenviado",
-        description: "Revisa tu correo electronico"
+        title: "Codigo reenviado!",
+        description: "Revisa tu bandeja de entrada y spam"
       });
+      setCountdown(60);
+      setVerificationCode("");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -301,7 +342,10 @@ const Register = () => {
                 <Button 
                   type="button" 
                   variant="ghost" 
-                  onClick={() => setStep('email')}
+                  onClick={() => {
+                    setStep('email');
+                    setVerificationCode("");
+                  }}
                   className="mb-2"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -309,41 +353,64 @@ const Register = () => {
                 </Button>
 
                 <div className="text-center mb-4">
-                  <CheckCircle className="w-12 h-12 mx-auto text-primary mb-2" />
-                  <h3 className="font-semibold">Verifica tu correo</h3>
+                  <ShieldCheck className="w-12 h-12 mx-auto text-primary mb-2" />
+                  <h3 className="font-semibold text-lg">Verifica tu correo</h3>
                   <p className="text-sm text-muted-foreground">
                     Ingresa el codigo de 6 digitos enviado a<br/>
-                    <strong>{formData.correo}</strong>
+                    <strong className="text-foreground">{formData.correo}</strong>
                   </p>
                 </div>
 
-                <div>
-                  <Input
-                    type="text"
-                    placeholder="000000"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="rounded-lg text-center text-2xl tracking-widest font-mono"
+                <div className="flex justify-center">
+                  <InputOTP
                     maxLength={6}
-                  />
+                    value={verificationCode}
+                    onChange={(value) => setVerificationCode(value)}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
                 </div>
+
+                <p className="text-xs text-center text-muted-foreground">
+                  No recibes el codigo? Revisa tu carpeta de spam
+                </p>
 
                 <Button 
                   type="submit"
                   disabled={isSubmitting || verificationCode.length !== 6}
                   className="w-full rounded-lg py-5"
                 >
-                  {isSubmitting ? "Verificando..." : "Verificar Codigo"}
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
+                      Verificando...
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <CheckCircle className="mr-2" size={20} />
+                      Verificar Codigo
+                    </div>
+                  )}
                 </Button>
 
                 <div className="text-center">
                   <button 
                     type="button"
                     onClick={resendCode}
-                    disabled={isSubmitting}
-                    className="text-sm text-primary hover:underline"
+                    disabled={isSubmitting || countdown > 0}
+                    className={`text-sm ${countdown > 0 ? 'text-muted-foreground' : 'text-primary hover:underline'}`}
                   >
-                    No recibiste el codigo? Reenviar
+                    {countdown > 0 
+                      ? `Reenviar codigo en ${countdown}s` 
+                      : "No recibiste el codigo? Reenviar"
+                    }
                   </button>
                 </div>
               </form>
