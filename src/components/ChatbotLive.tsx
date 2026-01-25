@@ -340,7 +340,7 @@ export const ChatbotLive = () => {
     if (!email.trim()) {
       toast({
         title: "Error",
-        description: "Por favor ingresa tu correo electrónico",
+        description: "Por favor ingresa tu correo electronico",
         variant: "destructive",
       });
       return;
@@ -365,36 +365,23 @@ export const ChatbotLive = () => {
       setSession(sessionData);
       setHasStarted(true);
 
-      // Assign a virtual AI agent to make it feel human
-      const agentCheck = await checkAvailableAgents();
+      // Start directly with main AI assistant (BRILLARTE)
+      // Only escalate to virtual agents when customer requests human
+      const greeting = `Hola${name ? ` ${name}` : ""}. Soy tu asistente de BRILLARTE. En que puedo ayudarte hoy?`;
       
-      if (agentCheck.available && !agentCheck.isHuman) {
-        setVirtualAgent(agentCheck.agent);
-        setAssignedAgentName(agentCheck.agent.nombre);
-        
-        // Simulate typing delay before greeting
-        setTimeout(async () => {
-          await supabase.from("chat_messages").insert({
-            session_id: sessionData.id,
-            sender_type: "ia",
-            sender_nombre: agentCheck.agent.nombre,
-            contenido: `Hola${name ? ` ${name}` : ""}. Soy ${agentCheck.agent.nombre}, asistente de BRILLARTE. En que puedo ayudarte hoy?`,
-            tipo: "texto",
-          });
-        }, getRandomTypingDelay());
-      } else {
-        await supabase.from("chat_messages").insert({
-          session_id: sessionData.id,
-          sender_type: "ia",
-          sender_nombre: "Asistente Virtual",
-          contenido: `Hola${name ? ` ${name}` : ""}. Bienvenido a BRILLARTE. En que puedo ayudarte?`,
-          tipo: "texto",
-        });
-      }
+      await supabase.from("chat_messages").insert({
+        session_id: sessionData.id,
+        sender_type: "ia",
+        sender_nombre: "Asistente BRILLARTE",
+        contenido: greeting,
+        tipo: "texto",
+      });
+      
     } catch (error) {
+      console.error("Error starting chat:", error);
       toast({
         title: "Error",
-        description: "No se pudo iniciar el chat",
+        description: "No se pudo iniciar el chat. Intenta de nuevo.",
         variant: "destructive",
       });
     } finally {
@@ -504,7 +491,7 @@ export const ChatbotLive = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${session.id}/${Date.now()}.${fileExt}`;
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('chat-attachments')
         .upload(fileName, file);
 
@@ -536,6 +523,22 @@ export const ChatbotLive = () => {
         title: "Archivo enviado",
         description: `${file.name} se ha enviado correctamente`,
       });
+
+      // If image was uploaded, AI should ask what happened professionally
+      if (fileType === 'imagen' && session.atendido_por === "ia") {
+        setAiTypingDelay(true);
+        await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay()));
+        
+        const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
+        await supabase.from("chat_messages").insert({
+          session_id: session.id,
+          sender_type: "ia",
+          sender_nombre: agentName,
+          contenido: "Gracias por compartir la imagen. Podrias contarme que sucedio o cual es el problema que quieres reportar?",
+          tipo: "texto",
+        });
+        setAiTypingDelay(false);
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       toast({
@@ -662,26 +665,55 @@ export const ChatbotLive = () => {
     }
 
     const lowerMessage = messageContent.toLowerCase();
-    if (
+    
+    // Check if user wants to talk to a human agent
+    const wantsHuman = 
       lowerMessage.includes("hablar con un agente") ||
       lowerMessage.includes("agente humano") ||
       lowerMessage.includes("persona real") ||
-      lowerMessage.includes("quiero un agente")
-    ) {
-      // Start question flow before transferring
-      setWaitingForAgentQuestions(true);
-      setAgentQuestionStep(0);
+      lowerMessage.includes("quiero un agente") ||
+      lowerMessage.includes("hablar con alguien") ||
+      lowerMessage.includes("un humano") ||
+      lowerMessage.includes("necesito ayuda real");
       
-      await supabase.from("chat_messages").insert({
-        session_id: session.id,
-        sender_type: "ia",
-        sender_nombre: "Asistente Virtual",
-        contenido: "Claro! Para que el agente te ayude mejor, cual es tu problema o consulta?",
-        tipo: "texto",
-      });
+    if (wantsHuman) {
+      // Assign a virtual AI agent that acts human
+      setAiTypingDelay(true);
+      await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay()));
+      
+      const { data: aiAgents } = await supabase
+        .from("agent_profiles")
+        .select("id, nombre, apellido, avatar_inicial, es_ia")
+        .eq("activo", true)
+        .eq("es_ia", true);
+      
+      if (aiAgents && aiAgents.length > 0) {
+        const randomAgent = aiAgents[Math.floor(Math.random() * aiAgents.length)];
+        setVirtualAgent(randomAgent);
+        setAssignedAgentName(randomAgent.nombre);
+        
+        await supabase.from("chat_messages").insert({
+          session_id: session.id,
+          sender_type: "ia",
+          sender_nombre: randomAgent.nombre,
+          contenido: `Hola${name ? ` ${name}` : ""}. Soy ${randomAgent.nombre}, especialista de BRILLARTE. En que puedo ayudarte?`,
+          tipo: "texto",
+        });
+      } else {
+        await supabase.from("chat_messages").insert({
+          session_id: session.id,
+          sender_type: "ia",
+          sender_nombre: "Asistente BRILLARTE",
+          contenido: "Te estoy transfiriendo con un especialista. Un momento por favor.",
+          tipo: "texto",
+        });
+      }
+      
+      setAiTypingDelay(false);
       return;
     }
 
+    // If being handled by human agent, don't respond with AI
     if (session.atendido_por === "agente") {
       return;
     }
@@ -690,6 +722,8 @@ export const ChatbotLive = () => {
     setAiTypingDelay(true);
 
     try {
+      const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
+      
       const { data, error } = await supabase.functions.invoke("chatbot-assistant", {
         body: {
           messages: [
@@ -700,7 +734,7 @@ export const ChatbotLive = () => {
             { role: "user", content: messageContent },
           ],
           email,
-          virtualAgentName: virtualAgent?.nombre,
+          virtualAgentName: agentName,
         },
       });
 
@@ -711,13 +745,29 @@ export const ChatbotLive = () => {
         await supabase.from("chat_messages").insert({
           session_id: session.id,
           sender_type: "ia",
-          sender_nombre: virtualAgent?.nombre || "Asistente Virtual",
+          sender_nombre: agentName,
           contenido: data.response,
+          tipo: "texto",
+        });
+      } else {
+        // Fallback message if AI fails
+        await supabase.from("chat_messages").insert({
+          session_id: session.id,
+          sender_type: "ia",
+          sender_nombre: agentName,
+          contenido: "Disculpa, tuve un problema. Podrias repetir tu consulta?",
           tipo: "texto",
         });
       }
     } catch (error) {
       console.error("Error calling AI:", error);
+      await supabase.from("chat_messages").insert({
+        session_id: session.id,
+        sender_type: "ia",
+        sender_nombre: virtualAgent?.nombre || "Asistente BRILLARTE",
+        contenido: "Tuve un problema tecnico. Por favor contactanos por WhatsApp al 849-425-2220.",
+        tipo: "texto",
+      });
     } finally {
       setAiTypingDelay(false);
     }
