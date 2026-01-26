@@ -30,7 +30,9 @@ const PickupRequest = lazy(() => import("./pages/PickupRequest"));
 const CancelNotifications = lazy(() => import("./pages/CancelNotifications"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const ShippingPolicy = lazy(() => import("./pages/ShippingPolicy"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const TermsConditions = lazy(() => import("./pages/TermsConditions"));
+const AdminPoliticas = lazy(() => import("./pages/AdminPoliticas"));
 const Register = lazy(() => import("./pages/Register"));
 const Login = lazy(() => import("./pages/Login"));
 const RegistroConfirmado = lazy(() => import("./pages/RegistroConfirmado"));
@@ -102,7 +104,9 @@ const App = () => (
             <Route path="/cancel-notifications" element={<CancelNotifications />} />
             <Route path="/politicas-privacidad" element={<PrivacyPolicy />} />
             <Route path="/politicas-envio" element={<ShippingPolicy />} />
+            <Route path="/politicas-reembolso" element={<RefundPolicy />} />
             <Route path="/terminos-condiciones" element={<TermsConditions />} />
+            <Route path="/admin/politicas" element={<AdminPoliticas />} />
             <Route path="/registro" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro-confirmado" element={<RegistroConfirmado />} />

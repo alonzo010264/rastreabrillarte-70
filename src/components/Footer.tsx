@@ -58,8 +58,9 @@ const Footer = () => {
                 { to: "https://pedidos.brillarte.lat/", label: "Pedir pulsera", external: true },
                 { to: "/comunidad", label: "Comunidad", external: false },
                 { to: "/rastrear", label: "Rastrear Pedidos", external: false },
-                { to: "/politicas-privacidad", label: "Políticas de Privacidad", external: false },
-                { to: "/politicas-envio", label: "Políticas de Envío", external: false },
+                { to: "/politicas-privacidad", label: "Politicas de Privacidad", external: false },
+                { to: "/politicas-envio", label: "Politicas de Envio", external: false },
+                { to: "/politicas-reembolso", label: "Politicas de Reembolso", external: false },
               ].map((link, index) => (
                 <li key={link.to}>
                   {link.external ? (
