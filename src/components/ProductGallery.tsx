@@ -4,9 +4,9 @@ import { Sparkles } from "lucide-react";
 import margarita from "@/assets/productos/margarita.jpg";
 import aretes from "@/assets/productos/aretes-flores.webp";
 import pulseras from "@/assets/productos/pulseras-mariposas.webp";
-import floresCrochetRojas from "@/assets/productos/flores-crochet-rojas.png";
-import bouquetCrochetColores from "@/assets/productos/bouquet-crochet-colores.png";
-import aretesMargaritas from "@/assets/productos/aretes-margaritas-colores.png";
+import floresCrochetRojas from "@/assets/productos/flores-crochet-rojas-optimized.webp";
+import bouquetCrochetColores from "@/assets/productos/bouquet-crochet-optimized.webp";
+import aretesMargaritas from "@/assets/productos/aretes-margaritas-optimized.webp";
 import anilloFloresAzul from "@/assets/productos/anillo-flores-azul.jpg";
 import pulserasCorazones from "@/assets/productos/pulseras-corazones.jpg";
 import pulserasLoveYou from "@/assets/productos/pulseras-love-you.jpg";
@@ -188,7 +188,7 @@ const ProductGallery = () => {
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden aspect-square">
                     <div className={`absolute inset-0 bg-gradient-to-br ${gradientColors[index]} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10`} />
-                    <img src={product.image} alt={product.name} width="400" height="400" className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-125 ${hoverRotations[index]}`} />
+                    <img src={product.image} alt={product.name} width="400" height="400" loading="lazy" className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-125 ${hoverRotations[index]}`} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
                     <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
                       <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
