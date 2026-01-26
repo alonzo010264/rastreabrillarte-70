@@ -906,6 +906,13 @@ export const ChatbotLive = memo(() => {
     if (message.sender_type === "agente") {
       return message.sender_nombre || "Agente";
     }
+    // Show actual agent name if available, otherwise show "Asistente Virtual"
+    if (message.sender_type === "ia") {
+      const agentNames = ["Maria", "Shary", "Marisol", "Victor", "Julian"];
+      if (message.sender_nombre && agentNames.includes(message.sender_nombre)) {
+        return message.sender_nombre;
+      }
+    }
     return message.sender_nombre || "Asistente Virtual";
   };
 

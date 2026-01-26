@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Truck, Plus, Edit, Trash2, Package, Upload, Loader2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { AdminMenu } from "@/components/AdminMenu";
+import { AdminCrearPedido } from "@/components/AdminCrearPedido";
+import { OnlineOrdersManagement } from "@/components/OnlineOrdersManagement";
 import {
   Table,
   TableBody,
@@ -500,6 +502,12 @@ const AdminEnvios = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Crear Pedido para Cliente */}
+        <AdminCrearPedido />
+        
+        {/* Gestion de Pedidos Online */}
+        <OnlineOrdersManagement />
       </div>
     </div>
   );
