@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      aceptaciones_politicas: {
+        Row: {
+          accion: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          tipo_politica: string
+          user_id: string
+        }
+        Insert: {
+          accion: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          tipo_politica: string
+          user_id: string
+        }
+        Update: {
+          accion?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          tipo_politica?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_forms: {
         Row: {
           agente_id: string
