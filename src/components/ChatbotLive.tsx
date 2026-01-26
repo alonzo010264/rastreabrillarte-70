@@ -544,15 +544,27 @@ export const ChatbotLive = memo(() => {
     }
   };
 
-  // Transfer to virtual agent with join message - fast transfer
+  // Transfer to virtual agent with join message - FAST transfer
   const transferToAgent = async (agent: AgentProfile, caseDescription?: string) => {
     if (!session) return;
     
     setAiTypingDelay(true);
     
-    // Random delay between 2-8 seconds for realistic join
-    const joinDelay = 2000 + Math.floor(Math.random() * 6000);
+    // Fast delay between 1-4 seconds for quick join
+    const joinDelay = 1000 + Math.floor(Math.random() * 3000);
     await new Promise(resolve => setTimeout(resolve, joinDelay));
+    
+    // Set agent BEFORE showing join message for immediate avatar change
+    const newVirtualAgent: VirtualAgent = {
+      id: agent.id,
+      nombre: agent.nombre,
+      apellido: agent.apellido,
+      avatar_inicial: agent.nombre.charAt(0).toUpperCase(),
+      es_ia: agent.es_ia || true,
+      tipo_agente: agent.tipo_agente
+    };
+    setVirtualAgent(newVirtualAgent);
+    setAssignedAgentName(agent.nombre);
     
     // Show join message
     await supabase.from("chat_messages").insert({
@@ -563,25 +575,14 @@ export const ChatbotLive = memo(() => {
       tipo: "sistema",
     });
 
-    // Set agent immediately after join message
-    setVirtualAgent({
-      id: agent.id,
-      nombre: agent.nombre,
-      apellido: agent.apellido,
-      avatar_inicial: agent.nombre.charAt(0).toUpperCase(),
-      es_ia: agent.es_ia || true,
-      tipo_agente: agent.tipo_agente
-    });
-    setAssignedAgentName(agent.nombre);
-
-    // Small delay before first message
-    await new Promise(resolve => setTimeout(resolve, 1500 + Math.floor(Math.random() * 2000)));
+    // Quick delay before first greeting
+    await new Promise(resolve => setTimeout(resolve, 800 + Math.floor(Math.random() * 1200)));
 
     const roleDisplay = agent.tipo_agente || "Asistente de soporte";
     const greetings = [
-      `Hola${name ? ` ${name}` : ""}! Soy ${agent.nombre}, ${roleDisplay} de BRILLARTE. En que puedo ayudarte hoy?`,
-      `Buenas${name ? ` ${name}` : ""}! Mi nombre es ${agent.nombre} y sere tu ${roleDisplay}. Cuentame tu situacion.`,
-      `Hola! Soy ${agent.nombre}, ${roleDisplay}. Estoy aqui para asistirte. Cual es tu consulta?`
+      `Hola${name ? ` ${name}` : ""}! Soy ${agent.nombre}, ${roleDisplay} de BRILLARTE. En que puedo ayudarte?`,
+      `Hola${name ? ` ${name}` : ""}! Mi nombre es ${agent.nombre}, tu ${roleDisplay}. Cuentame que sucede.`,
+      `Hola! Soy ${agent.nombre}, ${roleDisplay}. Como puedo ayudarte hoy?`
     ];
     
     const greeting = greetings[Math.floor(Math.random() * greetings.length)];
@@ -668,7 +669,7 @@ export const ChatbotLive = memo(() => {
       lowerMessage.includes("queja formal") ||
       lowerMessage.includes("hablar con supervisor");
     
-    // Check if user wants to talk to a human agent - DIRECT TRANSFER
+    // Check if user wants to talk to a human agent - EXPANDED DETECTION
     const wantsHuman = 
       lowerMessage.includes("transfiereme con un agente") ||
       lowerMessage.includes("transfiereme a un agente") ||
@@ -681,18 +682,28 @@ export const ChatbotLive = memo(() => {
       lowerMessage.includes("un humano") ||
       lowerMessage.includes("necesito ayuda real") ||
       lowerMessage.includes("quiero hablar con alguien") ||
-      lowerMessage.includes("conectame con un agente");
+      lowerMessage.includes("conectame con un agente") ||
+      lowerMessage.includes("con una persona") ||
+      lowerMessage.includes("hablar con una persona") ||
+      lowerMessage.includes("necesito un humano") ||
+      lowerMessage.includes("quiero un humano") ||
+      lowerMessage.includes("humano porfavor") ||
+      lowerMessage.includes("agente real") ||
+      lowerMessage.includes("persona de verdad") ||
+      lowerMessage.includes("no quiero bot") ||
+      lowerMessage.includes("no eres humano");
       
-    if (wantsHuman && !pendingTransfer) {
-      // Ask for case type - quick response
+    // IMMEDIATE TRANSFER when user asks for human
+    if (wantsHuman && !pendingTransfer && !virtualAgent) {
+      // Fast response asking for case type
       setAiTypingDelay(true);
-      await new Promise(resolve => setTimeout(resolve, 800 + Math.floor(Math.random() * 1200)));
+      await new Promise(resolve => setTimeout(resolve, 600 + Math.floor(Math.random() * 800)));
       
       await supabase.from("chat_messages").insert({
         session_id: session.id,
         sender_type: "ia",
         sender_nombre: "Asistente BRILLARTE",
-        contenido: "Claro! Describeme tu caso brevemente para conectarte con el especialista indicado.",
+        contenido: "Claro, te conecto con un especialista. Describeme brevemente tu caso para asignarte al agente adecuado.",
         tipo: "texto",
       });
       
@@ -701,7 +712,7 @@ export const ChatbotLive = memo(() => {
       return;
     }
     
-    // Handle case description for transfer
+    // Handle case description for transfer - FAST TRANSFER
     if (pendingTransfer) {
       const selectedAgent = await selectAgentForCase(messageContent);
       if (selectedAgent) {
@@ -732,7 +743,6 @@ export const ChatbotLive = memo(() => {
       }
       return;
     }
-
     // If being handled by human agent, don't respond with AI
     if (session.atendido_por === "agente") {
       return;
