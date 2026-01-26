@@ -113,3 +113,6 @@ verify_jwt = false
 
 [functions.notify-urgent-case]
 verify_jwt = false
+
+[functions.ai-product-creator]
+verify_jwt = false

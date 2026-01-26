@@ -11,7 +11,8 @@ import { toast } from "sonner";
 import { MultipleImageUpload } from "@/components/MultipleImageUpload";
 import { ColorPicker } from "@/components/ColorPicker";
 import { DiscountCodes } from "@/components/DiscountCodes";
-import { ArrowLeft, Plus, Trash2, Percent, Clock, Tag } from "lucide-react";
+import { AIProductCreator } from "@/components/AIProductCreator";
+import { ArrowLeft, Plus, Trash2, Percent, Clock, Tag, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -289,8 +290,12 @@ export default function AdminProductos() {
       </div>
 
       <Tabs defaultValue="productos" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="productos">Productos</TabsTrigger>
+          <TabsTrigger value="ia" className="flex items-center gap-1">
+            <Sparkles className="w-4 h-4" />
+            Crear con IA
+          </TabsTrigger>
           <TabsTrigger value="codigos">Códigos de Descuento</TabsTrigger>
         </TabsList>
 
@@ -649,6 +654,10 @@ export default function AdminProductos() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="ia">
+          <AIProductCreator onProductsCreated={loadProductos} />
         </TabsContent>
 
         <TabsContent value="codigos">
