@@ -140,7 +140,7 @@ const RefundPolicy = () => {
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="p-4 bg-muted/50 rounded-lg text-center">
                     <div className="text-3xl font-bold text-primary mb-1">48h</div>
-                    <div className="text-sm font-medium">Para reportar danos</div>
+                    <div className="text-sm font-medium">Para reportar daños</div>
                     <p className="text-xs text-muted-foreground mt-1">Desde la recepcion</p>
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg text-center">
