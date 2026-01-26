@@ -308,7 +308,11 @@ export const ChatbotLive = memo(() => {
           },
           (payload) => {
             const newMsg = payload.new as Message;
-            setMessages((prev) => [...prev, newMsg]);
+            // Prevent duplicate messages by checking if already exists
+            setMessages((prev) => {
+              if (prev.some(m => m.id === newMsg.id)) return prev;
+              return [...prev, newMsg];
+            });
             
             if (newMsg.tipo === "sistema" && newMsg.contenido.includes("ha finalizado el chat")) {
               setShowRating(true);
