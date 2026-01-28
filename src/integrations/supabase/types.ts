@@ -754,6 +754,47 @@ export type Database = {
           },
         ]
       }
+      cupones_canjeados: {
+        Row: {
+          created_at: string | null
+          id: string
+          tarjeta_id: string
+          tipo: string
+          usado: boolean | null
+          usado_at: string | null
+          user_id: string
+          valor_obtenido: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          tarjeta_id: string
+          tipo?: string
+          usado?: boolean | null
+          usado_at?: string | null
+          user_id: string
+          valor_obtenido?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          tarjeta_id?: string
+          tipo?: string
+          usado?: boolean | null
+          usado_at?: string | null
+          user_id?: string
+          valor_obtenido?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cupones_canjeados_tarjeta_id_fkey"
+            columns: ["tarjeta_id"]
+            isOneToOne: false
+            referencedRelation: "tarjetas_regalo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_logs: {
         Row: {
           asunto: string
@@ -1567,6 +1608,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           codigo_membresia: string | null
+          codigo_referido: string | null
           confirmado: boolean | null
           correo: string
           created_at: string | null
@@ -1584,6 +1626,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           codigo_membresia?: string | null
+          codigo_referido?: string | null
           confirmado?: boolean | null
           correo: string
           created_at?: string | null
@@ -1601,6 +1644,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           codigo_membresia?: string | null
+          codigo_referido?: string | null
           confirmado?: boolean | null
           correo?: string
           created_at?: string | null
@@ -1653,6 +1697,39 @@ export type Database = {
           instrucciones?: string | null
           titulo?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      referidos: {
+        Row: {
+          codigo_referido: string
+          created_at: string | null
+          id: string
+          recompensa_otorgada: boolean | null
+          recompensa_tipo: string | null
+          recompensa_valor: number | null
+          referido_id: string
+          referidor_id: string
+        }
+        Insert: {
+          codigo_referido: string
+          created_at?: string | null
+          id?: string
+          recompensa_otorgada?: boolean | null
+          recompensa_tipo?: string | null
+          recompensa_valor?: number | null
+          referido_id: string
+          referidor_id: string
+        }
+        Update: {
+          codigo_referido?: string
+          created_at?: string | null
+          id?: string
+          recompensa_otorgada?: boolean | null
+          recompensa_tipo?: string | null
+          recompensa_valor?: number | null
+          referido_id?: string
+          referidor_id?: string
         }
         Relationships: []
       }
@@ -2038,35 +2115,68 @@ export type Database = {
       }
       tarjetas_regalo: {
         Row: {
+          activo: boolean | null
           codigo: string
+          color_primario: string | null
+          color_secundario: string | null
           created_at: string | null
+          created_by: string | null
+          descripcion: string | null
           diseno: Json
           fecha_canje: string | null
+          fecha_expiracion: string | null
           id: string
           imagen_url: string | null
           monto: number
+          porcentaje_descuento: number | null
+          texto_frontal: string | null
+          texto_trasero: string | null
+          tipo: string | null
+          titulo: string | null
           usado: boolean | null
           user_id_canjeado: string | null
         }
         Insert: {
+          activo?: boolean | null
           codigo: string
+          color_primario?: string | null
+          color_secundario?: string | null
           created_at?: string | null
+          created_by?: string | null
+          descripcion?: string | null
           diseno: Json
           fecha_canje?: string | null
+          fecha_expiracion?: string | null
           id?: string
           imagen_url?: string | null
           monto: number
+          porcentaje_descuento?: number | null
+          texto_frontal?: string | null
+          texto_trasero?: string | null
+          tipo?: string | null
+          titulo?: string | null
           usado?: boolean | null
           user_id_canjeado?: string | null
         }
         Update: {
+          activo?: boolean | null
           codigo?: string
+          color_primario?: string | null
+          color_secundario?: string | null
           created_at?: string | null
+          created_by?: string | null
+          descripcion?: string | null
           diseno?: Json
           fecha_canje?: string | null
+          fecha_expiracion?: string | null
           id?: string
           imagen_url?: string | null
           monto?: number
+          porcentaje_descuento?: number | null
+          texto_frontal?: string | null
+          texto_trasero?: string | null
+          tipo?: string | null
+          titulo?: string | null
           usado?: boolean | null
           user_id_canjeado?: string | null
         }
