@@ -178,42 +178,50 @@ const Register = () => {
     setIsSubmitting(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.correo,
-        password: formData.password,
-        options: {
-          data: {
-            nombre_completo: formData.nombre
-          },
-          emailRedirectTo: `${window.location.origin}/mi-cuenta`
+      // Create account via edge function (auto-confirms email)
+      const { data: createData, error: createError } = await supabase.functions.invoke("create-user-account", {
+        body: {
+          email: formData.correo.toLowerCase().trim(),
+          password: formData.password,
+          nombre: formData.nombre.trim()
         }
       });
 
-      if (authError) throw authError;
+      if (createError) throw createError;
+      
+      if (!createData.success) {
+        throw new Error(createData.error || "Error al crear la cuenta");
+      }
 
-      // Send welcome email
-      await supabase.functions.invoke("send-registration-email", {
+      // Sign in immediately
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.correo.toLowerCase().trim(),
+        password: formData.password
+      });
+
+      if (signInError) throw signInError;
+
+      // Send welcome email (non-blocking)
+      supabase.functions.invoke("send-registration-email", {
         body: {
           email: formData.correo,
           nombre: formData.nombre,
           codigo: "BRILLARTE",
           password: "****"
         }
-      });
+      }).catch(() => {});
 
       toast({
-        title: "Registro exitoso!",
-        description: "Tu cuenta ha sido creada. Redirigiendo..."
+        title: "¡Bienvenido a BRILLARTE!",
+        description: "Tu cuenta ha sido creada exitosamente"
       });
 
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
+      setTimeout(() => navigate('/'), 1000);
     } catch (error: any) {
       console.error('Error en registro:', error);
       toast({
         title: "Error",
-        description: error.message || "No pudimos procesar tu registro",
+        description: error.message || "No pudimos procesar tu registro. Intenta de nuevo.",
         variant: "destructive"
       });
     } finally {

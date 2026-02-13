@@ -227,49 +227,45 @@ const Auth = () => {
         return;
       }
 
-      const { data, error } = await supabase.auth.signUp({
-        email: signupEmail,
-        password: signupPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/cuenta`,
-          data: {
-            nombre_completo: signupName,
-            telefono: signupPhone
-          }
+      // Create account via edge function (auto-confirms email)
+      const { data: createData, error: createError } = await supabase.functions.invoke("create-user-account", {
+        body: {
+          email: signupEmail.toLowerCase().trim(),
+          password: signupPassword,
+          nombre: signupName.trim(),
+          telefono: signupPhone || undefined
         }
       });
 
-      if (error) throw error;
-
-      // Si se detectó palabra inapropiada, banear automáticamente
-      if (data.user && !validation.isValid) {
-        await supabase.from('user_bans').insert({
-          user_id: data.user.id,
-          razon: validation.reason || 'Contenido inapropiado en registro',
-          duracion_tipo: 'permanente',
-          automatico: true,
-          palabra_detectada: validation.detectedWord
-        });
-        
-        navigate('/apelar-baneo');
-        return;
+      if (createError) throw createError;
+      
+      if (!createData.success) {
+        throw new Error(createData.error || "Error al crear la cuenta");
       }
 
+      // Sign in immediately
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: signupEmail.toLowerCase().trim(),
+        password: signupPassword
+      });
+
+      if (signInError) throw signInError;
+
       toast({
-        title: 'Registro exitoso',
-        description: 'Te enviamos un correo de confirmación. Ábrelo para activar tu cuenta.',
+        title: '¡Bienvenido a BRILLARTE!',
+        description: 'Tu cuenta ha sido creada exitosamente',
       });
       
-      // Limpiar formulario
       setSignupEmail('');
       setSignupPassword('');
       setSignupName('');
       setSignupPhone('');
-      
+
+      navigate('/cuenta');
     } catch (error: any) {
       toast({
         title: 'Error en registro',
-        description: error.message,
+        description: error.message || 'No pudimos crear tu cuenta. Intenta de nuevo.',
         variant: 'destructive',
       });
     } finally {
