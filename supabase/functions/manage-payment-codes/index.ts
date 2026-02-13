@@ -6,24 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Generar código de pago aleatorio de 10 caracteres
 function generatePaymentCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const segments: string[] = [];
-  
-  // Formato: XXXX-XXXX-XX (total 10 caracteres sin guiones)
-  for (let i = 0; i < 4; i++) {
-    segments.push(chars.charAt(Math.floor(Math.random() * chars.length)));
-  }
+  for (let i = 0; i < 4; i++) segments.push(chars.charAt(Math.floor(Math.random() * chars.length)));
   segments.push('-');
-  for (let i = 0; i < 4; i++) {
-    segments.push(chars.charAt(Math.floor(Math.random() * chars.length)));
-  }
+  for (let i = 0; i < 4; i++) segments.push(chars.charAt(Math.floor(Math.random() * chars.length)));
   segments.push('-');
-  for (let i = 0; i < 2; i++) {
-    segments.push(chars.charAt(Math.floor(Math.random() * chars.length)));
-  }
-  
+  for (let i = 0; i < 2; i++) segments.push(chars.charAt(Math.floor(Math.random() * chars.length)));
   return segments.join('');
 }
 
@@ -35,14 +25,48 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    // Authenticate user
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'No autorizado' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') || supabaseServiceKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getUser();
+    if (claimsError || !claimsData?.user) {
+      return new Response(
+        JSON.stringify({ error: 'No autorizado' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const userId = claimsData.user.id;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, codigo, userId, pedidoId } = await req.json();
+    const { action, codigo, pedidoId } = await req.json();
 
-    console.log(`Action: ${action}`);
-
+    // For admin actions (ensure-codes), verify admin role
     if (action === 'ensure-codes') {
-      // Asegurar que siempre haya 5 códigos disponibles
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+      
+      if (roleData?.role !== 'admin') {
+        return new Response(
+          JSON.stringify({ error: 'No autorizado - se requiere rol admin' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        );
+      }
+
       const { data: existingCodes, error: fetchError } = await supabase
         .from('codigos_pago')
         .select('id')
@@ -51,33 +75,23 @@ serve(async (req) => {
       if (fetchError) throw fetchError;
 
       const codesNeeded = 5 - (existingCodes?.length || 0);
-      console.log(`Codes available: ${existingCodes?.length || 0}, needed: ${codesNeeded}`);
 
       if (codesNeeded > 0) {
         const newCodes: { codigo: string }[] = [];
-        
         for (let i = 0; i < codesNeeded; i++) {
           let code: string;
           let attempts = 0;
-          
           do {
             code = generatePaymentCode();
             attempts++;
           } while (attempts < 10 && newCodes.some(c => c.codigo === code));
-          
           newCodes.push({ codigo: code });
         }
 
-        const { error: insertError } = await supabase
-          .from('codigos_pago')
-          .insert(newCodes);
-
+        const { error: insertError } = await supabase.from('codigos_pago').insert(newCodes);
         if (insertError) throw insertError;
-        
-        console.log(`Created ${codesNeeded} new payment codes`);
       }
 
-      // Retornar códigos disponibles
       const { data: codes, error: codesError } = await supabase
         .from('codigos_pago')
         .select('id, codigo, created_at')
@@ -93,7 +107,13 @@ serve(async (req) => {
     }
 
     if (action === 'validate') {
-      // Validar un código
+      if (!codigo || typeof codigo !== 'string') {
+        return new Response(
+          JSON.stringify({ valid: false, message: 'Código inválido' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       const { data: codeData, error: codeError } = await supabase
         .from('codigos_pago')
         .select('id, codigo, usado')
@@ -121,7 +141,13 @@ serve(async (req) => {
     }
 
     if (action === 'use') {
-      // Marcar código como usado y generar uno nuevo
+      if (!codigo || typeof codigo !== 'string') {
+        return new Response(
+          JSON.stringify({ success: false, message: 'Código inválido' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       const { data: codeData, error: codeError } = await supabase
         .from('codigos_pago')
         .select('id, usado')
@@ -142,7 +168,6 @@ serve(async (req) => {
         );
       }
 
-      // Marcar como usado
       const { error: updateError } = await supabase
         .from('codigos_pago')
         .update({
@@ -155,17 +180,8 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      // Generar nuevo código para reemplazar
       const newCode = generatePaymentCode();
-      const { error: insertError } = await supabase
-        .from('codigos_pago')
-        .insert({ codigo: newCode });
-
-      if (insertError) {
-        console.error('Error creating replacement code:', insertError);
-      }
-
-      console.log(`Code ${codigo} used, replaced with ${newCode}`);
+      await supabase.from('codigos_pago').insert({ codigo: newCode });
 
       return new Response(
         JSON.stringify({ success: true, message: 'Código utilizado correctamente' }),
