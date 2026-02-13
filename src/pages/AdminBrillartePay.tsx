@@ -181,10 +181,6 @@ export default function AdminBrillartePay() {
     return number;
   };
 
-  const generateCVV = () => {
-    return Math.floor(100 + Math.random() * 900).toString();
-  };
-
   const generateExpirationDate = () => {
     const now = new Date();
     const year = now.getFullYear() + 5;
@@ -201,7 +197,6 @@ export default function AdminBrillartePay() {
     setCreatingCard(true);
     try {
       const numero = generateCardNumber();
-      const cvv = generateCVV();
       const fechaExp = generateExpirationDate();
 
       const { error } = await supabase
@@ -210,7 +205,6 @@ export default function AdminBrillartePay() {
           user_id: selectedUserId,
           nombre_titular: nombreTitular.toUpperCase(),
           numero_tarjeta: numero,
-          cvv: cvv,
           fecha_expiracion: fechaExp,
           saldo: parseFloat(saldoInicial) || 0
         });
@@ -476,7 +470,6 @@ export default function AdminBrillartePay() {
                       <p className="font-medium mb-1">Se generará automáticamente:</p>
                       <ul className="text-muted-foreground space-y-1">
                         <li>• Número de tarjeta (16 dígitos)</li>
-                        <li>• CVV (3 dígitos)</li>
                         <li>• Fecha de expiración (5 años)</li>
                       </ul>
                     </div>
@@ -530,10 +523,6 @@ export default function AdminBrillartePay() {
                               <div className="text-right">
                                 <p className="text-xs opacity-70">VENCE</p>
                                 <p className="font-mono">{tarjeta.fecha_expiracion}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-xs opacity-70">CVV</p>
-                                <p className="font-mono">{tarjeta.cvv}</p>
                               </div>
                             </div>
                           </div>

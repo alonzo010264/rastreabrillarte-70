@@ -40,7 +40,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
   
   // Brillarte Pay
   const [numeroTarjeta, setNumeroTarjeta] = useState("");
-  const [cvv, setCvv] = useState("");
+  
   const [fechaExp, setFechaExp] = useState("");
   const [validatingCard, setValidatingCard] = useState(false);
   const [cardValid, setCardValid] = useState<boolean | null>(null);
@@ -117,10 +117,6 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
       setCardError("Ingresa un número de tarjeta válido");
       return;
     }
-    if (!cvv.trim() || cvv.length !== 3) {
-      setCardError("CVV debe tener 3 dígitos");
-      return;
-    }
     if (!fechaExp.trim()) {
       setCardError("Ingresa la fecha de expiración");
       return;
@@ -144,7 +140,6 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         .from('tarjetas_brillarte' as any)
         .select('*')
         .eq('numero_tarjeta', numeroLimpio)
-        .eq('cvv', cvv.trim())
         .eq('fecha_expiracion', fechaExp.trim())
         .eq('user_id', user.id)
         .single();
@@ -390,7 +385,6 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
     setCodigoPago("");
     setCodeValid(null);
     setNumeroTarjeta("");
-    setCvv("");
     setFechaExp("");
     setCardValid(null);
     setTarjetaData(null);
@@ -568,24 +562,13 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
                           className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-mono"
                           maxLength={5}
                         />
-                        <Input
-                          placeholder="CVV"
-                          type="password"
-                          value={cvv}
-                          onChange={(e) => {
-                            setCvv(e.target.value.replace(/\D/g, '').slice(0, 3));
-                            setCardValid(null);
-                          }}
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50 font-mono w-20"
-                          maxLength={3}
-                        />
                       </div>
                     </div>
                     <Button 
                       type="button"
                       variant="outline"
                       onClick={validateCard}
-                      disabled={validatingCard || !numeroTarjeta.trim() || !cvv.trim() || !fechaExp.trim()}
+                      disabled={validatingCard || !numeroTarjeta.trim() || !fechaExp.trim()}
                       className="w-full"
                     >
                       {validatingCard ? <FaSpinner className="w-4 h-4 animate-spin mr-2" /> : <FaCreditCard className="w-4 h-4 mr-2" />}
