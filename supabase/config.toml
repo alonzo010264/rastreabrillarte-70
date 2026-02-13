@@ -116,3 +116,6 @@ verify_jwt = false
 
 [functions.ai-product-creator]
 verify_jwt = false
+
+[functions.create-user-account]
+verify_jwt = false
