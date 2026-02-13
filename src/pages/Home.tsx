@@ -106,7 +106,7 @@ const Home = () => {
               ¿Quiénes <span className="gradient-text-animated">Somos</span>?
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-              Somos <strong className="text-primary">BRILLARTE</strong>, un emprendimiento dedicado a ofrecerte productos 
+              Somos <strong className="text-primary">BRILLARTE</strong>, una empresa dedicada a ofrecerte productos 
               de calidad excepcional. Nos especializamos en pulseras elegantes, aretes únicos, 
               monederos funcionales y muchos otros productos que iremos agregando para 
               complementar tu estilo personal.

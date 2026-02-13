@@ -40,7 +40,7 @@ const AboutUs = () => {
               </div>
               <p className="text-muted-foreground leading-relaxed text-lg mb-4">
                 BRILLARTE nació de la pasión por crear y ofrecer productos únicos que reflejen 
-                la personalidad de cada persona. Comenzamos como un pequeño emprendimiento con 
+                la personalidad de cada persona. Comenzamos como una pequeña empresa con 
                 el sueño de hacer brillar a nuestros clientes a través de accesorios de calidad.
               </p>
               <p className="text-muted-foreground leading-relaxed text-lg">

@@ -159,12 +159,12 @@ const BrillartePedidos = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="text-primary" />
-                  Emprendimiento Confiable
+                  Empresa Confiable
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Somos un emprendimiento casi empresa, operando con total transparencia 
+                  Somos una empresa operando con total transparencia 
                   y compromiso con nuestros clientes. Cada paso está coordinado contigo.
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground">
