@@ -57,6 +57,7 @@ const Footer = () => {
                 { to: "/productos", label: "Tienda", external: false },
                 { to: "https://pedidos.brillarte.lat/", label: "Pedir pulsera", external: true },
                 { to: "/comunidad", label: "Comunidad", external: false },
+                { to: "/eventos", label: "Eventos", external: false },
                 { to: "/cupones", label: "Cupones BRILLARTE", external: false },
                 { to: "/rastrear", label: "Rastrear Pedidos", external: false },
                 { to: "/politicas-privacidad", label: "Politicas de Privacidad", external: false },

@@ -70,6 +70,7 @@ const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
 const RastrearTicket = lazy(() => import("./pages/RastrearTicket"));
 const Cupones = lazy(() => import("./pages/Cupones"));
 const AdminCupones = lazy(() => import("./pages/AdminCupones"));
+const Eventos = lazy(() => import("./pages/Eventos"));
 
 // Chatbot se carga de forma diferida
 const ChatbotWrapper = lazy(() => import("./components/ChatbotWrapper").then(m => ({ default: m.ChatbotWrapper })));
@@ -149,6 +150,7 @@ const App = () => (
             <Route path="/rastrear-ticket" element={<RastrearTicket />} />
             <Route path="/cupones" element={<Cupones />} />
             <Route path="/admin/cupones" element={<AdminCupones />} />
+            <Route path="/eventos" element={<Eventos />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatbotWrapper />
