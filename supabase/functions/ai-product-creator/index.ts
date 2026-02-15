@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface ProductData {
@@ -34,6 +34,49 @@ serve(async (req) => {
   }
 
   try {
+    // CRITICAL: Verify authentication
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ success: false, error: "No autorizado" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || supabaseServiceKey;
+
+    // Verify user identity
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: "No autorizado" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify admin role using service client
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Requiere rol de administrador" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { commands, images } = await req.json();
     
     if (!commands || !Array.isArray(commands) || commands.length === 0) {
@@ -47,10 +90,6 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const systemPrompt = `Eres un asistente especializado en crear productos para una tienda online de bisutería y accesorios hechos a mano llamada BRILLARTE.
 
@@ -90,12 +129,10 @@ Respuesta: {"nombre":"Collar Dorado","descripcion":"Elegante collar dorado que c
     const results: CommandResult[] = [];
     let productsCreated = 0;
 
-    // Process images - get URLs from base64
+    // Process images
     const imageUrls: string[] = [];
     if (images && Array.isArray(images)) {
       for (const img of images) {
-        // For now, use the base64 directly as the image URL
-        // In production, you'd upload to storage first
         if (img.url) {
           imageUrls.push(img.url);
         }
@@ -104,9 +141,8 @@ Respuesta: {"nombre":"Collar Dorado","descripcion":"Elegante collar dorado que c
 
     for (const command of commands) {
       try {
-        console.log(`Processing command: ${command}`);
+        console.log(`Processing command by admin ${user.id}: ${command}`);
 
-        // Call AI to interpret the command
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -144,22 +180,13 @@ Respuesta: {"nombre":"Collar Dorado","descripcion":"Elegante collar dorado que c
           continue;
         }
 
-        // Parse the JSON response
         let productData: ProductData;
         try {
-          // Clean up the response - remove markdown code blocks if present
           let jsonStr = content.trim();
-          if (jsonStr.startsWith("```json")) {
-            jsonStr = jsonStr.slice(7);
-          }
-          if (jsonStr.startsWith("```")) {
-            jsonStr = jsonStr.slice(3);
-          }
-          if (jsonStr.endsWith("```")) {
-            jsonStr = jsonStr.slice(0, -3);
-          }
+          if (jsonStr.startsWith("```json")) jsonStr = jsonStr.slice(7);
+          if (jsonStr.startsWith("```")) jsonStr = jsonStr.slice(3);
+          if (jsonStr.endsWith("```")) jsonStr = jsonStr.slice(0, -3);
           jsonStr = jsonStr.trim();
-
           productData = JSON.parse(jsonStr);
         } catch (parseError) {
           console.error("JSON parse error:", parseError, "Content:", content);
@@ -170,7 +197,6 @@ Respuesta: {"nombre":"Collar Dorado","descripcion":"Elegante collar dorado que c
           continue;
         }
 
-        // Validate required fields
         if (!productData.nombre || !productData.precio) {
           results.push({
             success: false,
@@ -179,17 +205,14 @@ Respuesta: {"nombre":"Collar Dorado","descripcion":"Elegante collar dorado que c
           continue;
         }
 
-        // Assign images if available
         if (imageUrls.length > 0) {
           productData.imagenes = imageUrls;
         }
 
-        // Set defaults
         productData.activo = productData.activo !== false;
         productData.destacado = productData.destacado === true;
         productData.stock = productData.stock || 0;
 
-        // Insert into database
         const { data: insertedProduct, error: insertError } = await supabase
           .from("productos")
           .insert([{
