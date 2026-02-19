@@ -123,9 +123,9 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailData = {
-      from: "BRILLARTE <contacto@brillarte.lat>",
+      from: "BRILLARTE <contacto@oficial.brillarte.lat>",
       to: [email],
-      reply_to: "contacto@brillarte.lat",
+      reply_to: "contacto@oficial.brillarte.lat",
       subject: subject,
       html: emailHtml,
     };

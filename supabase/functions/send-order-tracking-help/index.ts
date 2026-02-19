@@ -28,9 +28,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Enviar correo al cliente
     const emailResponse = await resend.emails.send({
-      from: "BRILLARTE <pedidos@brillarte.lat>",
+      from: "BRILLARTE <pedidos@oficial.brillarte.lat>",
       to: [correo],
-      replyTo: "pedidos@brillarte.lat",
+      replyTo: "pedidos@oficial.brillarte.lat",
       subject: `Hemos recibido tu consulta - Pedido ${codigo_pedido}`,
       html: `
         <!DOCTYPE html>
@@ -68,7 +68,7 @@ const handler = async (req: Request): Promise<Response> => {
 
                 <p>Puedes escribirnos también a:</p>
                 <ul>
-                  <li>📧 Email: pedidos@brillarte.lat</li>
+                  <li>📧 Email: pedidos@oficial.brillarte.lat</li>
                   <li>📱 Instagram: @brillarte.do.oficial</li>
                   <li>📞 WhatsApp: (849) 425-2220</li>
                 </ul>
