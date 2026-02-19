@@ -82,18 +82,22 @@ const Mensajes = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Solo hacer scroll si el usuario ya estaba al fondo
-  useEffect(() => {
-    if (isAtBottomRef.current) {
-      scrollToBottom();
-    }
-  }, [messages]);
-
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
-    const threshold = 100;
+    const threshold = 150;
     isAtBottomRef.current = target.scrollHeight - target.scrollTop - target.clientHeight < threshold;
   };
+
+  const scrollToBottomIfNeeded = useCallback(() => {
+    if (isAtBottomRef.current && scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, []);
+
+  // Solo hacer scroll si el usuario ya estaba al fondo
+  useEffect(() => {
+    scrollToBottomIfNeeded();
+  }, [messages, scrollToBottomIfNeeded]);
 
   useEffect(() => {
     checkUser();
@@ -469,6 +473,29 @@ const Mensajes = () => {
         }, ...prev];
       });
       setCurrentConversation(convId);
+
+      // If the official account is starting the chat, notify the other user
+      if (isAdmin && user) {
+        const { data: myProfile } = await supabase
+          .from('profiles')
+          .select('correo')
+          .eq('user_id', user.id)
+          .single();
+        
+        const isOfficial = myProfile?.correo === BRILLARTE_OFFICIAL_EMAIL || myProfile?.correo?.endsWith('@brillarte.lat');
+        if (isOfficial) {
+          // Send notification to the other user
+          await supabase.from('notifications').insert({
+            user_id: otherUserId,
+            tipo: 'mensaje',
+            titulo: 'BRILLARTE inicio un chat contigo',
+            mensaje: 'La cuenta oficial de BRILLARTE ha iniciado una conversacion contigo. Puede ser sobre premios, promociones u otro tema.',
+            accion_url: `/mensajes?userId=${user.id}`,
+            imagen_url: BRILLARTE_LOGO_URL
+          });
+        }
+      }
+
       // Reload in background to sync
       loadConversations();
     }
@@ -679,12 +706,24 @@ const Mensajes = () => {
                         onMessageSent={() => loadMessages(currentConversation!)}
                         iaActiva={iaActiva}
                         onToggleIA={setIaActiva}
+                        onChatFinalized={() => {
+                          loadMessages(currentConversation!);
+                          loadConversations();
+                        }}
+                        onChatTransferred={(newUserId) => {
+                          setCurrentConversation(null);
+                          loadConversations();
+                        }}
                       />
                     )}
                   </div>
 
                   {/* Mensajes */}
-                  <ScrollArea className="flex-1 p-4" onScrollCapture={handleScroll}>
+                  <div 
+                    className="flex-1 overflow-y-auto p-4"
+                    onScroll={handleScroll}
+                    ref={scrollAreaRef}
+                  >
                     <div className="space-y-4">
                       {messages.length === 0 ? (
                         <p className="text-center text-muted-foreground py-8">
@@ -693,6 +732,18 @@ const Mensajes = () => {
                       ) : (
                         messages.map((msg) => {
                           const isOwn = msg.sender_id === user.id;
+                          
+                          // System messages
+                          if (msg.tipo === 'system') {
+                            return (
+                              <div key={msg.id} className="flex justify-center">
+                                <div className="bg-muted/50 border border-border rounded-full px-4 py-1.5 text-xs text-muted-foreground text-center max-w-[80%]">
+                                  {msg.content}
+                                </div>
+                              </div>
+                            );
+                          }
+
                           return (
                             <div
                               key={msg.id}
@@ -718,24 +769,42 @@ const Mensajes = () => {
                                     <img
                                       src={msg.image_url}
                                       alt="Imagen"
-                                      className="max-w-[200px] rounded-lg cursor-pointer"
+                                      className="max-w-[250px] rounded-lg cursor-pointer"
                                       onClick={() => window.open(msg.image_url!, '_blank')}
                                     />
                                   ) : msg.tipo === 'file' && msg.metadata ? (
-                                    <a
-                                      href={(msg.metadata as any)?.file_url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className={`flex items-center gap-2 p-2 rounded-lg ${isOwn ? 'bg-primary-foreground/10' : 'bg-background/50'}`}
-                                    >
-                                      <FileText className="h-8 w-8 flex-shrink-0" />
-                                      <div className="min-w-0">
-                                        <p className="text-sm font-medium truncate">{(msg.metadata as any)?.file_name}</p>
-                                        <p className="text-xs opacity-70">
-                                          {((msg.metadata as any)?.file_size / 1024).toFixed(0)} KB
-                                        </p>
-                                      </div>
-                                    </a>
+                                    (() => {
+                                      const meta = msg.metadata as any;
+                                      const fileUrl = meta?.file_url;
+                                      const fileName = meta?.file_name || 'archivo';
+                                      const fileType = meta?.file_type || '';
+                                      const fileSize = meta?.file_size || 0;
+                                      const isImageAttachment = fileType.startsWith('image/');
+                                      const isPdf = fileType === 'application/pdf';
+
+                                      return (
+                                        <div className="space-y-2">
+                                          {isImageAttachment && fileUrl && (
+                                            <img src={fileUrl} alt={fileName} className="max-w-[250px] rounded-lg cursor-pointer" onClick={() => window.open(fileUrl, '_blank')} />
+                                          )}
+                                          {isPdf && fileUrl && (
+                                            <iframe src={fileUrl} className="w-full h-[200px] rounded-lg border" title={fileName} />
+                                          )}
+                                          <a
+                                            href={fileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`flex items-center gap-2 p-2 rounded-lg ${isOwn ? 'bg-primary-foreground/10' : 'bg-background/50'}`}
+                                          >
+                                            <FileText className="h-8 w-8 flex-shrink-0" />
+                                            <div className="min-w-0">
+                                              <p className="text-sm font-medium truncate">{fileName}</p>
+                                              <p className="text-xs opacity-70">{(fileSize / 1024).toFixed(0)} KB</p>
+                                            </div>
+                                          </a>
+                                        </div>
+                                      );
+                                    })()
                                   ) : (
                                     <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                                   )}
@@ -775,7 +844,7 @@ const Mensajes = () => {
                       
                       <div ref={messagesEndRef} />
                     </div>
-                  </ScrollArea>
+                  </div>
 
                   {/* Input */}
                   <div className="p-4 border-t space-y-2">
