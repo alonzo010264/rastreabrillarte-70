@@ -160,6 +160,31 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await response.json();
     console.log("Credit notification email sent successfully:", emailResponse);
 
+    // Notificar al CEO
+    try {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "BRILLARTE Sistema <sistema@oficial.brillarte.lat>",
+          to: ["anotasy@gmail.com"],
+          subject: `Credito aplicado: RD$${monto.toFixed(2)} a ${nombre}`,
+          html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+            <h2 style="color:#000;">Credito aplicado a cuenta</h2>
+            <div style="background:#f5f5f5;padding:15px;border-left:4px solid #000;margin:15px 0;">
+              <p><strong>Cliente:</strong> ${nombre}</p>
+              <p><strong>Correo:</strong> ${email}</p>
+              <p><strong>Monto:</strong> RD$${monto.toFixed(2)}</p>
+              <p><strong>Motivo:</strong> ${descripcion}</p>
+              <p><strong>Nuevo saldo:</strong> RD$${saldoNuevo.toFixed(2)}</p>
+              <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}</p>
+            </div>
+            <p style="color:#666;font-size:12px;">Notificacion automatica del sistema BRILLARTE</p>
+          </div>`,
+        }),
+      });
+    } catch (ceoErr) { console.error("Error notificando al CEO:", ceoErr); }
+
     await supabase.from('email_logs').insert({
       destinatario: email,
       asunto: subject,
