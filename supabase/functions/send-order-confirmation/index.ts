@@ -96,9 +96,9 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "BRILLARTE <contacto@brillarte.lat>",
+      from: "BRILLARTE <contacto@oficial.brillarte.lat>",
       to: [customerEmail],
-      replyTo: ["contacto@brillarte.lat"],
+      replyTo: ["contacto@oficial.brillarte.lat"],
       subject: "Gracias por tu solicitud de pedido - BRILLARTE",
       html: emailHtml,
     });

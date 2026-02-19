@@ -23,7 +23,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Enviando correo de suscripción a:", correo);
 
     const emailResponse = await resend.emails.send({
-      from: "BRILLARTE Anuncios <anuncios@brillarte.lat>",
+      from: "BRILLARTE Anuncios <anuncios@oficial.brillarte.lat>",
       to: [correo],
       subject: "¡Bienvenido a BRILLARTE!",
       html: `

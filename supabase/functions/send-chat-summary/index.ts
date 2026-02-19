@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "BRILLARTE Ayuda <ayuda@brillarte.lat>",
+      from: "BRILLARTE Ayuda <ayuda@oficial.brillarte.lat>",
       to: [clientEmail],
       subject: `Resumen de tu conversacion - ${resolved ? 'Caso Resuelto' : 'Seguimiento Pendiente'}`,
       html: emailHtml,

@@ -24,7 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
     const supportNumber = Math.floor(1000000 + Math.random() * 9000000);
 
     const emailResponse = await resend.emails.send({
-      from: "BRILLARTE Soporte <soporte@brillarte.lat>",
+      from: "BRILLARTE Soporte <soporte@oficial.brillarte.lat>",
       to: [email],
       subject: `Ticket de Soporte #${supportNumber}`,
       html: `

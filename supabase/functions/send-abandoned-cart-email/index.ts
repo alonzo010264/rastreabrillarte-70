@@ -109,7 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "BRILLARTE <cupon@brillarte.lat>",
+      from: "BRILLARTE <cupon@oficial.brillarte.lat>",
       to: [email],
       subject: "¡Tu carrito te extraña! 🛒 - BRILLARTE",
       html: emailHtml,
