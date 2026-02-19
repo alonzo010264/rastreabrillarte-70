@@ -25,9 +25,10 @@ const ProtectedRoute = ({ children, requiredRole = "admin" }: ProtectedRouteProp
           .from("user_roles")
           .select("role")
           .eq("user_id", user.id)
+          .eq("role", requiredRole)
           .maybeSingle();
 
-        if (!roleData || roleData.role !== requiredRole) {
+        if (!roleData) {
           setStatus("unauthorized");
           return;
         }
