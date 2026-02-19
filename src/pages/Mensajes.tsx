@@ -225,47 +225,17 @@ const Mensajes = () => {
     }
   }, []);
 
-  // Obtener o crear conversación
+  // Obtener o crear conversación usando función de base de datos
   const getOrCreateConversation = useCallback(async (otherUserId: string): Promise<string | null> => {
     if (!user?.id) return null;
 
     try {
-      const { data: myParticipations } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', user.id);
+      const { data, error } = await supabase.rpc('create_conversation_with_participants', {
+        other_user_id: otherUserId
+      });
 
-      if (myParticipations && myParticipations.length > 0) {
-        for (const p of myParticipations) {
-          const { data: otherParticipation } = await supabase
-            .from('conversation_participants')
-            .select('id')
-            .eq('conversation_id', p.conversation_id)
-            .eq('user_id', otherUserId)
-            .single();
-
-          if (otherParticipation) {
-            return p.conversation_id;
-          }
-        }
-      }
-
-      // Crear nueva conversación
-      const { data: newConv, error: convError } = await supabase
-        .from('conversations')
-        .insert({})
-        .select()
-        .single();
-
-      if (convError) throw convError;
-
-      await supabase.from('conversation_participants').insert([
-        { conversation_id: newConv.id, user_id: user.id },
-        { conversation_id: newConv.id, user_id: otherUserId }
-      ]);
-
-      return newConv.id;
-
+      if (error) throw error;
+      return data as string;
     } catch (error) {
       console.error('Error getting/creating conversation:', error);
       return null;
