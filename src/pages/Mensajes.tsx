@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Send, ArrowLeft, ImagePlus, Loader2, MessageCircle, Search, User, X } from 'lucide-react';
+import { Send, ArrowLeft, ImagePlus, Loader2, MessageCircle, Search, User, X, Paperclip, FileText, File } from 'lucide-react';
 import verificadoIcon from '@/assets/verificado-icon.png';
 import { useToast } from '@/hooks/use-toast';
 import VerifiedAccountsModal from '@/components/VerifiedAccountsModal';
@@ -28,6 +28,7 @@ interface Message {
   image_url: string | null;
   tipo: string;
   created_at: string;
+  metadata: any;
   profiles?: {
     nombre_completo: string;
     avatar_url: string | null;
@@ -66,8 +67,8 @@ const Mensajes = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [showVerifiedModal, setShowVerifiedModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<globalThis.File | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -403,47 +404,64 @@ const Mensajes = () => {
     }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({ title: 'Error', description: 'La imagen debe ser menor a 5MB', variant: 'destructive' });
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ title: 'Error', description: 'El archivo debe ser menor a 10MB', variant: 'destructive' });
         return;
       }
-      setSelectedImage(file);
+      setSelectedFile(file);
     }
   };
 
-  const handleSendImage = async () => {
-    if (!selectedImage || !currentConversation || !user) return;
+  const isImageFile = (file: globalThis.File) => file.type.startsWith('image/');
+
+  const handleSendFile = async () => {
+    if (!selectedFile || !currentConversation || !user) return;
     
-    setUploadingImage(true);
+    setUploadingFile(true);
     try {
-      const fileExt = selectedImage.name.split('.').pop();
+      const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const isImage = isImageFile(selectedFile);
+      const bucket = isImage ? 'chat-images' : 'chat-attachments';
       
       const { error: uploadError } = await supabase.storage
-        .from('chat-images')
-        .upload(fileName, selectedImage);
+        .from(bucket)
+        .upload(fileName, selectedFile);
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage.from('chat-images').getPublicUrl(fileName);
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
 
-      await supabase.from('messages').insert({
+      const msgData: any = {
         conversation_id: currentConversation,
         sender_id: user.id,
-        image_url: urlData.publicUrl,
-        tipo: 'image'
-      });
+        tipo: isImage ? 'image' : 'file',
+      };
 
-      setSelectedImage(null);
+      if (isImage) {
+        msgData.image_url = urlData.publicUrl;
+      } else {
+        msgData.content = `📎 ${selectedFile.name}`;
+        msgData.metadata = { 
+          file_url: urlData.publicUrl, 
+          file_name: selectedFile.name, 
+          file_type: selectedFile.type,
+          file_size: selectedFile.size 
+        };
+      }
+
+      await supabase.from('messages').insert(msgData);
+
+      setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({ title: 'Error', description: 'No se pudo enviar la imagen', variant: 'destructive' });
+      console.error('Error uploading file:', error);
+      toast({ title: 'Error', description: 'No se pudo enviar el archivo', variant: 'destructive' });
     } finally {
-      setUploadingImage(false);
+      setUploadingFile(false);
     }
   };
 
@@ -523,13 +541,13 @@ const Mensajes = () => {
                 </Button>
               )}
               <Button 
-                variant="outline" 
+                variant="default" 
                 size="sm"
                 onClick={() => setShowVerifiedModal(true)}
                 className="gap-2"
               >
                 <MessageCircle className="h-4 w-4" />
-                Verificadas
+                {isVerified ? 'Contactos' : 'Verificadas'}
               </Button>
             </div>
           </div>
@@ -671,8 +689,24 @@ const Mensajes = () => {
                                     <img
                                       src={msg.image_url}
                                       alt="Imagen"
-                                      className="max-w-[200px] rounded-lg"
+                                      className="max-w-[200px] rounded-lg cursor-pointer"
+                                      onClick={() => window.open(msg.image_url!, '_blank')}
                                     />
+                                  ) : msg.tipo === 'file' && msg.metadata ? (
+                                    <a
+                                      href={(msg.metadata as any)?.file_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`flex items-center gap-2 p-2 rounded-lg ${isOwn ? 'bg-primary-foreground/10' : 'bg-background/50'}`}
+                                    >
+                                      <FileText className="h-8 w-8 flex-shrink-0" />
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-medium truncate">{(msg.metadata as any)?.file_name}</p>
+                                        <p className="text-xs opacity-70">
+                                          {((msg.metadata as any)?.file_size / 1024).toFixed(0)} KB
+                                        </p>
+                                      </div>
+                                    </a>
                                   ) : (
                                     <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                                   )}
@@ -710,8 +744,50 @@ const Mensajes = () => {
                   </ScrollArea>
 
                   {/* Input */}
-                  <div className="p-4 border-t">
+                  <div className="p-4 border-t space-y-2">
+                    {/* File preview */}
+                    {selectedFile && (
+                      <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                        {isImageFile(selectedFile) ? (
+                          <img
+                            src={URL.createObjectURL(selectedFile)}
+                            alt="Preview"
+                            className="h-12 w-12 rounded object-cover"
+                          />
+                        ) : (
+                          <File className="h-8 w-8 text-primary" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(selectedFile.size / 1024).toFixed(0)} KB
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <Button onClick={handleSendFile} disabled={uploadingFile} size="sm">
+                          {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    )}
+                    
                     <div className="flex gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="hidden"
+                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+                        onChange={handleFileSelect}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex-shrink-0"
+                      >
+                        <Paperclip className="h-5 w-5" />
+                      </Button>
                       <Input
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
@@ -758,6 +834,7 @@ const Mensajes = () => {
         open={showVerifiedModal}
         onOpenChange={setShowVerifiedModal}
         onSelectAccount={handleSelectVerifiedAccount}
+        currentUserIsVerified={isVerified}
       />
       
       <SearchAccountsModal
