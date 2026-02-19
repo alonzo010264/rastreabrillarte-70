@@ -2657,6 +2657,10 @@ export type Database = {
       cleanup_expired_verification_codes: { Args: never; Returns: undefined }
       generate_order_code: { Args: never; Returns: string }
       generate_verification_code: { Args: never; Returns: string }
+      get_user_conversation_ids: {
+        Args: { p_user_id: string }
+        Returns: string[]
+      }
       get_user_role: {
         Args: { input_user_id: string }
         Returns: {
