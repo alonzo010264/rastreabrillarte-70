@@ -264,14 +264,13 @@ const Mensajes = () => {
         { conversation_id: newConv.id, user_id: otherUserId }
       ]);
 
-      await loadConversations();
       return newConv.id;
 
     } catch (error) {
       console.error('Error getting/creating conversation:', error);
       return null;
     }
-  }, [user?.id, loadConversations]);
+  }, [user?.id]);
 
   // Inicializar cuando hay usuario
   useEffect(() => {
@@ -465,20 +464,48 @@ const Mensajes = () => {
     }
   };
 
-  const handleSelectVerifiedAccount = async (account: any) => {
-    const convId = await getOrCreateConversation(account.user_id);
+  const openConversationWithUser = async (otherUserId: string, otherUserData: Conversation['other_user']) => {
+    const convId = await getOrCreateConversation(otherUserId);
     if (convId) {
-      await loadConversations();
+      // Immediately add the conversation to state so the chat panel renders
+      setConversations(prev => {
+        const exists = prev.find(c => c.id === convId);
+        if (exists) return prev;
+        return [{
+          id: convId,
+          updated_at: new Date().toISOString(),
+          other_user: otherUserData
+        }, ...prev];
+      });
       setCurrentConversation(convId);
+      // Reload in background to sync
+      loadConversations();
     }
   };
 
+  const handleSelectVerifiedAccount = async (account: any) => {
+    const isOfficial = account.correo === BRILLARTE_OFFICIAL_EMAIL || account.correo?.endsWith?.('@brillarte.lat') || account.isOfficial;
+    await openConversationWithUser(account.user_id, {
+      id: account.user_id,
+      nombre_completo: isOfficial ? 'BRILLARTE' : account.nombre_completo,
+      avatar_url: isOfficial ? brillarteLogo : account.avatar_url,
+      verificado: account.verificado ?? isOfficial,
+      isOfficial,
+      identificador: account.identificador,
+      displayName: isOfficial ? 'BRILLARTE' : (account.nombre_completo || account.identificador || 'Usuario')
+    });
+  };
+
   const handleSelectAccount = async (account: AccountResult) => {
-    const convId = await getOrCreateConversation(account.user_id);
-    if (convId) {
-      await loadConversations();
-      setCurrentConversation(convId);
-    }
+    await openConversationWithUser(account.user_id, {
+      id: account.user_id,
+      nombre_completo: account.nombre_completo,
+      avatar_url: account.avatar_url,
+      verificado: account.verificado,
+      isOfficial: account.isOfficial,
+      identificador: account.identificador,
+      displayName: account.displayName
+    });
   };
 
   // Usuario no autenticado
