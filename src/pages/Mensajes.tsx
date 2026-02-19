@@ -65,6 +65,7 @@ const Mensajes = () => {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [iaActiva, setIaActiva] = useState(false);
   const [showVerifiedModal, setShowVerifiedModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<globalThis.File | null>(null);
@@ -74,13 +75,25 @@ const Mensajes = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const targetUserId = searchParams.get('userId');
 
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const isAtBottomRef = useRef(true);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Solo hacer scroll si el usuario ya estaba al fondo
   useEffect(() => {
-    scrollToBottom();
+    if (isAtBottomRef.current) {
+      scrollToBottom();
+    }
   }, [messages]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const threshold = 100;
+    isAtBottomRef.current = target.scrollHeight - target.scrollTop - target.clientHeight < threshold;
+  };
 
   useEffect(() => {
     checkUser();
@@ -262,10 +275,19 @@ const Mensajes = () => {
     initFromTarget();
   }, [targetUserId, user?.id, loading, getOrCreateConversation]);
 
-  // Cargar mensajes cuando cambia conversación
+  // Cargar mensajes y estado IA cuando cambia conversación
   useEffect(() => {
     if (currentConversation) {
       loadMessages(currentConversation);
+      // Cargar estado de IA
+      supabase
+        .from('conversations')
+        .select('ia_activa')
+        .eq('id', currentConversation)
+        .single()
+        .then(({ data }) => {
+          setIaActiva((data as any)?.ia_activa || false);
+        });
     }
   }, [currentConversation, loadMessages]);
 
@@ -337,9 +359,8 @@ const Mensajes = () => {
         .update({ updated_at: new Date().toISOString() })
         .eq('id', currentConversation);
 
-      // Si es cuenta oficial, activar IA
-      const currentConvData = conversations.find(c => c.id === currentConversation);
-      if (currentConvData?.other_user?.isOfficial) {
+      // Si IA está activa (activada manualmente por admin), responder con IA
+      if (iaActiva && isAdmin) {
         setIsTyping(true);
         supabase.functions.invoke('chat-ai-responder', {
           body: {
@@ -638,7 +659,7 @@ const Mensajes = () => {
                         </AvatarFallback>
                       )}
                     </Avatar>
-                    <div>
+                    <div className="flex-1">
                       <div className="flex items-center gap-1">
                         <span className={`font-semibold ${currentConversationData.other_user.isOfficial ? 'text-primary' : ''}`}>
                           {currentConversationData.other_user.displayName}
@@ -651,10 +672,19 @@ const Mensajes = () => {
                         <span className="text-xs text-muted-foreground">Cuenta Oficial</span>
                       )}
                     </div>
+                    {isAdmin && (
+                      <AdminChatActions
+                        targetUserId={currentConversationData.other_user.id}
+                        conversationId={currentConversation!}
+                        onMessageSent={() => loadMessages(currentConversation!)}
+                        iaActiva={iaActiva}
+                        onToggleIA={setIaActiva}
+                      />
+                    )}
                   </div>
 
                   {/* Mensajes */}
-                  <ScrollArea className="flex-1 p-4">
+                  <ScrollArea className="flex-1 p-4" onScrollCapture={handleScroll}>
                     <div className="space-y-4">
                       {messages.length === 0 ? (
                         <p className="text-center text-muted-foreground py-8">
@@ -723,16 +753,21 @@ const Mensajes = () => {
                       )}
                       
                       {isTyping && (
-                        <div className="flex justify-start">
+                        <div className="flex justify-start animate-fade-in">
                           <div className="flex gap-2">
-                            <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-primary">
-                              <AvatarImage src={brillarteLogo} />
-                              <AvatarFallback className="bg-primary text-primary-foreground text-xs">B</AvatarFallback>
+                            <Avatar className="h-8 w-8 flex-shrink-0">
+                              <AvatarImage src={currentConversationData?.other_user?.avatar_url || undefined} />
+                              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                                {currentConversationData?.other_user?.displayName?.[0]?.toUpperCase() || 'A'}
+                              </AvatarFallback>
                             </Avatar>
-                            <div className="bg-muted rounded-2xl px-4 py-3 flex items-center gap-1">
-                              <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                              <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                              <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            <div className="bg-muted rounded-2xl px-4 py-3">
+                              <p className="text-xs text-muted-foreground mb-1">Escribiendo...</p>
+                              <div className="flex items-center gap-1">
+                                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                              </div>
                             </div>
                           </div>
                         </div>

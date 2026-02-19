@@ -562,6 +562,27 @@ export type Database = {
           },
         ]
       }
+      config_ceo: {
+        Row: {
+          ceo_nombre: string | null
+          ceo_user_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          ceo_nombre?: string | null
+          ceo_user_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          ceo_nombre?: string | null
+          ceo_user_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       config_pagos_saldo: {
         Row: {
           activado: boolean
@@ -716,16 +737,19 @@ export type Database = {
       conversations: {
         Row: {
           created_at: string | null
+          ia_activa: boolean | null
           id: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          ia_activa?: boolean | null
           id?: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          ia_activa?: boolean | null
           id?: string
           updated_at?: string | null
         }
@@ -2616,6 +2640,54 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      verificaciones_envio: {
+        Row: {
+          agente_id: string
+          agente_nombre: string | null
+          conversation_id: string
+          created_at: string | null
+          datos: Json
+          estado: string
+          firmado_nombre: string | null
+          firmado_por: string | null
+          id: string
+          notas_ceo: string | null
+          target_user_id: string
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          agente_id: string
+          agente_nombre?: string | null
+          conversation_id: string
+          created_at?: string | null
+          datos?: Json
+          estado?: string
+          firmado_nombre?: string | null
+          firmado_por?: string | null
+          id?: string
+          notas_ceo?: string | null
+          target_user_id: string
+          tipo: string
+          updated_at?: string | null
+        }
+        Update: {
+          agente_id?: string
+          agente_nombre?: string | null
+          conversation_id?: string
+          created_at?: string | null
+          datos?: Json
+          estado?: string
+          firmado_nombre?: string | null
+          firmado_por?: string | null
+          id?: string
+          notas_ceo?: string | null
+          target_user_id?: string
+          tipo?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
