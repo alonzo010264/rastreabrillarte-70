@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, UserPlus, Loader2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PageHeader from "@/components/PageHeader";
@@ -14,11 +14,40 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Check if admin
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (roleData?.role === "admin") {
+            navigate("/admin-dashboard", { replace: true });
+            return;
+          }
+          navigate("/", { replace: true });
+          return;
+        }
+      } catch {
+        // No session, show login
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+    checkExistingSession();
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +132,15 @@ const Login = () => {
     }
   };
 
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-3 text-muted-foreground">Cargando...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
