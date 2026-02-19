@@ -39,6 +39,7 @@ interface Message {
 interface Conversation {
   id: string;
   updated_at: string;
+  estado?: string;
   other_user?: {
     id: string;
     nombre_completo: string;
@@ -46,7 +47,7 @@ interface Conversation {
     verificado: boolean;
     isOfficial?: boolean;
     identificador?: string | null;
-    displayName: string; // Lo que se muestra según verificación
+    displayName: string;
   };
 }
 
@@ -66,6 +67,7 @@ const Mensajes = () => {
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [iaActiva, setIaActiva] = useState(false);
+  const [conversationEstado, setConversationEstado] = useState<string>('activo');
   const [showVerifiedModal, setShowVerifiedModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<globalThis.File | null>(null);
@@ -283,14 +285,15 @@ const Mensajes = () => {
   useEffect(() => {
     if (currentConversation) {
       loadMessages(currentConversation);
-      // Cargar estado de IA
+      // Cargar estado de IA y estado de conversación
       supabase
         .from('conversations')
-        .select('ia_activa')
+        .select('ia_activa, estado')
         .eq('id', currentConversation)
         .single()
         .then(({ data }) => {
           setIaActiva((data as any)?.ia_activa || false);
+          setConversationEstado((data as any)?.estado || 'activo');
         });
     }
   }, [currentConversation, loadMessages]);
@@ -342,8 +345,7 @@ const Mensajes = () => {
   }, [currentConversation]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentConversation || !user || sending) return;
-
+    if (!newMessage.trim() || !currentConversation || !user || sending || conversationEstado === 'finalizado' || conversationEstado === 'transferido') return;
     setSending(true);
     const messageContent = newMessage.trim();
     setNewMessage('');
@@ -420,34 +422,85 @@ const Mensajes = () => {
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       const isImage = isImageFile(selectedFile);
       const bucket = isImage ? 'chat-images' : 'chat-attachments';
-      
+
+      // Documents (non-images) must go through /verificacion
+      if (!isImage) {
+        // Upload first to get URL
+        const { error: uploadError } = await supabase.storage
+          .from(bucket)
+          .upload(fileName, selectedFile);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+
+        // Submit for verification instead of sending directly
+        const { data: myProfile } = await supabase
+          .from('profiles')
+          .select('nombre_completo')
+          .eq('user_id', user.id)
+          .single();
+
+        await supabase
+          .from('verificaciones_envio' as any)
+          .insert({
+            agente_id: user.id,
+            agente_nombre: myProfile?.nombre_completo || user.email,
+            target_user_id: conversations.find(c => c.id === currentConversation)?.other_user?.id || user.id,
+            conversation_id: currentConversation,
+            tipo: 'documento',
+            datos: {
+              file_url: urlData.publicUrl,
+              file_name: selectedFile.name,
+              file_type: selectedFile.type,
+              file_size: selectedFile.size
+            },
+            estado: 'pendiente'
+          } as any);
+
+        toast({
+          title: 'Documento enviado a verificacion',
+          description: 'El CEO debe aprobar el envio del documento antes de que llegue al destinatario.',
+        });
+        setSelectedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      // For images: scan for confidential info first
       const { error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(fileName, selectedFile);
-
       if (uploadError) throw uploadError;
-
       const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
 
-      const msgData: any = {
-        conversation_id: currentConversation,
-        sender_id: user.id,
-        tipo: isImage ? 'image' : 'file',
-      };
+      // Scan image with AI
+      const { data: scanResult } = await supabase.functions.invoke('scan-image-confidential', {
+        body: {
+          imageUrl: urlData.publicUrl,
+          senderUserId: user.id,
+          conversationId: currentConversation
+        }
+      });
 
-      if (isImage) {
-        msgData.image_url = urlData.publicUrl;
-      } else {
-        msgData.content = `📎 ${selectedFile.name}`;
-        msgData.metadata = { 
-          file_url: urlData.publicUrl, 
-          file_name: selectedFile.name, 
-          file_type: selectedFile.type,
-          file_size: selectedFile.size 
-        };
+      if (scanResult && !scanResult.safe) {
+        // Delete the uploaded image
+        await supabase.storage.from(bucket).remove([fileName]);
+        toast({
+          title: 'Imagen bloqueada',
+          description: `La imagen contiene informacion confidencial: ${scanResult.reason}. Se ha generado un reporte.`,
+          variant: 'destructive'
+        });
+        setSelectedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
       }
 
-      await supabase.from('messages').insert(msgData);
+      // Image is safe, send it
+      await supabase.from('messages').insert({
+        conversation_id: currentConversation,
+        sender_id: user.id,
+        image_url: urlData.publicUrl,
+        tipo: 'image',
+      });
 
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -707,10 +760,12 @@ const Mensajes = () => {
                         iaActiva={iaActiva}
                         onToggleIA={setIaActiva}
                         onChatFinalized={() => {
+                          setConversationEstado('finalizado');
                           loadMessages(currentConversation!);
                           loadConversations();
                         }}
                         onChatTransferred={(newUserId) => {
+                          setConversationEstado('transferido');
                           setCurrentConversation(null);
                           loadConversations();
                         }}
@@ -846,7 +901,34 @@ const Mensajes = () => {
                     </div>
                   </div>
 
-                  {/* Input */}
+                  {/* Input or Finalized state */}
+                  {conversationEstado === 'finalizado' || conversationEstado === 'transferido' ? (
+                    <div className="p-4 border-t bg-muted/30 text-center space-y-2">
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        Chat finalizado. No puedes escribir. Se finalizo el chat.
+                      </p>
+                      {isAdmin && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            await supabase.from('conversations').update({ estado: 'activo' } as any).eq('id', currentConversation);
+                            setConversationEstado('activo');
+                            await supabase.from('messages').insert({
+                              conversation_id: currentConversation!,
+                              sender_id: user.id,
+                              content: 'Chat reabierto por un administrador.',
+                              tipo: 'system'
+                            });
+                            loadMessages(currentConversation!);
+                            toast({ title: 'Chat reabierto' });
+                          }}
+                        >
+                          Reabrir chat
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
                   <div className="p-4 border-t space-y-2">
                     {/* File preview */}
                     {selectedFile && (
@@ -912,6 +994,7 @@ const Mensajes = () => {
                       </Button>
                     </div>
                   </div>
+                  )}
                 </>
               ) : (
                 <div className="flex-1 flex items-center justify-center">

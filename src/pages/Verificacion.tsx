@@ -8,12 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Shield, Check, X, Loader2, Clock, DollarSign, Percent, CreditCard, AlertTriangle } from 'lucide-react';
+import { Shield, Check, X, Loader2, Clock, DollarSign, Percent, CreditCard, AlertTriangle, FileText, ShieldAlert } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 interface Verificacion {
   id: string;
+  agente_id: string;
   agente_nombre: string;
   target_user_id: string;
   conversation_id: string;
@@ -151,6 +152,20 @@ const Verificacion = () => {
             content: `Te envio un codigo de pago.\n\nCodigo: ${datos.codigo}\n\nUsalo para pagar tu pedido.`,
             tipo: 'text'
           });
+        } else if (verificacion.tipo === 'documento') {
+          // Send the document as a message
+          await supabase.from('messages').insert({
+            conversation_id: verificacion.conversation_id,
+            sender_id: verificacion.agente_id || user.id,
+            content: `📎 ${datos.file_name}`,
+            tipo: 'file',
+            metadata: {
+              file_url: datos.file_url,
+              file_name: datos.file_name,
+              file_type: datos.file_type,
+              file_size: datos.file_size
+            }
+          });
         }
       }
 
@@ -169,6 +184,8 @@ const Verificacion = () => {
       case 'descuento': return <Percent className="h-4 w-4" />;
       case 'credito': return <DollarSign className="h-4 w-4" />;
       case 'codigo_pago': return <CreditCard className="h-4 w-4" />;
+      case 'documento': return <FileText className="h-4 w-4" />;
+      case 'reporte_seguridad': return <ShieldAlert className="h-4 w-4 text-red-500" />;
       default: return <Shield className="h-4 w-4" />;
     }
   };
@@ -266,6 +283,25 @@ const Verificacion = () => {
                         )}
                         {v.tipo === 'codigo_pago' && (
                           <p>Codigo: <strong>{v.datos.codigo}</strong></p>
+                        )}
+                        {v.tipo === 'documento' && (
+                          <>
+                            <p>Archivo: <strong>{v.datos.file_name}</strong></p>
+                            <p>Tipo: {v.datos.file_type} | Tamano: {(v.datos.file_size / 1024).toFixed(0)} KB</p>
+                            {v.datos.file_url && (
+                              <a href={v.datos.file_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">Ver archivo</a>
+                            )}
+                          </>
+                        )}
+                        {v.tipo === 'reporte_seguridad' && (
+                          <>
+                            <p className="text-destructive font-semibold">Intento de envio de informacion confidencial</p>
+                            <p>Razon: {v.datos.razon}</p>
+                            {v.datos.detalles && <p>Detalles: {v.datos.detalles}</p>}
+                            {v.datos.imagen_url && (
+                              <a href={v.datos.imagen_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">Ver imagen</a>
+                            )}
+                          </>
                         )}
                       </div>
 
