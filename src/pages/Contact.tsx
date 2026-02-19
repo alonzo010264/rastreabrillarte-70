@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Diamond, MessageSquare, Mail, Phone, MapPin, Clock, Instagram, Facebook, Send } from "lucide-react";
+import { MessageSquare, Mail, Phone, MapPin, Clock, Instagram, Facebook, Send } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,7 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       // Validar que todos los campos estén llenos
       if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
@@ -39,16 +39,16 @@ const Contact = () => {
       }
 
       // Guardar en la base de datos
-      const { error } = await supabase
-        .from('Contactos')
-        .insert([
-          {
-            nombre_cliente: formData.name.trim(),
-            correo: formData.email.trim(),
-            descripcion_problema: formData.message.trim(),
-            estado: 'Pendiente'
-          }
-        ]);
+      const { error } = await supabase.
+      from('Contactos').
+      insert([
+      {
+        nombre_cliente: formData.name.trim(),
+        correo: formData.email.trim(),
+        descripcion_problema: formData.message.trim(),
+        estado: 'Pendiente'
+      }]
+      );
 
       if (error) {
         console.error('Error saving contact:', error);
@@ -71,20 +71,20 @@ const Contact = () => {
             console.error('Error enviando correo de confirmación:', emailError);
             toast({
               title: "Mensaje enviado",
-              description: "Recibimos tu mensaje. No pudimos enviar el correo de confirmación, pero te contactaremos pronto.",
+              description: "Recibimos tu mensaje. No pudimos enviar el correo de confirmación, pero te contactaremos pronto."
             });
           } else {
             console.log('Correo de confirmación enviado:', emailResp);
             toast({
               title: "¡Mensaje enviado!",
-              description: "Hemos recibido tu mensaje y te enviamos un correo de confirmación.",
+              description: "Hemos recibido tu mensaje y te enviamos un correo de confirmación."
             });
           }
         } catch (emailCatch) {
           console.error('Excepción enviando correo de confirmación:', emailCatch);
           toast({
             title: "Mensaje enviado",
-            description: "Guardamos tu mensaje, pero no pudimos enviar el correo de confirmación.",
+            description: "Guardamos tu mensaje, pero no pudimos enviar el correo de confirmación."
           });
         } finally {
           setFormData({ name: '', email: '', message: '' });
@@ -141,8 +141,8 @@ const Contact = () => {
                         placeholder="Tu nombre completo"
                         value={formData.name}
                         onChange={handleInputChange}
-                        required
-                      />
+                        required />
+
                     </div>
                     <div>
                       <Label htmlFor="email">Email</Label>
@@ -153,8 +153,8 @@ const Contact = () => {
                         placeholder="tu@email.com"
                         value={formData.email}
                         onChange={handleInputChange}
-                        required
-                      />
+                        required />
+
                     </div>
                     <div>
                       <Label htmlFor="message">Mensaje</Label>
@@ -165,8 +165,8 @@ const Contact = () => {
                         rows={5}
                         value={formData.message}
                         onChange={handleInputChange}
-                        required
-                      />
+                        required />
+
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? "Enviando..." : "Enviar Mensaje"}
@@ -215,11 +215,11 @@ const Contact = () => {
                   </div>
                   
                   <div className="pt-4 border-t">
-                    <Button 
-                      className="w-full" 
+                    <Button
+                      className="w-full"
                       variant="default"
-                      onClick={() => setAgentChatOpen(true)}
-                    >
+                      onClick={() => setAgentChatOpen(true)}>
+
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Hablar con Nosotros
                     </Button>
@@ -275,7 +275,7 @@ const Contact = () => {
 
           <div className="mt-16 text-center animate-fade-in animation-delay-400">
             <div className="bg-muted/50 rounded-lg p-8 border border-border">
-              <Diamond className="w-12 h-12 text-primary mx-auto mb-4 rotate-45" />
+              
               <h3 className="text-2xl font-light text-foreground mb-4">
                 ¿Tienes un pedido en proceso?
               </h3>
@@ -293,8 +293,8 @@ const Contact = () => {
 
       {agentChatOpen && <AgentChat onClose={() => setAgentChatOpen(false)} />}
       <Footer />
-    </div>
-  );
+    </div>);
+
 };
 
 export default Contact;
