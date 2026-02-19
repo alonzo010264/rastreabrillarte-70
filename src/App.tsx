@@ -72,14 +72,17 @@ const Cupones = lazy(() => import("./pages/Cupones"));
 const AdminCupones = lazy(() => import("./pages/AdminCupones"));
 const Eventos = lazy(() => import("./pages/Eventos"));
 
+// Componentes de protección
+const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
+
 // Chatbot se carga de forma diferida
 const ChatbotWrapper = lazy(() => import("./components/ChatbotWrapper").then(m => ({ default: m.ChatbotWrapper })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutos
-      gcTime: 10 * 60 * 1000, // 10 minutos (antes cacheTime)
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -94,6 +97,7 @@ const App = () => (
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
+            {/* Rutas públicas */}
             <Route path="/" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/nosotros" element={<AboutUs />} />
@@ -102,55 +106,60 @@ const App = () => (
             <Route path="/faq" element={<FAQ />} />
             <Route path="/contacto" element={<Contact />} />
             <Route path="/pedir" element={<OrderRequest />} />
-            <Route path="/manage" element={<OrderManagement />} />
             <Route path="/solicitar-retiro" element={<PickupRequest />} />
             <Route path="/cancel-notifications" element={<CancelNotifications />} />
             <Route path="/politicas-privacidad" element={<PrivacyPolicy />} />
             <Route path="/politicas-envio" element={<ShippingPolicy />} />
             <Route path="/politicas-reembolso" element={<RefundPolicy />} />
             <Route path="/terminos-condiciones" element={<TermsConditions />} />
-            <Route path="/admin/politicas" element={<AdminPoliticas />} />
             <Route path="/registro" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro-confirmado" element={<RegistroConfirmado />} />
             <Route path="/mi-cuenta" element={<CustomerDashboard />} />
             <Route path="/perfil" element={<Perfil />} />
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/productos" element={<AdminProductos />} />
-            <Route path="/admin/promociones" element={<AdminPromociones />} />
-            <Route path="/brillarte-pedidos" element={<BrillartePedidos />} />
             <Route path="/promociones" element={<Promociones />} />
             <Route path="/favoritos" element={<Favoritos />} />
             <Route path="/perfil/:userId" element={<PerfilPublico />} />
+            <Route path="/perfil-publico/:userId" element={<PerfilPublico />} />
             <Route path="/tarjetas-regalo" element={<TarjetasRegalo />} />
-            <Route path="/admin/tarjetas" element={<AdminTarjetas />} />
-            <Route path="/admin/roles" element={<AdminRoles />} />
-            <Route path="/admin/emails" element={<AdminEmails />} />
-            <Route path="/admin/cuentas" element={<AdminCuentas />} />
-            <Route path="/admin/cuenta/:userId" element={<AdminCuentaDetalle />} />
-            <Route path="/admin/tickets" element={<AdminTickets />} />
-            <Route path="/admin/verificaciones" element={<AdminVerificaciones />} />
-            <Route path="/admin/contabilidad" element={<AdminContabilidad />} />
             <Route path="/comunidad" element={<Comunidad />} />
             <Route path="/mensajes" element={<Mensajes />} />
-            <Route path="/perfil-publico/:userId" element={<PerfilPublico />} />
             <Route path="/solicitar-verificacion" element={<SolicitudVerificacion />} />
             <Route path="/cuenta-suspendida" element={<BannedAccount />} />
-            <Route path="/admin/carritos-abandonados" element={<AdminCarritosAbandonados />} />
-            <Route path="/admin/envios" element={<AdminEnvios />} />
             <Route path="/apelar-baneo" element={<ApelacionBaneo />} />
-            <Route path="/admin/solicitudes-ia" element={<AdminSolicitudesIA />} />
             <Route path="/guia-codigos-pago" element={<GuiaCodigosPago />} />
-            <Route path="/admin/codigos-pago" element={<AdminCodigosPago />} />
-            <Route path="/admin/brillarte-pay" element={<AdminBrillartePay />} />
             <Route path="/rastrear-pedido/:codigoPedido" element={<RastrearPedidoOnline />} />
             <Route path="/cuenta" element={<Account />} />
-            <Route path="/agente/login" element={<AgentLogin />} />
-            <Route path="/agente/dashboard" element={<AgentDashboard />} />
             <Route path="/rastrear-ticket" element={<RastrearTicket />} />
             <Route path="/cupones" element={<Cupones />} />
-            <Route path="/admin/cupones" element={<AdminCupones />} />
             <Route path="/eventos" element={<Eventos />} />
+
+            {/* Rutas de agente - requiere rol agent */}
+            <Route path="/agente/login" element={<AgentLogin />} />
+            <Route path="/agente/dashboard" element={<ProtectedRoute requiredRole="agent"><AgentDashboard /></ProtectedRoute>} />
+
+            {/* Rutas protegidas de administración - solo admin verificados */}
+            <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/productos" element={<ProtectedRoute><AdminProductos /></ProtectedRoute>} />
+            <Route path="/admin/promociones" element={<ProtectedRoute><AdminPromociones /></ProtectedRoute>} />
+            <Route path="/admin/tarjetas" element={<ProtectedRoute><AdminTarjetas /></ProtectedRoute>} />
+            <Route path="/admin/roles" element={<ProtectedRoute><AdminRoles /></ProtectedRoute>} />
+            <Route path="/admin/emails" element={<ProtectedRoute><AdminEmails /></ProtectedRoute>} />
+            <Route path="/admin/cuentas" element={<ProtectedRoute><AdminCuentas /></ProtectedRoute>} />
+            <Route path="/admin/cuenta/:userId" element={<ProtectedRoute><AdminCuentaDetalle /></ProtectedRoute>} />
+            <Route path="/admin/tickets" element={<ProtectedRoute><AdminTickets /></ProtectedRoute>} />
+            <Route path="/admin/verificaciones" element={<ProtectedRoute><AdminVerificaciones /></ProtectedRoute>} />
+            <Route path="/admin/contabilidad" element={<ProtectedRoute><AdminContabilidad /></ProtectedRoute>} />
+            <Route path="/admin/carritos-abandonados" element={<ProtectedRoute><AdminCarritosAbandonados /></ProtectedRoute>} />
+            <Route path="/admin/envios" element={<ProtectedRoute><AdminEnvios /></ProtectedRoute>} />
+            <Route path="/admin/solicitudes-ia" element={<ProtectedRoute><AdminSolicitudesIA /></ProtectedRoute>} />
+            <Route path="/admin/codigos-pago" element={<ProtectedRoute><AdminCodigosPago /></ProtectedRoute>} />
+            <Route path="/admin/brillarte-pay" element={<ProtectedRoute><AdminBrillartePay /></ProtectedRoute>} />
+            <Route path="/admin/politicas" element={<ProtectedRoute><AdminPoliticas /></ProtectedRoute>} />
+            <Route path="/admin/cupones" element={<ProtectedRoute><AdminCupones /></ProtectedRoute>} />
+            <Route path="/brillarte-pedidos" element={<ProtectedRoute><BrillartePedidos /></ProtectedRoute>} />
+            <Route path="/manage" element={<ProtectedRoute><OrderManagement /></ProtectedRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatbotWrapper />
