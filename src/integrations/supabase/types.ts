@@ -1131,6 +1131,7 @@ export type Database = {
           descripcion: string | null
           fecha_publicacion: string | null
           id: string
+          imagen_url: string | null
           titulo: string
         }
         Insert: {
@@ -1141,6 +1142,7 @@ export type Database = {
           descripcion?: string | null
           fecha_publicacion?: string | null
           id?: string
+          imagen_url?: string | null
           titulo: string
         }
         Update: {
@@ -1151,6 +1153,7 @@ export type Database = {
           descripcion?: string | null
           fecha_publicacion?: string | null
           id?: string
+          imagen_url?: string | null
           titulo?: string
         }
         Relationships: []
@@ -1392,10 +1395,13 @@ export type Database = {
           codigo_pedido: string
           created_at: string | null
           descripcion: string | null
+          detalles: Json | null
           estado: string | null
           fecha_asignacion: string | null
           id: string
+          imagen_url: string | null
           monto: number | null
+          nombre_producto: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -1404,10 +1410,13 @@ export type Database = {
           codigo_pedido: string
           created_at?: string | null
           descripcion?: string | null
+          detalles?: Json | null
           estado?: string | null
           fecha_asignacion?: string | null
           id?: string
+          imagen_url?: string | null
           monto?: number | null
+          nombre_producto?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -1416,10 +1425,13 @@ export type Database = {
           codigo_pedido?: string
           created_at?: string | null
           descripcion?: string | null
+          detalles?: Json | null
           estado?: string | null
           fecha_asignacion?: string | null
           id?: string
+          imagen_url?: string | null
           monto?: number | null
+          nombre_producto?: string | null
           updated_at?: string | null
           user_id?: string | null
         }

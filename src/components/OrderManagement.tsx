@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Package, Plus, Copy, Edit } from "lucide-react";
 import OnlineOrdersManagement from "./OnlineOrdersManagement";
+import AsignarPedidoCuenta from "./AsignarPedidoCuenta";
 
 interface Estatus {
   id: number;
@@ -365,8 +366,13 @@ const OrderManagement = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-light text-gray-800 mb-2">Gestión de Pedidos</h1>
-        <p className="text-gray-600">Crea y actualiza pedidos con seguimiento completo</p>
+        <h1 className="text-3xl font-light text-foreground mb-2">Gestión de Pedidos</h1>
+        <p className="text-muted-foreground">Crea y actualiza pedidos con seguimiento completo</p>
+      </div>
+
+      {/* Asignar pedido a cuenta */}
+      <div className="flex justify-end">
+        <AsignarPedidoCuenta />
       </div>
 
       {/* Crear nuevo pedido */}
