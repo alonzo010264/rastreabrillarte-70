@@ -75,6 +75,7 @@ const AdminNoticias = lazy(() => import("./pages/AdminNoticias"));
 const Novedades = lazy(() => import("./pages/Novedades"));
 const MiPedidoDetalle = lazy(() => import("./pages/MiPedidoDetalle"));
 const VerificacionPage = lazy(() => import("./pages/Verificacion"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Componentes de protección
 const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
@@ -140,6 +141,7 @@ const App = () => (
             <Route path="/novedades" element={<Novedades />} />
             <Route path="/mi-pedido/:codigoPedido" element={<MiPedidoDetalle />} />
             <Route path="/verificacion" element={<VerificacionPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Rutas de agente - requiere rol agent */}
             <Route path="/agente/login" element={<AgentLogin />} />

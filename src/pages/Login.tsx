@@ -16,10 +16,41 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      toast({
+        title: "Ingresa tu correo",
+        description: "Escribe tu correo electrónico para restablecer tu contraseña",
+        variant: "destructive"
+      });
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+      if (error) throw error;
+      toast({
+        title: "Correo enviado",
+        description: "Revisa tu bandeja de entrada para restablecer tu contraseña"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo enviar el correo",
+        variant: "destructive"
+      });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   useEffect(() => {
     const checkExistingSession = async () => {
@@ -176,17 +207,26 @@ const Login = () => {
                 />
               </div>
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                />
-                <label htmlFor="remember" className="text-sm text-muted-foreground">
-                  Mantener sesión iniciada
-                </label>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="remember"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <label htmlFor="remember" className="text-sm text-muted-foreground">
+                    Mantener sesión iniciada
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-primary hover:underline"
+                >
+                  ¿Olvidé mi contraseña?
+                </button>
               </div>
 
               <Button

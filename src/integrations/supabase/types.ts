@@ -737,18 +737,21 @@ export type Database = {
       conversations: {
         Row: {
           created_at: string | null
+          estado: string | null
           ia_activa: boolean | null
           id: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          estado?: string | null
           ia_activa?: boolean | null
           id?: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          estado?: string | null
           ia_activa?: boolean | null
           id?: string
           updated_at?: string | null
