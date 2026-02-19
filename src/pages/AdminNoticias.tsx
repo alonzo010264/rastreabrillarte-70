@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit, Newspaper, ArrowLeft, Image } from "lucide-react";
+import { Plus, Trash2, Edit, Newspaper, ArrowLeft, ImageIcon, Loader2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Dialog,
@@ -29,6 +29,7 @@ interface Noticia {
   activo: boolean | null;
   created_at: string | null;
   fecha_publicacion: string | null;
+  autor_nombre: string | null;
 }
 
 const AdminNoticias = () => {
@@ -36,6 +37,9 @@ const AdminNoticias = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     titulo: "",
     descripcion: "",
@@ -60,6 +64,7 @@ const AdminNoticias = () => {
   const resetForm = () => {
     setForm({ titulo: "", descripcion: "", contenido: "", categoria: "", imagen_url: "", activo: true });
     setEditingId(null);
+    setImagePreview(null);
   };
 
   const handleEdit = (n: Noticia) => {
@@ -71,8 +76,52 @@ const AdminNoticias = () => {
       imagen_url: n.imagen_url || "",
       activo: n.activo ?? true,
     });
+    setImagePreview(n.imagen_url || null);
     setEditingId(n.id);
     setDialogOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Error", description: "Solo se permiten imágenes", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Error", description: "La imagen no puede ser mayor a 5MB", variant: "destructive" });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('noticias-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('noticias-images').getPublicUrl(fileName);
+      
+      setForm(prev => ({ ...prev, imagen_url: urlData.publicUrl }));
+      setImagePreview(urlData.publicUrl);
+      toast({ title: "Imagen subida correctamente" });
+    } catch (error: any) {
+      console.error('Error uploading:', error);
+      toast({ title: "Error al subir imagen", description: error.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setForm(prev => ({ ...prev, imagen_url: "" }));
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSave = async () => {
@@ -81,6 +130,13 @@ const AdminNoticias = () => {
       return;
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('nombre_completo')
+      .eq('user_id', user?.id || '')
+      .maybeSingle();
+
     const payload = {
       titulo: form.titulo,
       descripcion: form.descripcion || null,
@@ -88,6 +144,8 @@ const AdminNoticias = () => {
       categoria: form.categoria || null,
       imagen_url: form.imagen_url || null,
       activo: form.activo,
+      autor_id: user?.id,
+      autor_nombre: profile?.nombre_completo || 'Admin',
     };
 
     let error;
@@ -158,10 +216,41 @@ const AdminNoticias = () => {
                 <Input value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} placeholder="Ej: Actualización, Nuevo servicio" />
               </div>
               <div>
-                <Label>URL de imagen</Label>
-                <Input value={form.imagen_url} onChange={(e) => setForm({ ...form, imagen_url: e.target.value })} placeholder="https://..." />
-                {form.imagen_url && (
-                  <img src={form.imagen_url} alt="Preview" className="mt-2 w-full max-h-48 object-cover rounded-lg" />
+                <Label>Imagen</Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                {!imagePreview ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full mt-1"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Subiendo...</>
+                    ) : (
+                      <><ImageIcon className="h-4 w-4 mr-2" /> Subir imagen desde equipo</>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="relative mt-2">
+                    <img src={imagePreview} alt="Preview" className="w-full max-h-48 object-cover rounded-lg" />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 h-7 w-7 rounded-full p-0"
+                      onClick={removeImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -197,6 +286,7 @@ const AdminNoticias = () => {
                     {n.categoria && <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{n.categoria}</span>}
                     {n.descripcion && <p className="text-sm text-muted-foreground mt-1">{n.descripcion}</p>}
                     <p className="text-xs text-muted-foreground mt-2">
+                      {n.autor_nombre && <span className="font-medium">{n.autor_nombre} · </span>}
                       {n.created_at ? new Date(n.created_at).toLocaleDateString("es-DO") : ""}
                     </p>
                   </div>

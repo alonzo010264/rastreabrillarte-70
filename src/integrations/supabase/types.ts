@@ -1125,6 +1125,8 @@ export type Database = {
       noticias: {
         Row: {
           activo: boolean | null
+          autor_id: string | null
+          autor_nombre: string | null
           categoria: string | null
           contenido: string
           created_at: string | null
@@ -1136,6 +1138,8 @@ export type Database = {
         }
         Insert: {
           activo?: boolean | null
+          autor_id?: string | null
+          autor_nombre?: string | null
           categoria?: string | null
           contenido: string
           created_at?: string | null
@@ -1147,6 +1151,8 @@ export type Database = {
         }
         Update: {
           activo?: boolean | null
+          autor_id?: string | null
+          autor_nombre?: string | null
           categoria?: string | null
           contenido?: string
           created_at?: string | null
