@@ -49,13 +49,13 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               <div class="content">
                 <p>Hola,</p>
-                <p><strong>👥 Hemos recibido tu mensaje. Un agente humano real está revisando tu solicitud.</strong></p>
+                <p><strong>Hemos recibido tu mensaje. Un agente humano real está revisando tu solicitud.</strong></p>
                 <div class="ticket-number">Ticket #${supportNumber}</div>
                 <p><strong>Tu mensaje:</strong></p>
                 <p style="background: white; padding: 15px; border-left: 4px solid #000; margin: 15px 0;">
                   ${mensaje}
                 </p>
-                <h3>⏰ Tiempo de Respuesta</h3>
+                <h3>Tiempo de Respuesta</h3>
                 <p>Nuestros agentes humanos capacitados (María, Amanda, Luis, José) son <strong>personas reales</strong> que te contactarán en:</p>
                 <ul style="margin: 15px 0; padding-left: 20px;">
                   <li>Unos minutos para consultas simples</li>
@@ -69,7 +69,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <p><strong>Equipo BRILLARTE</strong><br><em>Personas reales, atención humana</em></p>
               </div>
               <div class="footer">
-                <p>© 2025 BRILLARTE - Todos los derechos reservados</p>
+                <p>© ${new Date().getFullYear()} BRILLARTE - Todos los derechos reservados</p>
               </div>
             </div>
           </body>

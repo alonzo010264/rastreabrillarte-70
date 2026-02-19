@@ -57,7 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
                       <tr>
                         <td style="padding: 40px;">
                           <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: 400;">
-                            Solicitud de Ayuda de Emergencia Recibida 🚨
+                            Solicitud de Ayuda de Emergencia Recibida
                           </h2>
                           
                           <p style="color: #333333; margin: 0 0 20px 0; font-size: 16px; line-height: 1.6;">
@@ -70,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
                           
                           <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 20px 0;">
                             <p style="color: #856404; margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">
-                              ⚠️ Solicitud de Emergencia
+                              Solicitud de Emergencia
                             </p>
                             <p style="color: #856404; margin: 0; font-size: 14px; line-height: 1.6;">
                               Nuestro equipo ha sido notificado de tu situación y trabajará para dar solución lo más pronto posible.
@@ -113,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
                       BRILLARTE - El Arte de Brillar<br>
                       Santiago de los Caballeros, República Dominicana<br>
                       Email: brillarte.oficial.ventas@gmail.com | WhatsApp: 849-425-2220<br>
-                      © 2024 Todos los derechos reservados
+                      © ${new Date().getFullYear()} Todos los derechos reservados
                     </p>
                   </td>
                 </tr>

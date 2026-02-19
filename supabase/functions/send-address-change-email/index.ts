@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
                       <tr>
                         <td style="padding: 40px;">
                           <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: 400;">
-                            Solicitud de Cambio de Dirección Recibida ✅
+                            Solicitud de Cambio de Direccion Recibida
                           </h2>
                           
                           <p style="color: #333333; margin: 0 0 20px 0; font-size: 16px; line-height: 1.6;">
@@ -96,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
                           
                           <div style="background-color: #f5f5f5; border-left: 4px solid #000000; padding: 20px; margin: 20px 0;">
                             <p style="color: #000000; margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">
-                              📍 Nueva Dirección
+                              Nueva Direccion
                             </p>
                             <p style="color: #666666; margin: 0; font-size: 14px; line-height: 1.6;">
                               ${newAddress}
@@ -130,7 +130,7 @@ const handler = async (req: Request): Promise<Response> => {
                       BRILLARTE - El Arte de Brillar<br>
                       Santiago de los Caballeros, República Dominicana<br>
                       Email: brillarte.oficial.ventas@gmail.com | WhatsApp: 849-425-2220<br>
-                      © 2024 Todos los derechos reservados
+                       © ${new Date().getFullYear()} Todos los derechos reservados
                     </p>
                   </td>
                 </tr>
@@ -186,7 +186,7 @@ const handler = async (req: Request): Promise<Response> => {
                       <tr>
                         <td style="padding: 40px;">
                           <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: 400;">
-                            ${canChange ? '✅ Cambio de Dirección Aprobado' : '❌ Cambio de Dirección No Disponible'}
+                            ${canChange ? 'Cambio de Direccion Aprobado' : 'Cambio de Direccion No Disponible'}
                           </h2>
                           
                           <p style="color: #333333; margin: 0 0 20px 0; font-size: 16px; line-height: 1.6;">
@@ -200,7 +200,7 @@ const handler = async (req: Request): Promise<Response> => {
                             
                             <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0;">
                               <p style="color: #155724; margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">
-                                ✅ Cambio Aprobado
+                                Cambio Aprobado
                               </p>
                               <p style="color: #155724; margin: 0; font-size: 14px; line-height: 1.6;">
                                 Tu pedido se encuentra en estado "Creado", por lo que podemos actualizar la dirección de envío sin problemas.
@@ -217,7 +217,7 @@ const handler = async (req: Request): Promise<Response> => {
                             
                             <div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 20px; margin: 20px 0;">
                               <p style="color: #721c24; margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">
-                                ❌ Cambio No Disponible
+                                Cambio No Disponible
                               </p>
                               <p style="color: #721c24; margin: 0; font-size: 14px; line-height: 1.6;">
                                 Tu pedido se encuentra en estado "${statusName}", lo que significa que ya está siendo procesado o enviado. Por razones logísticas, no podemos modificar la dirección en esta etapa.
@@ -252,7 +252,7 @@ const handler = async (req: Request): Promise<Response> => {
                       BRILLARTE - El Arte de Brillar<br>
                       Santiago de los Caballeros, República Dominicana<br>
                       Email: brillarte.oficial.ventas@gmail.com | WhatsApp: 849-425-2220<br>
-                      © 2024 Todos los derechos reservados
+                      © ${new Date().getFullYear()} Todos los derechos reservados
                     </p>
                   </td>
                 </tr>
@@ -270,8 +270,8 @@ const handler = async (req: Request): Promise<Response> => {
       to: [email],
       replyTo: ["contacto@oficial.brillarte.lat"],
       subject: canChange 
-        ? "✅ Cambio de Dirección Aprobado - BRILLARTE"
-        : "❌ Cambio de Dirección No Disponible - BRILLARTE",
+        ? "Cambio de Direccion Aprobado - BRILLARTE"
+        : "Cambio de Direccion No Disponible - BRILLARTE",
       html: statusHtml,
     });
 

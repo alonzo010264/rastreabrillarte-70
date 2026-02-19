@@ -52,11 +52,11 @@ const handler = async (req: Request): Promise<Response> => {
           
           <!-- Content -->
           <div style="padding: 40px 30px;">
-            <h2 style="color: #000000; margin: 0 0 20px; font-size: 22px;">¡Hola ${nombre}! 👋</h2>
+            <h2 style="color: #000000; margin: 0 0 20px; font-size: 22px;">Hola ${nombre}</h2>
             
             <p style="color: #333333; font-size: 16px; line-height: 1.8; margin-bottom: 25px;">
               Acabamos de ver que agregaste algunos productos a tu carrito pero no completaste tu compra. 
-              ¡No te preocupes! Tus artículos te están esperando.
+              Tus articulos te estan esperando.
             </p>
             
             <!-- Products Table -->
@@ -93,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <p style="color: #666666; font-size: 14px; text-align: center; line-height: 1.6;">
               Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos.
-              ¡Estamos aquí para ti!
+              Estamos aqui para ti.
             </p>
           </div>
           
@@ -112,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "BRILLARTE <cupon@oficial.brillarte.lat>",
       to: [email],
-      subject: "¡Tu carrito te extraña! 🛒 - BRILLARTE",
+      subject: "Tu carrito te extraña - BRILLARTE",
       html: emailHtml,
     });
 

@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (data.tipo_servicio === 'retiro') {
       detallesServicio = `
         <div class="info-box">
-          <h3>🏪 Retiro en Tienda</h3>
+          <h3>Retiro en Tienda</h3>
           <p><strong>Descripción del producto:</strong> ${data.descripcion}</p>
           <p style="color: #666;">Te contactaremos cuando tu pedido esté listo para recoger.</p>
         </div>
@@ -46,7 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
     } else {
       detallesServicio = `
         <div class="info-box">
-          <h3>🚚 Envío a Domicilio</h3>
+          <h3>Envio a Domicilio</h3>
           <p><strong>Descripción del producto:</strong> ${data.descripcion}</p>
           <p><strong>Dirección:</strong> ${data.direccion}, #${data.numero_casa}</p>
           <p><strong>Sector:</strong> ${data.sector}</p>
@@ -83,10 +83,10 @@ const handler = async (req: Request): Promise<Response> => {
               <div class="header">
                 <img src="https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg" alt="BRILLARTE" style="width: 70px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
                 <h1>BRILLARTE</h1>
-                <p>¡Tu Pedido ha sido Recibido!</p>
+                <p>Tu Pedido ha sido Recibido</p>
               </div>
               <div class="content">
-                <h2>¡Hola ${data.nombre}!</h2>
+                <h2>Hola ${data.nombre}</h2>
                 <p>Gracias por tu pedido. Hemos recibido tu solicitud correctamente.</p>
                 
                 <div class="info-box">
@@ -114,7 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <li>WhatsApp: (849) 425-2220</li>
                 </ul>
 
-                <p>¡Gracias por confiar en BRILLARTE!</p>
+                <p>Gracias por confiar en BRILLARTE</p>
                 <p><strong>Equipo BRILLARTE</strong><br>
                 El Arte de Brillar</p>
               </div>
