@@ -50,6 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #000000 0%, #333333 100%); padding: 40px 30px; text-align: center;">
+              <img src="https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg" alt="BRILLARTE" style="width: 80px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
               <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase;">BRILLARTE</h1>
               <div style="width: 80px; height: 3px; background-color: #ffffff; margin: 15px auto 0;"></div>
             </div>
@@ -126,6 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #000000 0%, #333333 100%); padding: 40px 30px; text-align: center;">
+              <img src="https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg" alt="BRILLARTE" style="width: 80px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
               <h1 style="color: #ffffff; margin: 0 0 10px; font-size: 32px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase;">BRILLARTE</h1>
               <div style="width: 80px; height: 3px; background-color: #ffffff; margin: 0 auto;"></div>
               <h2 style="color: #ffffff; margin: 15px 0 0; font-size: 20px; font-weight: 300;">

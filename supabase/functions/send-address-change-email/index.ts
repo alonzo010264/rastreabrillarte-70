@@ -66,6 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <!-- Header -->
                 <tr>
                   <td align="center" style="padding: 40px 20px;">
+                    <img src="https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg" alt="BRILLARTE" style="width: 70px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
                     <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 2px;">
                       BRILLARTE
                     </h1>
@@ -168,6 +169,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <!-- Header -->
                 <tr>
                   <td align="center" style="padding: 40px 20px;">
+                    <img src="https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg" alt="BRILLARTE" style="width: 70px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
                     <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 2px;">
                       BRILLARTE
                     </h1>

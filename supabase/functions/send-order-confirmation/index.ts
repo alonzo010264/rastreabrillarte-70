@@ -42,6 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
             <tr>
               <td style="padding: 40px 20px; text-align: center; background-color: #000000;">
+                <img src="https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg" alt="BRILLARTE" style="width: 70px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
                 <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 300;">BRILLARTE</h1>
                 <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 14px;">
                   <img src="https://cdn-icons-png.flaticon.com/24/891/891462.png" alt="" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px;">

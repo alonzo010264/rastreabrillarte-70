@@ -58,6 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
           <!-- Header -->
           <div style="background-color: #000000; padding: 20px; text-align: center;">
+            <img src="https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg" alt="BRILLARTE" style="width: 70px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
             <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 2px;">
               BRILLARTE
             </h1>
