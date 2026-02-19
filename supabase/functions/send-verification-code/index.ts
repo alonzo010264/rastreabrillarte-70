@@ -155,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailData = {
-      from: "BRILLARTE <verificacion@brillarte.lat>",
+      from: "BRILLARTE <verificacion@factura.brillarte.lat>",
       to: [email],
       reply_to: "contacto@brillarte.lat",
       subject: `${code} - Codigo de Verificacion BRILLARTE`,
