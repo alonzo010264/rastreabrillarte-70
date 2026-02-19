@@ -71,6 +71,9 @@ const RastrearTicket = lazy(() => import("./pages/RastrearTicket"));
 const Cupones = lazy(() => import("./pages/Cupones"));
 const AdminCupones = lazy(() => import("./pages/AdminCupones"));
 const Eventos = lazy(() => import("./pages/Eventos"));
+const AdminNoticias = lazy(() => import("./pages/AdminNoticias"));
+const Novedades = lazy(() => import("./pages/Novedades"));
+const MiPedidoDetalle = lazy(() => import("./pages/MiPedidoDetalle"));
 
 // Componentes de protección
 const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
@@ -133,6 +136,8 @@ const App = () => (
             <Route path="/rastrear-ticket" element={<RastrearTicket />} />
             <Route path="/cupones" element={<Cupones />} />
             <Route path="/eventos" element={<Eventos />} />
+            <Route path="/novedades" element={<Novedades />} />
+            <Route path="/mi-pedido/:codigoPedido" element={<MiPedidoDetalle />} />
 
             {/* Rutas de agente - requiere rol agent */}
             <Route path="/agente/login" element={<AgentLogin />} />
@@ -157,6 +162,7 @@ const App = () => (
             <Route path="/admin/brillarte-pay" element={<ProtectedRoute><AdminBrillartePay /></ProtectedRoute>} />
             <Route path="/admin/politicas" element={<ProtectedRoute><AdminPoliticas /></ProtectedRoute>} />
             <Route path="/admin/cupones" element={<ProtectedRoute><AdminCupones /></ProtectedRoute>} />
+            <Route path="/admin/noticias" element={<ProtectedRoute><AdminNoticias /></ProtectedRoute>} />
             <Route path="/brillarte-pedidos" element={<ProtectedRoute><BrillartePedidos /></ProtectedRoute>} />
             <Route path="/manage" element={<ProtectedRoute><OrderManagement /></ProtectedRoute>} />
 
