@@ -51,7 +51,6 @@ const handler = async (req: Request): Promise<Response> => {
               BRILLARTE
             </h1>
             <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">
-              <img src="https://cdn-icons-png.flaticon.com/24/189/189001.png" alt="" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px; filter: invert(1);">
               El Arte de Brillar
             </p>
           </div>
@@ -59,7 +58,6 @@ const handler = async (req: Request): Promise<Response> => {
           <!-- Main Content -->
           <div style="padding: 40px 30px; background-color: #ffffff;">
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 28px; font-weight: bold; text-align: center;">
-              <img src="https://cdn-icons-png.flaticon.com/24/3069/3069186.png" alt="" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;">
               Bienvenido a la Familia BRILLARTE, ${nombre}
             </h2>
             
@@ -70,16 +68,15 @@ const handler = async (req: Request): Promise<Response> => {
             <!-- Beneficios -->
             <div style="background-color: #f8f9fa; border-left: 4px solid #000000; padding: 20px; margin: 30px 0;">
               <h3 style="color: #000000; margin: 0 0 15px 0; font-size: 18px;">
-                <img src="https://cdn-icons-png.flaticon.com/24/1828/1828884.png" alt="" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 8px;">
                 Disfruta de estos beneficios:
               </h3>
               <ul style="color: #666666; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
-                <li><img src="https://cdn-icons-png.flaticon.com/16/4213/4213958.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Acceso a promociones y sorteos exclusivos</li>
-                <li><img src="https://cdn-icons-png.flaticon.com/16/891/891462.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Compras rapidas y seguras con tu carrito</li>
-                <li><img src="https://cdn-icons-png.flaticon.com/16/833/833472.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Guarda tus productos favoritos</li>
-                <li><img src="https://cdn-icons-png.flaticon.com/16/3239/3239952.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Recibe notificaciones de nuevos productos</li>
-                <li><img src="https://cdn-icons-png.flaticon.com/16/1077/1077114.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Perfil personalizado con foto</li>
-                <li><img src="https://cdn-icons-png.flaticon.com/16/3596/3596165.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Atencion prioritaria</li>
+                <li>Acceso a promociones y sorteos exclusivos</li>
+                <li>Compras rapidas y seguras con tu carrito</li>
+                <li>Guarda tus productos favoritos</li>
+                <li>Recibe notificaciones de nuevos productos</li>
+                <li>Perfil personalizado con foto</li>
+                <li>Atencion prioritaria</li>
               </ul>
             </div>
 
@@ -87,14 +84,12 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="text-align: center; margin: 40px 0;">
               <a href="https://brillarte.lat/login" 
                  style="display: inline-block; background-color: #000000; color: #ffffff; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px;">
-                <img src="https://cdn-icons-png.flaticon.com/16/2991/2991112.png" alt="" style="vertical-align: middle; margin-right: 8px; filter: invert(1);">
                 INICIAR SESION
               </a>
             </div>
             
             <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
-              <img src="https://cdn-icons-png.flaticon.com/24/1329/1329416.png" alt="" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 5px;">
-              Gracias por confiar en nosotros<br>
+              Gracias por confiar en nosotros.<br>
               Bienvenido a la excelencia.
             </p>
           </div>
@@ -108,12 +103,8 @@ const handler = async (req: Request): Promise<Response> => {
               Excelencia en cada detalle
             </p>
             <p style="color: #999999; font-size: 12px; margin: 0;">
-              <img src="https://cdn-icons-png.flaticon.com/16/484/484167.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(0.6);">
               Santiago de los Caballeros, Republica Dominicana<br>
-              <img src="https://cdn-icons-png.flaticon.com/16/542/542638.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(0.6);">
-              brillarte.oficial.ventas@gmail.com | 
-              <img src="https://cdn-icons-png.flaticon.com/16/733/733585.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(0.6);">
-              849-425-2220<br>
+              brillarte.oficial.ventas@gmail.com | 849-425-2220<br>
               ${new Date().getFullYear()} BRILLARTE. Todos los derechos reservados.
             </p>
           </div>
