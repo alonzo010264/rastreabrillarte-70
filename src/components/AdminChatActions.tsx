@@ -3,20 +3,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Gift, Percent, CreditCard, DollarSign, Loader2 } from 'lucide-react';
+import { Gift, Percent, CreditCard, DollarSign, Loader2, Bot } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AdminChatActionsProps {
   targetUserId: string;
   conversationId: string;
   onMessageSent: () => void;
+  iaActiva?: boolean;
+  onToggleIA?: (active: boolean) => void;
 }
 
-export const AdminChatActions = ({ targetUserId, conversationId, onMessageSent }: AdminChatActionsProps) => {
+export const AdminChatActions = ({ targetUserId, conversationId, onMessageSent, iaActiva = false, onToggleIA }: AdminChatActionsProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [togglingIA, setTogglingIA] = useState(false);
 
   // Código de descuento
   const [descuentoCodigo, setDescuentoCodigo] = useState('');
@@ -38,57 +42,69 @@ export const AdminChatActions = ({ targetUserId, conversationId, onMessageSent }
     return result;
   };
 
-  const sendMessage = async (content: string, tipo: string = 'text', metadata?: any) => {
+  const handleToggleIA = async (checked: boolean) => {
+    setTogglingIA(true);
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .update({ ia_activa: checked } as any)
+        .eq('id', conversationId);
+      
+      if (error) throw error;
+      onToggleIA?.(checked);
+      toast.success(checked ? 'IA activada para esta conversacion' : 'IA desactivada');
+    } catch (error) {
+      console.error(error);
+      toast.error('Error al cambiar estado de IA');
+    } finally {
+      setTogglingIA(false);
+    }
+  };
+
+  // Enviar solicitud de verificación en vez de ejecutar directamente
+  const submitForVerification = async (tipo: string, datos: any) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    await supabase.from('messages').insert({
-      conversation_id: conversationId,
-      sender_id: user.id,
-      content,
-      tipo,
-      metadata
-    });
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('nombre_completo')
+      .eq('user_id', user.id)
+      .single();
 
-    await supabase
-      .from('conversations')
-      .update({ updated_at: new Date().toISOString() })
-      .eq('id', conversationId);
+    const { error } = await supabase
+      .from('verificaciones_envio' as any)
+      .insert({
+        agente_id: user.id,
+        agente_nombre: profile?.nombre_completo || user.email,
+        target_user_id: targetUserId,
+        conversation_id: conversationId,
+        tipo,
+        datos
+      } as any);
+
+    if (error) throw error;
   };
 
   const handleSendDescuento = async () => {
     if (!descuentoCodigo.trim()) {
-      toast.error('Ingresa un código');
+      toast.error('Ingresa un codigo');
       return;
     }
 
     setLoading(true);
     try {
-      // Crear código de descuento
-      const { error } = await supabase
-        .from('codigos_descuento')
-        .insert({
-          codigo: descuentoCodigo.toUpperCase(),
-          porcentaje_descuento: parseFloat(descuentoPorcentaje),
-          usos_maximos: 1,
-          descripcion: `Código personal para usuario`
-        });
+      await submitForVerification('descuento', {
+        codigo: descuentoCodigo.toUpperCase(),
+        porcentaje: parseFloat(descuentoPorcentaje)
+      });
 
-      if (error) throw error;
-
-      await sendMessage(
-        `Te envío un código de descuento exclusivo.\n\nCódigo: ${descuentoCodigo.toUpperCase()}\nDescuento: ${descuentoPorcentaje}%\n\nÚsalo en tu próxima compra.`,
-        'cupon',
-        { codigo: descuentoCodigo.toUpperCase(), descuento: descuentoPorcentaje }
-      );
-
-      toast.success('Código de descuento enviado');
+      toast.success('Solicitud enviada a verificacion. El CEO debe aprobarla.');
       setDescuentoCodigo('');
-      onMessageSent();
       setOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error('Error al crear código');
+      toast.error('Error al enviar solicitud');
     } finally {
       setLoading(false);
     }
@@ -96,39 +112,24 @@ export const AdminChatActions = ({ targetUserId, conversationId, onMessageSent }
 
   const handleSendCreditos = async () => {
     if (!creditoMonto || parseFloat(creditoMonto) <= 0) {
-      toast.error('Ingresa un monto válido');
+      toast.error('Ingresa un monto valido');
       return;
     }
 
     setLoading(true);
     try {
-      const { data: { user: admin } } = await supabase.auth.getUser();
-      
-      // Usar la función para actualizar saldo
-      const { error } = await supabase.rpc('update_user_balance', {
-        p_user_id: targetUserId,
-        p_monto: parseFloat(creditoMonto),
-        p_tipo: 'credito',
-        p_concepto: creditoRazon || 'Crédito enviado por soporte',
-        p_admin_id: admin?.id
+      await submitForVerification('credito', {
+        monto: parseFloat(creditoMonto),
+        razon: creditoRazon || 'Credito enviado por soporte'
       });
 
-      if (error) throw error;
-
-      await sendMessage(
-        `💰 ¡Te he agregado créditos a tu cuenta!\n\nMonto: $${parseFloat(creditoMonto).toFixed(2)}\nRazón: ${creditoRazon || 'Cortesía de BRILLARTE'}\n\nPuedes usarlos en tu próxima compra.`,
-        'credito',
-        { monto: creditoMonto, razon: creditoRazon }
-      );
-
-      toast.success('Créditos agregados y notificación enviada');
+      toast.success('Solicitud enviada a verificacion. El CEO debe aprobarla.');
       setCreditoMonto('');
       setCreditoRazon('');
-      onMessageSent();
       setOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error('Error al agregar créditos');
+      toast.error('Error al enviar solicitud');
     } finally {
       setLoading(false);
     }
@@ -139,143 +140,150 @@ export const AdminChatActions = ({ targetUserId, conversationId, onMessageSent }
     
     setLoading(true);
     try {
-      // Crear código de pago
-      const { error } = await supabase
-        .from('codigos_pago')
-        .insert({
-          codigo: codigo.toUpperCase()
-        });
+      await submitForVerification('codigo_pago', {
+        codigo: codigo.toUpperCase()
+      });
 
-      if (error) throw error;
-
-      await sendMessage(
-        `🔑 ¡Te envío un código de pago!\n\nCódigo: ${codigo.toUpperCase()}\n\nÚsalo para pagar tu pedido con envío por Vimenpaq.`,
-        'text'
-      );
-
-      toast.success('Código de pago enviado');
+      toast.success('Solicitud enviada a verificacion. El CEO debe aprobarla.');
       setCodigoPago('');
-      onMessageSent();
       setOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error('Error al crear código');
+      toast.error('Error al enviar solicitud');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Gift className="w-4 h-4" />
-          Enviar
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Acciones de Administrador</DialogTitle>
-        </DialogHeader>
+    <div className="flex items-center gap-2">
+      {/* Toggle IA */}
+      <div className="flex items-center gap-1.5">
+        <Bot className={`w-4 h-4 ${iaActiva ? 'text-primary' : 'text-muted-foreground'}`} />
+        <Switch
+          checked={iaActiva}
+          onCheckedChange={handleToggleIA}
+          disabled={togglingIA}
+          className="scale-75"
+        />
+        <span className="text-xs text-muted-foreground hidden sm:inline">IA</span>
+      </div>
 
-        <Tabs defaultValue="descuento">
-          <TabsList className="grid grid-cols-3 w-full">
-            <TabsTrigger value="descuento" className="gap-1 text-xs">
-              <Percent className="w-3 h-3" />
-              Descuento
-            </TabsTrigger>
-            <TabsTrigger value="creditos" className="gap-1 text-xs">
-              <DollarSign className="w-3 h-3" />
-              Créditos
-            </TabsTrigger>
-            <TabsTrigger value="codigo" className="gap-1 text-xs">
-              <CreditCard className="w-3 h-3" />
-              Código
-            </TabsTrigger>
-          </TabsList>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Gift className="w-4 h-4" />
+            Enviar
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar con Verificacion del CEO</DialogTitle>
+          </DialogHeader>
 
-          <TabsContent value="descuento" className="space-y-4">
-            <div>
-              <Label>Código de descuento</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={descuentoCodigo}
-                  onChange={(e) => setDescuentoCodigo(e.target.value.toUpperCase())}
-                  placeholder="BRILLARTE10"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDescuentoCodigo(generateRandomCode(8))}
-                >
-                  Generar
-                </Button>
+          <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+            Todas las solicitudes requieren aprobacion del CEO antes de ser enviadas al cliente.
+          </p>
+
+          <Tabs defaultValue="descuento">
+            <TabsList className="grid grid-cols-3 w-full">
+              <TabsTrigger value="descuento" className="gap-1 text-xs">
+                <Percent className="w-3 h-3" />
+                Descuento
+              </TabsTrigger>
+              <TabsTrigger value="creditos" className="gap-1 text-xs">
+                <DollarSign className="w-3 h-3" />
+                Creditos
+              </TabsTrigger>
+              <TabsTrigger value="codigo" className="gap-1 text-xs">
+                <CreditCard className="w-3 h-3" />
+                Codigo
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="descuento" className="space-y-4">
+              <div>
+                <Label>Codigo de descuento</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={descuentoCodigo}
+                    onChange={(e) => setDescuentoCodigo(e.target.value.toUpperCase())}
+                    placeholder="BRILLARTE10"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDescuentoCodigo(generateRandomCode(8))}
+                  >
+                    Generar
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div>
-              <Label>Porcentaje (%)</Label>
-              <Input
-                type="number"
-                value={descuentoPorcentaje}
-                onChange={(e) => setDescuentoPorcentaje(e.target.value)}
-                min="1"
-                max="100"
-              />
-            </div>
-            <Button onClick={handleSendDescuento} disabled={loading} className="w-full">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Código'}
-            </Button>
-          </TabsContent>
-
-          <TabsContent value="creditos" className="space-y-4">
-            <div>
-              <Label>Monto ($)</Label>
-              <Input
-                type="number"
-                value={creditoMonto}
-                onChange={(e) => setCreditoMonto(e.target.value)}
-                placeholder="50.00"
-                min="0"
-                step="0.01"
-              />
-            </div>
-            <div>
-              <Label>Razón (opcional)</Label>
-              <Input
-                value={creditoRazon}
-                onChange={(e) => setCreditoRazon(e.target.value)}
-                placeholder="Compensación por inconvenientes"
-              />
-            </div>
-            <Button onClick={handleSendCreditos} disabled={loading} className="w-full">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Agregar Créditos'}
-            </Button>
-          </TabsContent>
-
-          <TabsContent value="codigo" className="space-y-4">
-            <div>
-              <Label>Código de pago (opcional)</Label>
-              <div className="flex gap-2">
+              <div>
+                <Label>Porcentaje (%)</Label>
                 <Input
-                  value={codigoPago}
-                  onChange={(e) => setCodigoPago(e.target.value.toUpperCase())}
-                  placeholder="Dejar vacío para generar"
+                  type="number"
+                  value={descuentoPorcentaje}
+                  onChange={(e) => setDescuentoPorcentaje(e.target.value)}
+                  min="1"
+                  max="100"
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCodigoPago(generateRandomCode(10))}
-                >
-                  Generar
-                </Button>
               </div>
-            </div>
-            <Button onClick={handleSendCodigoPago} disabled={loading} className="w-full">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Código de Pago'}
-            </Button>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+              <Button onClick={handleSendDescuento} disabled={loading} className="w-full">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar a Verificacion'}
+              </Button>
+            </TabsContent>
+
+            <TabsContent value="creditos" className="space-y-4">
+              <div>
+                <Label>Monto (RD$)</Label>
+                <Input
+                  type="number"
+                  value={creditoMonto}
+                  onChange={(e) => setCreditoMonto(e.target.value)}
+                  placeholder="50.00"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <Label>Razon (opcional)</Label>
+                <Input
+                  value={creditoRazon}
+                  onChange={(e) => setCreditoRazon(e.target.value)}
+                  placeholder="Compensacion por inconvenientes"
+                />
+              </div>
+              <Button onClick={handleSendCreditos} disabled={loading} className="w-full">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar a Verificacion'}
+              </Button>
+            </TabsContent>
+
+            <TabsContent value="codigo" className="space-y-4">
+              <div>
+                <Label>Codigo de pago (opcional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={codigoPago}
+                    onChange={(e) => setCodigoPago(e.target.value.toUpperCase())}
+                    placeholder="Dejar vacio para generar"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCodigoPago(generateRandomCode(10))}
+                  >
+                    Generar
+                  </Button>
+                </div>
+              </div>
+              <Button onClick={handleSendCodigoPago} disabled={loading} className="w-full">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar a Verificacion'}
+              </Button>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
