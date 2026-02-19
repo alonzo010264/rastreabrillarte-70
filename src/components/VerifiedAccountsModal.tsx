@@ -39,6 +39,9 @@ const VerifiedAccountsModal = ({ open, onOpenChange, onSelectAccount }: Verified
   const loadVerifiedAccounts = async () => {
     setLoading(true);
     try {
+      // Get current user to exclude from list
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
       const { data, error } = await supabase
         .from('profiles')
         .select('user_id, nombre_completo, avatar_url, verificado, correo, identificador')
@@ -47,15 +50,17 @@ const VerifiedAccountsModal = ({ open, onOpenChange, onSelectAccount }: Verified
 
       if (error) throw error;
 
-      const formattedAccounts: VerifiedAccount[] = (data || []).map(account => {
-        const isOfficial = account.correo === BRILLARTE_OFFICIAL_EMAIL || account.correo?.endsWith('@brillarte.lat');
-        return {
-          ...account,
-          nombre_completo: isOfficial ? 'BRILLARTE' : account.nombre_completo,
-          avatar_url: isOfficial ? brillarteLogo : account.avatar_url,
-          isOfficial
-        };
-      });
+      const formattedAccounts: VerifiedAccount[] = (data || [])
+        .filter(account => account.user_id !== currentUser?.id)
+        .map(account => {
+          const isOfficial = account.correo === BRILLARTE_OFFICIAL_EMAIL || account.correo?.endsWith('@brillarte.lat');
+          return {
+            ...account,
+            nombre_completo: isOfficial ? 'BRILLARTE' : account.nombre_completo,
+            avatar_url: isOfficial ? brillarteLogo : account.avatar_url,
+            isOfficial
+          };
+        });
 
       // Ordenar para que BRILLARTE aparezca primero
       formattedAccounts.sort((a, b) => {

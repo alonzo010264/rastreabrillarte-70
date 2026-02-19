@@ -94,8 +94,9 @@ const Mensajes = () => {
         .from('user_roles')
         .select('role')
         .eq('user_id', currentUser.id)
+        .eq('role', 'admin')
         .maybeSingle();
-      setIsAdmin(roleData?.role === 'admin');
+      setIsAdmin(!!roleData);
     }
     
     if (!currentUser) {
