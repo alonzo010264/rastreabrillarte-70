@@ -76,11 +76,11 @@ const handler = async (req: Request): Promise<Response> => {
 
                 <p>Gracias por tu paciencia,</p>
                 <p><strong>Equipo BRILLARTE</strong><br>
-                El Arte de Brillar ✨</p>
+                El Arte de Brillar</p>
               </div>
               <div class="footer">
                 <p>Este es un correo automático. Puedes responder directamente para contactarnos.</p>
-                <p>© 2025 BRILLARTE - Todos los derechos reservados</p>
+                <p>© ${new Date().getFullYear()} BRILLARTE - Todos los derechos reservados</p>
               </div>
             </div>
           </body>

@@ -19,6 +19,8 @@ interface ContactEmailRequest {
   codigo_pedido?: string;
 }
 
+const LOGO_URL = "https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg";
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -50,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #000000 0%, #333333 100%); padding: 40px 30px; text-align: center;">
-              <img src="https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg" alt="BRILLARTE" style="width: 80px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
+              <img src="${LOGO_URL}" alt="BRILLARTE" style="width: 80px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
               <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase;">BRILLARTE</h1>
               <div style="width: 80px; height: 3px; background-color: #ffffff; margin: 15px auto 0;"></div>
             </div>
@@ -58,7 +60,6 @@ const handler = async (req: Request): Promise<Response> => {
             <!-- Content -->
             <div style="padding: 40px 30px;">
               <h2 style="color: #000000; margin: 0 0 25px; font-size: 24px; font-weight: 600;">
-                <img src="https://cdn-icons-png.flaticon.com/24/1077/1077114.png" alt="" style="width: 22px; height: 22px; vertical-align: middle; margin-right: 8px;">
                 Hola ${customerName}
               </h2>
               
@@ -70,7 +71,6 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="background: linear-gradient(135deg, #000000 0%, #333333 100%); color: white; padding: 25px; border-radius: 12px; text-align: center; margin: 30px 0; border: 2px solid #000000;">
                 <h2 style="margin: 0; font-size: 28px; letter-spacing: 3px; font-weight: bold;">${orderCode}</h2>
                 <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9; text-transform: uppercase;">
-                  <img src="https://cdn-icons-png.flaticon.com/16/891/891462.png" alt="" style="vertical-align: middle; margin-right: 5px; filter: invert(1);">
                   Codigo de pedido BRILLARTE
                 </p>
               </div>
@@ -78,7 +78,6 @@ const handler = async (req: Request): Promise<Response> => {
               <!-- Warning Box -->
               <div style="background-color: #f8f8f8; border-left: 5px solid #000000; padding: 20px; border-radius: 8px; margin: 30px 0;">
                 <h3 style="color: #000000; margin-top: 0; font-size: 18px; font-weight: bold;">
-                  <img src="https://cdn-icons-png.flaticon.com/24/1680/1680012.png" alt="" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">
                   IMPORTANTE - Manten tu codigo seguro
                 </h3>
                 <p style="color: #333333; margin-bottom: 0; font-size: 15px; line-height: 1.6;">
@@ -90,19 +89,17 @@ const handler = async (req: Request): Promise<Response> => {
               <!-- Next Steps -->
               <div style="background-color: #ffffff; border: 2px solid #f0f0f0; padding: 25px; border-radius: 12px; margin: 30px 0;">
                 <h3 style="color: #000000; margin-top: 0; font-size: 20px; font-weight: bold;">
-                  <img src="https://cdn-icons-png.flaticon.com/24/2991/2991112.png" alt="" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">
                   Que sigue?
                 </h3>
                 <ul style="color: #333333; padding-left: 20px; line-height: 1.8; font-size: 15px;">
-                  <li style="margin-bottom: 8px;"><img src="https://cdn-icons-png.flaticon.com/16/751/751463.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Puedes rastrear tu pedido con este codigo en nuestra pagina</li>
-                  <li style="margin-bottom: 8px;"><img src="https://cdn-icons-png.flaticon.com/16/954/954591.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Nuestros agentes buscaran el articulo que solicitas</li>
-                  <li style="margin-bottom: 8px;"><img src="https://cdn-icons-png.flaticon.com/16/455/455705.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Te contactaremos cuando encontremos el producto</li>
-                  <li style="margin-bottom: 0;"><img src="https://cdn-icons-png.flaticon.com/16/639/639365.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Te proporcionaremos precio y fecha estimada de entrega</li>
+                  <li style="margin-bottom: 8px;">Puedes rastrear tu pedido con este codigo en nuestra pagina</li>
+                  <li style="margin-bottom: 8px;">Nuestros agentes buscaran el articulo que solicitas</li>
+                  <li style="margin-bottom: 8px;">Te contactaremos cuando encontremos el producto</li>
+                  <li style="margin-bottom: 0;">Te proporcionaremos precio y fecha estimada de entrega</li>
                 </ul>
               </div>
               
               <p style="color: #333333; line-height: 1.8; font-size: 16px; text-align: center; margin: 30px 0;">
-                <img src="https://cdn-icons-png.flaticon.com/24/1329/1329416.png" alt="" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 5px;">
                 Gracias por preferirnos. Si tienes alguna pregunta, no dudes en contactarnos.
               </p>
             </div>
@@ -112,8 +109,8 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #666666; font-size: 14px; margin: 0; line-height: 1.6;">
                 Gracias por confiar en<br>
                 <strong style="color: #000000; font-size: 18px; letter-spacing: 2px;">BRILLARTE</strong><br>
-                <span style="font-size: 13px;"><img src="https://cdn-icons-png.flaticon.com/16/484/484167.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Santiago de los Caballeros, Republica Dominicana</span><br>
-                <span style="font-size: 12px;"><img src="https://cdn-icons-png.flaticon.com/16/542/542638.png" alt="" style="vertical-align: middle; margin-right: 5px;"> brillarte.oficial.ventas@gmail.com | <img src="https://cdn-icons-png.flaticon.com/16/733/733585.png" alt="" style="vertical-align: middle; margin-right: 5px;"> 849-425-2220</span>
+                <span style="font-size: 13px;">Santiago de los Caballeros, Republica Dominicana</span><br>
+                <span style="font-size: 12px;">brillarte.oficial.ventas@gmail.com | 849-425-2220</span>
               </p>
             </div>
           </div>
@@ -127,11 +124,10 @@ const handler = async (req: Request): Promise<Response> => {
             
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #000000 0%, #333333 100%); padding: 40px 30px; text-align: center;">
-              <img src="https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg" alt="BRILLARTE" style="width: 80px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
+              <img src="${LOGO_URL}" alt="BRILLARTE" style="width: 80px; height: auto; margin-bottom: 10px; border-radius: 50%;" />
               <h1 style="color: #ffffff; margin: 0 0 10px; font-size: 32px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase;">BRILLARTE</h1>
               <div style="width: 80px; height: 3px; background-color: #ffffff; margin: 0 auto;"></div>
               <h2 style="color: #ffffff; margin: 15px 0 0; font-size: 20px; font-weight: 300;">
-                <img src="https://cdn-icons-png.flaticon.com/24/190/190411.png" alt="" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px; filter: invert(1);">
                 Gracias por contactarnos
               </h2>
             </div>
@@ -139,7 +135,6 @@ const handler = async (req: Request): Promise<Response> => {
             <!-- Content -->
             <div style="padding: 40px 30px;">
               <p style="color: #000000; font-size: 18px; line-height: 1.8; margin-bottom: 20px;">
-                <img src="https://cdn-icons-png.flaticon.com/24/1077/1077114.png" alt="" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">
                 Hola <strong>${customerName}</strong>,
               </p>
               
@@ -150,7 +145,6 @@ const handler = async (req: Request): Promise<Response> => {
               ${orderCode ? `
                 <div style="background: linear-gradient(135deg, #f8f8f8 0%, #ffffff 100%); border-left: 5px solid #000000; padding: 20px; border-radius: 8px; margin: 25px 0;">
                   <p style="color: #000000; margin: 0; font-size: 16px;">
-                    <img src="https://cdn-icons-png.flaticon.com/20/891/891462.png" alt="" style="vertical-align: middle; margin-right: 8px;">
                     <strong>Codigo de pedido:</strong> <span style="font-family: monospace; font-size: 18px; font-weight: bold;">${orderCode}</span>
                   </p>
                 </div>
@@ -159,7 +153,6 @@ const handler = async (req: Request): Promise<Response> => {
               <!-- Info Box -->
               <div style="background-color: #f8f8f8; border: 2px solid #000000; padding: 25px; border-radius: 12px; margin: 30px 0;">
                 <p style="color: #000000; margin: 0 0 10px; font-weight: bold; font-size: 16px;">
-                  <img src="https://cdn-icons-png.flaticon.com/24/2088/2088617.png" alt="" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">
                   Tiempo de respuesta estimado
                 </p>
                 <p style="color: #333333; margin: 0; font-size: 15px; line-height: 1.6;">
@@ -168,7 +161,6 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <p style="color: #333333; font-size: 16px; line-height: 1.8; text-align: center; margin: 30px 0;">
-                <img src="https://cdn-icons-png.flaticon.com/24/751/751463.png" alt="" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 5px;">
                 Mientras tanto, puedes seguir rastreando tu pedido en nuestra pagina web.
               </p>
             </div>
@@ -178,8 +170,8 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #666666; font-size: 14px; margin: 0; line-height: 1.6;">
                 Atentamente,<br>
                 <strong style="color: #000000; font-size: 18px; letter-spacing: 2px;">El equipo de BRILLARTE</strong><br>
-                <span style="font-size: 13px;"><img src="https://cdn-icons-png.flaticon.com/16/484/484167.png" alt="" style="vertical-align: middle; margin-right: 5px;"> Santiago de los Caballeros, Republica Dominicana</span><br>
-                <span style="font-size: 12px;"><img src="https://cdn-icons-png.flaticon.com/16/542/542638.png" alt="" style="vertical-align: middle; margin-right: 5px;"> brillarte.oficial.ventas@gmail.com | <img src="https://cdn-icons-png.flaticon.com/16/733/733585.png" alt="" style="vertical-align: middle; margin-right: 5px;"> 849-425-2220</span>
+                <span style="font-size: 13px;">Santiago de los Caballeros, Republica Dominicana</span><br>
+                <span style="font-size: 12px;">brillarte.oficial.ventas@gmail.com | 849-425-2220</span>
               </p>
             </div>
           </div>
@@ -216,7 +208,6 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error en send-confirmation-email function:", error);
 
-    // Guardar log del error
     try {
       await supabase.from('email_logs').insert({
         destinatario: "unknown",
