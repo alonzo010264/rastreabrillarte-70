@@ -2655,6 +2655,10 @@ export type Database = {
     }
     Functions: {
       cleanup_expired_verification_codes: { Args: never; Returns: undefined }
+      create_conversation_with_participants: {
+        Args: { other_user_id: string }
+        Returns: string
+      }
       generate_order_code: { Args: never; Returns: string }
       generate_verification_code: { Args: never; Returns: string }
       get_user_conversation_ids: {
