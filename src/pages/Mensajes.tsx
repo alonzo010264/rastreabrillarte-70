@@ -468,6 +468,7 @@ const Mensajes = () => {
   const handleSelectVerifiedAccount = async (account: any) => {
     const convId = await getOrCreateConversation(account.user_id);
     if (convId) {
+      await loadConversations();
       setCurrentConversation(convId);
     }
   };
@@ -475,6 +476,7 @@ const Mensajes = () => {
   const handleSelectAccount = async (account: AccountResult) => {
     const convId = await getOrCreateConversation(account.user_id);
     if (convId) {
+      await loadConversations();
       setCurrentConversation(convId);
     }
   };
