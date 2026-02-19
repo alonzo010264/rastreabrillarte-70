@@ -56,6 +56,7 @@ const Mensajes = () => {
   
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
@@ -97,6 +98,15 @@ const Mensajes = () => {
         .eq('role', 'admin')
         .maybeSingle();
       setIsAdmin(!!roleData);
+
+      // Check if verified
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('verificado, correo')
+        .eq('user_id', currentUser.id)
+        .single();
+      const userIsVerified = profileData?.verificado || profileData?.correo?.endsWith('@brillarte.lat') || false;
+      setIsVerified(userIsVerified);
     }
     
     if (!currentUser) {
@@ -501,15 +511,17 @@ const Mensajes = () => {
               <h1 className="text-3xl font-bold">Mensajes</h1>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowSearchModal(true)}
-                className="gap-2"
-              >
-                <Search className="h-4 w-4" />
-                Buscar
-              </Button>
+              {isVerified && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowSearchModal(true)}
+                  className="gap-2"
+                >
+                  <Search className="h-4 w-4" />
+                  Buscar
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 size="sm"
@@ -752,6 +764,7 @@ const Mensajes = () => {
         open={showSearchModal}
         onOpenChange={setShowSearchModal}
         onSelectAccount={handleSelectAccount}
+        currentUserIsVerified={isVerified}
       />
       
       <Footer />
