@@ -18,16 +18,17 @@ export interface AccountResult {
   verificado: boolean;
   identificador: string | null;
   isOfficial: boolean;
-  displayName: string; // Lo que se muestra según verificación
+  displayName: string;
 }
 
 interface SearchAccountsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectAccount: (account: AccountResult) => void;
+  currentUserIsVerified?: boolean;
 }
 
-const SearchAccountsModal = ({ open, onOpenChange, onSelectAccount }: SearchAccountsModalProps) => {
+const SearchAccountsModal = ({ open, onOpenChange, onSelectAccount, currentUserIsVerified = false }: SearchAccountsModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [accounts, setAccounts] = useState<AccountResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,25 +49,28 @@ const SearchAccountsModal = ({ open, onOpenChange, onSelectAccount }: SearchAcco
     setHasSearched(true);
     
     try {
-      // Buscar por identificador (username)
-      const { data, error } = await supabase
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+      let query = supabase
         .from('profiles')
         .select('user_id, nombre_completo, avatar_url, verificado, correo, identificador')
-        .or(`identificador.ilike.%${searchQuery.trim()}%,nombre_completo.ilike.%${searchQuery.trim()}%`)
-        .limit(20);
+        .or(`identificador.ilike.%${searchQuery.trim()}%,nombre_completo.ilike.%${searchQuery.trim()}%`);
+
+      // Non-verified users can only search verified accounts
+      if (!currentUserIsVerified) {
+        query = query.eq('verificado', true);
+      }
+
+      const { data, error } = await query.limit(50);
 
       if (error) throw error;
-
-      // Obtener el usuario actual para excluirlo
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
       
       const formattedAccounts: AccountResult[] = (data || [])
-        .filter(account => account.user_id !== currentUser?.id) // Excluir usuario actual
+        .filter(account => account.user_id !== currentUser?.id)
         .map(account => {
           const isOfficial = account.correo === BRILLARTE_OFFICIAL_EMAIL || account.correo?.endsWith('@brillarte.lat');
           const isVerified = isOfficial || account.verificado;
           
-          // Si está verificado, mostrar nombre completo. Si no, solo el @username
           let displayName: string;
           if (isOfficial) {
             displayName = 'BRILLARTE';
@@ -87,7 +91,6 @@ const SearchAccountsModal = ({ open, onOpenChange, onSelectAccount }: SearchAcco
           };
         });
 
-      // Ordenar: verificados primero
       formattedAccounts.sort((a, b) => {
         if (a.isOfficial && !b.isOfficial) return -1;
         if (!a.isOfficial && b.isOfficial) return 1;
@@ -121,7 +124,6 @@ const SearchAccountsModal = ({ open, onOpenChange, onSelectAccount }: SearchAcco
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Buscador */}
           <div className="flex gap-2">
             <Input
               placeholder="Buscar por @usuario..."
@@ -135,13 +137,13 @@ const SearchAccountsModal = ({ open, onOpenChange, onSelectAccount }: SearchAcco
             </Button>
           </div>
 
-          {/* Nota de seguridad */}
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <ShieldCheck className="h-3 w-3" />
-            Por seguridad, solo se muestra el @usuario en cuentas no verificadas
-          </p>
+          {!currentUserIsVerified && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <ShieldCheck className="h-3 w-3" />
+              Solo puedes enviar mensajes a cuentas verificadas
+            </p>
+          )}
 
-          {/* Resultados */}
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -164,7 +166,6 @@ const SearchAccountsModal = ({ open, onOpenChange, onSelectAccount }: SearchAcco
                     }}
                   >
                     <Avatar className={account.isOfficial ? 'ring-2 ring-primary' : ''}>
-                      {/* No mostrar avatar para cuentas no verificadas */}
                       {account.verificado ? (
                         <>
                           <AvatarImage src={account.avatar_url || undefined} />

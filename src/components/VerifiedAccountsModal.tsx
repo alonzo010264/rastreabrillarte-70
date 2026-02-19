@@ -39,14 +39,15 @@ const VerifiedAccountsModal = ({ open, onOpenChange, onSelectAccount }: Verified
   const loadVerifiedAccounts = async () => {
     setLoading(true);
     try {
-      // Get current user to exclude from list
       const { data: { user: currentUser } } = await supabase.auth.getUser();
 
+      // Fetch ALL verified accounts without limit
       const { data, error } = await supabase
         .from('profiles')
         .select('user_id, nombre_completo, avatar_url, verificado, correo, identificador')
         .eq('verificado', true)
-        .order('nombre_completo');
+        .order('nombre_completo')
+        .limit(500);
 
       if (error) throw error;
 
@@ -62,7 +63,7 @@ const VerifiedAccountsModal = ({ open, onOpenChange, onSelectAccount }: Verified
           };
         });
 
-      // Ordenar para que BRILLARTE aparezca primero
+      // BRILLARTE first, then alphabetical
       formattedAccounts.sort((a, b) => {
         if (a.isOfficial && !b.isOfficial) return -1;
         if (!a.isOfficial && b.isOfficial) return 1;
@@ -83,7 +84,7 @@ const VerifiedAccountsModal = ({ open, onOpenChange, onSelectAccount }: Verified
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5 text-primary" />
-            Cuentas Verificadas
+            Cuentas Verificadas ({accounts.length})
           </DialogTitle>
         </DialogHeader>
 
