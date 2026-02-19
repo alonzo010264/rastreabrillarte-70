@@ -79,6 +79,30 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Support email sent successfully:", emailResponse);
 
+    // Notificar al CEO
+    try {
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "BRILLARTE Sistema <sistema@oficial.brillarte.lat>",
+          to: ["anotasy@gmail.com"],
+          subject: `Ticket de soporte #${supportNumber} creado`,
+          html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+            <h2 style="color:#000;">Nuevo ticket de soporte</h2>
+            <div style="background:#f5f5f5;padding:15px;border-left:4px solid #000;margin:15px 0;">
+              <p><strong>Ticket:</strong> #${supportNumber}</p>
+              <p><strong>Correo del cliente:</strong> ${email}</p>
+              <p><strong>Mensaje:</strong> ${mensaje}</p>
+              <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}</p>
+            </div>
+            <p style="color:#666;font-size:12px;">Notificacion automatica del sistema BRILLARTE</p>
+          </div>`,
+        }),
+      });
+    } catch (ceoErr) { console.error("Error notificando al CEO:", ceoErr); }
+
     return new Response(JSON.stringify({ success: true, ticketNumber: supportNumber }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },

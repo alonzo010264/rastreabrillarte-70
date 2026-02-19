@@ -131,6 +131,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Correo de suscripción enviado:", emailResponse);
 
+    // Notificar al CEO
+    try {
+      await resend.emails.send({
+        from: "BRILLARTE Sistema <sistema@oficial.brillarte.lat>",
+        to: ["anotasy@gmail.com"],
+        subject: `Nueva suscripcion al newsletter`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+          <h2 style="color:#000;">Nueva suscripcion al newsletter</h2>
+          <div style="background:#f5f5f5;padding:15px;border-left:4px solid #000;margin:15px 0;">
+            <p><strong>Correo suscrito:</strong> ${correo}</p>
+            <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}</p>
+          </div>
+          <p style="color:#666;font-size:12px;">Notificacion automatica del sistema BRILLARTE</p>
+        </div>`,
+      });
+    } catch (ceoErr) { console.error("Error notificando al CEO:", ceoErr); }
+
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
       headers: {

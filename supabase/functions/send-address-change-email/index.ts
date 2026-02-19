@@ -277,6 +277,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Status email sent');
 
+    // Notificar al CEO
+    try {
+      await resend.emails.send({
+        from: "BRILLARTE Sistema <sistema@oficial.brillarte.lat>",
+        to: ["anotasy@gmail.com"],
+        subject: `Solicitud de cambio de direccion - Pedido ${orderCode}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+          <h2 style="color:#000;">Cambio de direccion solicitado</h2>
+          <div style="background:#f5f5f5;padding:15px;border-left:4px solid #000;margin:15px 0;">
+            <p><strong>Pedido:</strong> ${orderCode}</p>
+            <p><strong>Correo:</strong> ${email}</p>
+            <p><strong>Nueva direccion:</strong> ${newAddress}</p>
+            <p><strong>Se puede cambiar:</strong> ${canChange ? 'Si' : 'No'}</p>
+            <p><strong>Estado actual:</strong> ${statusName}</p>
+            <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}</p>
+          </div>
+          <p style="color:#666;font-size:12px;">Notificacion automatica del sistema BRILLARTE</p>
+        </div>`,
+      });
+    } catch (ceoErr) { console.error("Error notificando al CEO:", ceoErr); }
+
     return new Response(
       JSON.stringify({ 
         success: true,

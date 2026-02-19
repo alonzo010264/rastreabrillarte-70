@@ -113,6 +113,26 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Email de resumen enviado:", emailResponse);
 
+    // Notificar al CEO
+    try {
+      await resend.emails.send({
+        from: "BRILLARTE Sistema <sistema@oficial.brillarte.lat>",
+        to: ["anotasy@gmail.com"],
+        subject: `Resumen de chat enviado - ${clientName || 'Cliente'} con ${agentName}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+          <h2 style="color:#000;">Resumen de conversacion enviado</h2>
+          <div style="background:#f5f5f5;padding:15px;border-left:4px solid #000;margin:15px 0;">
+            <p><strong>Cliente:</strong> ${clientName || 'No identificado'}</p>
+            <p><strong>Correo:</strong> ${clientEmail}</p>
+            <p><strong>Agente:</strong> ${agentName}</p>
+            <p><strong>Estado:</strong> ${resolved ? 'Resuelto' : 'Pendiente'}</p>
+            <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}</p>
+          </div>
+          <p style="color:#666;font-size:12px;">Notificacion automatica del sistema BRILLARTE</p>
+        </div>`,
+      });
+    } catch (ceoErr) { console.error("Error notificando al CEO:", ceoErr); }
+
     // Registrar en logs
     await supabase.from('email_logs').insert({
       destinatario: clientEmail,

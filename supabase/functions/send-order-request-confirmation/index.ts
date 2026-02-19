@@ -130,6 +130,29 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Correo de confirmación enviado:", emailResponse);
 
+    // Notificar al CEO
+    try {
+      await resend.emails.send({
+        from: "BRILLARTE Sistema <sistema@oficial.brillarte.lat>",
+        to: ["anotasy@gmail.com"],
+        subject: `Nuevo pedido ${data.codigo_pedido} de ${data.nombre}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+          <h2 style="color:#000;">Nuevo pedido recibido</h2>
+          <div style="background:#f5f5f5;padding:15px;border-left:4px solid #000;margin:15px 0;">
+            <p><strong>Cliente:</strong> ${data.nombre}</p>
+            <p><strong>Correo:</strong> ${data.correo}</p>
+            <p><strong>Codigo:</strong> ${data.codigo_pedido}</p>
+            <p><strong>Tipo:</strong> ${data.tipo_servicio === 'retiro' ? 'Retiro en tienda' : 'Envio a domicilio'}</p>
+            <p><strong>Descripcion:</strong> ${data.descripcion}</p>
+            ${data.direccion ? `<p><strong>Direccion:</strong> ${data.direccion}, #${data.numero_casa}, ${data.sector}, ${data.provincia}</p>` : ''}
+            ${data.telefono ? `<p><strong>Telefono:</strong> ${data.telefono}</p>` : ''}
+            <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}</p>
+          </div>
+          <p style="color:#666;font-size:12px;">Notificacion automatica del sistema BRILLARTE</p>
+        </div>`,
+      });
+    } catch (ceoErr) { console.error("Error notificando al CEO:", ceoErr); }
+
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
       headers: {
