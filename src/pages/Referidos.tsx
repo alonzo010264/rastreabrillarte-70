@@ -130,6 +130,7 @@ const Referidos = () => {
 
   const pendientes = referidos.filter((r) => r.estado === "pendiente");
   const confirmados = referidos.filter((r) => r.estado === "confirmado");
+  const rechazados = referidos.filter((r) => r.estado === "rechazado");
 
   return (
     <div className="min-h-screen bg-background">
@@ -189,9 +190,10 @@ const Referidos = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             {[
-              "Persona nueva se registra con tu codigo: +2 puntos (pendientes)",
-              "Cuando esa persona compre y pida factura digital: puntos confirmados",
-              "Por cada compra de tu referido: +1 o +2 puntos extra segun el producto",
+              "Persona nueva se registra con tu código → queda pendiente de aprobación",
+              "BRILLARTE verifica que es una cuenta real (se revisa dispositivo e info)",
+              "Una vez aprobado y cuando compre, tus puntos se confirman",
+              "Por cada compra de tu referido: +1 o +2 puntos extra según el producto",
               "Los puntos son validados manualmente por el equipo BRILLARTE",
             ].map((step, i) => (
               <div key={i} className="flex items-start gap-3">
@@ -230,8 +232,11 @@ const Referidos = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge variant={ref.estado === "confirmado" ? "default" : "outline"} className="text-xs">
-                        {ref.estado === "confirmado" ? "Confirmado" : "Pendiente"}
+                      <Badge 
+                        variant={ref.estado === "confirmado" ? "default" : ref.estado === "rechazado" ? "destructive" : "outline"} 
+                        className="text-xs"
+                      >
+                        {ref.estado === "confirmado" ? "Aprobado" : ref.estado === "rechazado" ? "Rechazado" : "En revisión"}
                       </Badge>
                       <span className="text-sm font-mono font-semibold">+{ref.puntos_otorgados}</span>
                     </div>
