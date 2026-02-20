@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, LogIn, Mail, ArrowLeft, CheckCircle, ShieldCheck } from "lucide-react";
+import { UserPlus, LogIn, Mail, ArrowLeft, CheckCircle, ShieldCheck, Gift } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PageHeader from "@/components/PageHeader";
@@ -24,6 +24,7 @@ const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [countdown, setCountdown] = useState(0);
+  const [referrerName, setReferrerName] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nombre: "",
     correo: "",
@@ -32,12 +33,35 @@ const Register = () => {
     codigoReferido: ""
   });
 
+  // Lookup referrer name by code
+  const lookupReferrer = async (code: string) => {
+    if (!code.trim()) { setReferrerName(null); return; }
+    try {
+      const { data: codeData } = await supabase
+        .from("codigos_referido")
+        .select("user_id")
+        .eq("codigo", code.trim())
+        .maybeSingle();
+      if (codeData) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("nombre_completo")
+          .eq("user_id", codeData.user_id)
+          .maybeSingle();
+        setReferrerName(profile?.nombre_completo || "Un usuario de BRILLARTE");
+      } else {
+        setReferrerName(null);
+      }
+    } catch { setReferrerName(null); }
+  };
+
   // Get referral code from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
     if (ref) {
       setFormData(prev => ({ ...prev, codigoReferido: ref }));
+      lookupReferrer(ref);
     }
   }, []);
 
@@ -343,6 +367,19 @@ const Register = () => {
             {/* Step 1: Email */}
             {step === 'email' && (
               <form onSubmit={handleSendCode} className="space-y-4">
+                {/* Referral banner */}
+                {referrerName && (
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center gap-3">
+                    <Gift className="h-5 w-5 text-primary flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">¡Estás siendo referido!</p>
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">{referrerName}</span> te ha invitado a unirte a BRILLARTE. Ambos ganarán puntos.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="text-center mb-4">
                   <Mail className="w-12 h-12 mx-auto text-primary mb-2" />
                   <h3 className="font-semibold">Ingresa tus datos</h3>
@@ -366,7 +403,13 @@ const Register = () => {
                     type="text"
                     placeholder="Ej: MARC-1234"
                     value={formData.codigoReferido}
-                    onChange={(e) => setFormData(prev => ({ ...prev, codigoReferido: e.target.value.toUpperCase() }))}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase();
+                      setFormData(prev => ({ ...prev, codigoReferido: val }));
+                      // Debounced lookup
+                      if (val.length >= 6) lookupReferrer(val);
+                      else setReferrerName(null);
+                    }}
                     className="rounded-lg font-mono"
                   />
                   <p className="text-xs text-muted-foreground mt-1">Si alguien te refirió, ingresa su código aquí</p>
