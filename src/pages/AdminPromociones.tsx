@@ -139,27 +139,22 @@ export default function AdminPromociones() {
         promocionId = data.id;
         toast.success('Promoción creada exitosamente');
 
-        // Enviar notificación a todos los usuarios si la promoción está activa
+        // Enviar notificación y correos a suscriptores si la promoción está activa
         if (activa) {
           try {
             // Generar mensaje con IA
             const { data: aiResponse } = await supabase.functions.invoke('generate-promo-notification', {
-              body: { 
-                titulo, 
-                descripcion,
-                imagen_url: imagenUrl 
-              }
+              body: { titulo, descripcion, imagen_url: imagenUrl }
             });
 
             const mensajeIA = aiResponse?.mensaje || `Nueva promoción: ${titulo} - Participa ahora`;
 
-            // Obtener todos los perfiles
+            // Obtener todos los perfiles para notificaciones in-app
             const { data: profiles } = await supabase
               .from('profiles')
               .select('user_id, codigo_membresia');
 
             if (profiles && profiles.length > 0) {
-              // Crear notificaciones para todos
               const notifications = profiles.map(p => ({
                 user_id: p.user_id,
                 codigo_membresia: p.codigo_membresia,
@@ -169,17 +164,27 @@ export default function AdminPromociones() {
                 imagen_url: imagenUrl || null,
                 accion_url: '/promociones'
               }));
-
               await supabase.from('notifications').insert(notifications);
-              
-              toast.success(`¡Notificación enviada a ${profiles.length} usuarios!`, {
-                duration: 4000
-              });
             }
+
+            // Enviar correos a todos los suscriptores del newsletter
+            const { data: emailResult } = await supabase.functions.invoke('send-promo-to-subscribers', {
+              body: {
+                titulo,
+                descripcion,
+                imagen_url: imagenUrl || null,
+                fecha_limite: fechaLimite
+              }
+            });
+
+            const sentCount = emailResult?.sent || 0;
+            const totalSubs = emailResult?.total || 0;
+            toast.success(`¡Promoción creada! Correo enviado a ${sentCount}/${totalSubs} suscriptores`, {
+              duration: 5000
+            });
           } catch (notifError) {
             console.error('Error enviando notificaciones:', notifError);
-            // No fallar la creación de la promoción si falla la notificación
-            toast.info('Promoción creada, pero hubo un error al enviar notificaciones');
+            toast.info('Promoción creada, pero hubo un error al enviar notificaciones/correos');
           }
         }
       }
