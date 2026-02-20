@@ -77,6 +77,7 @@ const MiPedidoDetalle = lazy(() => import("./pages/MiPedidoDetalle"));
 const VerificacionPage = lazy(() => import("./pages/Verificacion"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Referidos = lazy(() => import("./pages/Referidos"));
+const AdminReferidos = lazy(() => import("./pages/AdminReferidos"));
 
 // Componentes de protección
 const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
@@ -169,6 +170,7 @@ const App = () => (
             <Route path="/admin/politicas" element={<ProtectedRoute><AdminPoliticas /></ProtectedRoute>} />
             <Route path="/admin/cupones" element={<ProtectedRoute><AdminCupones /></ProtectedRoute>} />
             <Route path="/admin/noticias" element={<ProtectedRoute><AdminNoticias /></ProtectedRoute>} />
+            <Route path="/admin/referidos" element={<ProtectedRoute><AdminReferidos /></ProtectedRoute>} />
             <Route path="/brillarte-pedidos" element={<ProtectedRoute><BrillartePedidos /></ProtectedRoute>} />
             <Route path="/manage" element={<ProtectedRoute><OrderManagement /></ProtectedRoute>} />
 

@@ -6,8 +6,9 @@ import PageHeader from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Copy, Users, Star, Gift, Clock, CheckCircle, TrendingUp } from "lucide-react";
+import { Copy, Users, Star, Gift, Clock, CheckCircle, TrendingUp, Share2, ArrowRight } from "lucide-react";
 
 interface Referido {
   id: string;
@@ -32,7 +33,6 @@ const Referidos = () => {
   const [referidos, setReferidos] = useState<Referido[]>([]);
   const [historialPuntos, setHistorialPuntos] = useState<PuntoHistorial[]>([]);
   const [totalPuntos, setTotalPuntos] = useState(0);
-  const [userId, setUserId] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -41,13 +41,8 @@ const Referidos = () => {
 
   const checkUserAndLoad = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setIsLoggedIn(false);
-      setLoading(false);
-      return;
-    }
+    if (!user) { setIsLoggedIn(false); setLoading(false); return; }
     setIsLoggedIn(true);
-    setUserId(user.id);
     await Promise.all([
       loadCodigo(user.id),
       loadReferidos(user.id),
@@ -58,76 +53,42 @@ const Referidos = () => {
   };
 
   const loadCodigo = async (uid: string) => {
-    const { data } = await supabase
-      .from("codigos_referido")
-      .select("codigo")
-      .eq("user_id", uid)
-      .maybeSingle();
-
-    if (data) {
-      setCodigoReferido(data.codigo);
-    } else {
-      // Generate code
-      const { data: newCode } = await supabase.rpc("generate_referral_code", { p_user_id: uid });
-      if (newCode) {
-        await supabase.from("codigos_referido").insert({ user_id: uid, codigo: newCode });
-        setCodigoReferido(newCode);
-      }
+    const { data } = await supabase.from("codigos_referido").select("codigo").eq("user_id", uid).maybeSingle();
+    if (data) { setCodigoReferido(data.codigo); return; }
+    const { data: newCode } = await supabase.rpc("generate_referral_code", { p_user_id: uid });
+    if (newCode) {
+      await supabase.from("codigos_referido").insert({ user_id: uid, codigo: newCode });
+      setCodigoReferido(newCode);
     }
   };
 
   const loadReferidos = async (uid: string) => {
-    const { data } = await supabase
-      .from("referidos")
-      .select("id, referido_id, estado, puntos_otorgados, created_at")
-      .eq("referidor_id", uid)
-      .order("created_at", { ascending: false });
-
+    const { data } = await supabase.from("referidos").select("id, referido_id, estado, puntos_otorgados, created_at").eq("referidor_id", uid).order("created_at", { ascending: false });
     if (data && data.length > 0) {
-      // Load profiles for referidos
-      const referidoIds = data.map((r) => r.referido_id);
-      const { data: perfiles } = await supabase
-        .from("profiles")
-        .select("user_id, nombre_completo, avatar_url, correo")
-        .in("user_id", referidoIds);
-
-      const perfilMap = new Map(perfiles?.map((p) => [p.user_id, p]) || []);
-      const enriched = data.map((r) => ({
-        ...r,
-        perfil: perfilMap.get(r.referido_id) as any,
-      }));
-      setReferidos(enriched);
+      const ids = data.map((r) => r.referido_id);
+      const { data: perfiles } = await supabase.from("profiles").select("user_id, nombre_completo, avatar_url, correo").in("user_id", ids);
+      const map = new Map(perfiles?.map((p) => [p.user_id, p]) || []);
+      setReferidos(data.map((r) => ({ ...r, perfil: map.get(r.referido_id) as any })));
     }
   };
 
   const loadHistorialPuntos = async (uid: string) => {
-    const { data } = await supabase
-      .from("puntos_referidos")
-      .select("id, puntos, tipo, descripcion, created_at")
-      .eq("user_id", uid)
-      .order("created_at", { ascending: false })
-      .limit(20);
+    const { data } = await supabase.from("puntos_referidos").select("id, puntos, tipo, descripcion, created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(20);
     setHistorialPuntos(data || []);
   };
 
   const loadTotalPuntos = async (uid: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("puntos_referidos")
-      .eq("user_id", uid)
-      .single();
+    const { data } = await supabase.from("profiles").select("puntos_referidos").eq("user_id", uid).single();
     setTotalPuntos(data?.puntos_referidos || 0);
   };
 
   const copiarCodigo = () => {
     navigator.clipboard.writeText(codigoReferido);
-    toast.success("¡Código copiado!");
+    toast.success("Codigo copiado al portapapeles");
   };
 
   const compartirWhatsApp = () => {
-    const msg = encodeURIComponent(
-      `¡Únete a BRILLARTE usando mi código de referido: ${codigoReferido} y obtén beneficios exclusivos! 🌟 Regístrate aquí: ${window.location.origin}/registro?ref=${codigoReferido}`
-    );
+    const msg = encodeURIComponent(`Registrate en BRILLARTE con mi codigo ${codigoReferido} y obtiene beneficios exclusivos: ${window.location.origin}/registro?ref=${codigoReferido}`);
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
 
@@ -136,7 +97,7 @@ const Referidos = () => {
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="flex items-center justify-center py-32">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+          <div className="animate-spin h-8 w-8 border-2 border-foreground border-t-transparent rounded-full" />
         </div>
       </div>
     );
@@ -148,18 +109,16 @@ const Referidos = () => {
         <Navigation />
         <PageHeader title="Programa de Referidos" subtitle="Gana puntos refiriendo amigos" />
         <div className="container mx-auto px-4 py-16 text-center max-w-lg">
-          <Card className="border-primary/20">
-            <CardContent className="pt-8 pb-8 space-y-4">
-              <Gift className="h-16 w-16 mx-auto text-primary" />
-              <h2 className="text-2xl font-bold">¡Inicia sesión para participar!</h2>
-              <p className="text-muted-foreground">
-                Necesitas una cuenta para obtener tu código de referido y empezar a ganar puntos.
-              </p>
+          <Card>
+            <CardContent className="pt-10 pb-10 space-y-5">
+              <div className="w-16 h-16 mx-auto rounded-full border-2 border-foreground flex items-center justify-center">
+                <Gift className="h-7 w-7" />
+              </div>
+              <h2 className="text-2xl font-bold">Inicia sesion para participar</h2>
+              <p className="text-muted-foreground text-sm">Necesitas una cuenta para obtener tu codigo de referido y empezar a ganar puntos.</p>
               <div className="flex gap-3 justify-center pt-2">
-                <Button onClick={() => (window.location.href = "/login")}>Iniciar Sesión</Button>
-                <Button variant="outline" onClick={() => (window.location.href = "/registro")}>
-                  Registrarse
-                </Button>
+                <Button onClick={() => (window.location.href = "/login")}>Iniciar Sesion</Button>
+                <Button variant="outline" onClick={() => (window.location.href = "/registro")}>Registrarse</Button>
               </div>
             </CardContent>
           </Card>
@@ -177,117 +136,104 @@ const Referidos = () => {
       <Navigation />
       <PageHeader title="Programa de Referidos" subtitle="Refiere amigos y gana puntos" />
 
-      <div className="container mx-auto px-4 py-8 max-w-5xl space-y-8">
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <Star className="h-8 w-8 mx-auto text-yellow-500 mb-2" />
-              <p className="text-3xl font-bold text-primary">{totalPuntos}</p>
-              <p className="text-sm text-muted-foreground">Puntos Totales</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <Users className="h-8 w-8 mx-auto text-blue-500 mb-2" />
-              <p className="text-3xl font-bold">{referidos.length}</p>
-              <p className="text-sm text-muted-foreground">Referidos</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <CheckCircle className="h-8 w-8 mx-auto text-green-500 mb-2" />
-              <p className="text-3xl font-bold">{confirmados.length}</p>
-              <p className="text-sm text-muted-foreground">Confirmados</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <Clock className="h-8 w-8 mx-auto text-orange-500 mb-2" />
-              <p className="text-3xl font-bold">{pendientes.length}</p>
-              <p className="text-sm text-muted-foreground">Pendientes</p>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="container mx-auto px-4 py-10 max-w-5xl space-y-10">
 
-        {/* Código de Referido */}
-        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Gift className="h-5 w-5" /> Tu Código de Referido
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="bg-background border-2 border-primary rounded-lg px-6 py-3 text-2xl font-mono font-bold tracking-widest">
-                {codigoReferido}
+        {/* Hero Code Section */}
+        <Card className="border bg-card">
+          <CardContent className="p-8 md:p-10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="space-y-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">Tu codigo de referido</p>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl md:text-4xl font-mono font-bold tracking-[0.15em]">{codigoReferido}</span>
+                  <Button size="icon" variant="ghost" onClick={copiarCodigo} className="h-10 w-10">
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground max-w-md">Comparte este codigo. Cuando se registren y compren, ambos ganan.</p>
               </div>
-              <Button size="icon" variant="outline" onClick={copiarCodigo} title="Copiar código">
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Comparte este código con tus amigos. Cuando se registren y compren, ¡ambos ganan!
-            </p>
-            <div className="flex gap-3 flex-wrap">
-              <Button onClick={compartirWhatsApp} className="bg-green-600 hover:bg-green-700">
-                Compartir por WhatsApp
-              </Button>
-              <Button variant="outline" onClick={copiarCodigo}>
-                Copiar enlace
-              </Button>
-            </div>
-
-            {/* How it works */}
-            <div className="mt-6 p-4 bg-background/80 rounded-lg border">
-              <h4 className="font-semibold mb-3">¿Cómo funciona?</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>🔹 Si una persona <strong>nueva</strong> se registra con tu código: <strong>+2 puntos (pendientes)</strong></p>
-                <p>🔹 Cuando esa persona realice su primera compra y pida su factura digital: <strong>puntos confirmados</strong></p>
-                <p>🔹 Por cada compra de tu referido: <strong>+1 o +2 puntos extra</strong> según el producto</p>
-                <p>🔹 Los puntos son otorgados y validados manualmente por el equipo de BRILLARTE</p>
+              <div className="flex flex-col gap-2 min-w-[180px]">
+                <Button onClick={compartirWhatsApp} className="w-full">
+                  <Share2 className="h-4 w-4 mr-2" /> Compartir
+                </Button>
+                <Button variant="outline" onClick={copiarCodigo} className="w-full">
+                  <Copy className="h-4 w-4 mr-2" /> Copiar codigo
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Mis Referidos */}
-        <Card>
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Puntos Totales", value: totalPuntos, icon: Star },
+            { label: "Referidos", value: referidos.length, icon: Users },
+            { label: "Confirmados", value: confirmados.length, icon: CheckCircle },
+            { label: "Pendientes", value: pendientes.length, icon: Clock },
+          ].map((stat) => (
+            <Card key={stat.label} className="border">
+              <CardContent className="pt-6 pb-5 text-center">
+                <stat.icon className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-3xl font-bold">{stat.value}</p>
+                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* How it works */}
+        <Card className="border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">Como funciona</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[
+              "Persona nueva se registra con tu codigo: +2 puntos (pendientes)",
+              "Cuando esa persona compre y pida factura digital: puntos confirmados",
+              "Por cada compra de tu referido: +1 o +2 puntos extra segun el producto",
+              "Los puntos son validados manualmente por el equipo BRILLARTE",
+            ].map((step, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-foreground text-background text-xs flex items-center justify-center font-medium">{i + 1}</span>
+                <p className="text-sm text-muted-foreground">{step}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Referidos List */}
+        <Card className="border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" /> Mis Referidos ({referidos.length})
+            <CardTitle className="text-base font-semibold flex items-center justify-between">
+              <span>Mis Referidos</span>
+              <Badge variant="secondary" className="font-mono">{referidos.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {referidos.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-3 opacity-40" />
-                <p>Aún no has referido a nadie. ¡Comparte tu código!</p>
+              <div className="text-center py-12 text-muted-foreground">
+                <Users className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Aun no has referido a nadie</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="divide-y">
                 {referidos.map((ref) => (
-                  <div key={ref.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={ref.id} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
                         {ref.perfil?.nombre_completo?.[0]?.toUpperCase() || "?"}
                       </div>
                       <div>
-                        <p className="font-medium">{ref.perfil?.nombre_completo || "Usuario"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(ref.created_at).toLocaleDateString("es-DO")}
-                        </p>
+                        <p className="text-sm font-medium">{ref.perfil?.nombre_completo || "Usuario"}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(ref.created_at).toLocaleDateString("es-DO")}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge variant={ref.estado === "confirmado" ? "default" : "secondary"}>
-                        {ref.estado === "confirmado" ? (
-                          <><CheckCircle className="h-3 w-3 mr-1" /> Confirmado</>
-                        ) : (
-                          <><Clock className="h-3 w-3 mr-1" /> Pendiente</>
-                        )}
+                      <Badge variant={ref.estado === "confirmado" ? "default" : "outline"} className="text-xs">
+                        {ref.estado === "confirmado" ? "Confirmado" : "Pendiente"}
                       </Badge>
-                      <span className="text-sm font-semibold text-primary">+{ref.puntos_otorgados} pts</span>
+                      <span className="text-sm font-mono font-semibold">+{ref.puntos_otorgados}</span>
                     </div>
                   </div>
                 ))}
@@ -296,36 +242,32 @@ const Referidos = () => {
           </CardContent>
         </Card>
 
-        {/* Historial de Puntos */}
-        <Card>
+        {/* Historial */}
+        <Card className="border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" /> Historial de Puntos
+            <CardTitle className="text-base font-semibold flex items-center justify-between">
+              <span>Historial de Puntos</span>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             {historialPuntos.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Star className="h-12 w-12 mx-auto mb-3 opacity-40" />
-                <p>Todavía no tienes movimientos de puntos.</p>
+              <div className="text-center py-12 text-muted-foreground">
+                <Star className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Sin movimientos de puntos</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="divide-y">
                 {historialPuntos.map((h) => (
-                  <div key={h.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={h.id} className="flex items-center justify-between py-3">
                     <div>
-                      <p className="font-medium text-sm">{h.descripcion || h.tipo}</p>
+                      <p className="text-sm font-medium">{h.descripcion || h.tipo}</p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(h.created_at).toLocaleDateString("es-DO", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                        {new Date(h.created_at).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}
                       </p>
                     </div>
-                    <span className={`font-bold ${h.puntos > 0 ? "text-green-600" : "text-red-500"}`}>
-                      {h.puntos > 0 ? "+" : ""}
-                      {h.puntos} pts
+                    <span className={`text-sm font-mono font-bold ${h.puntos > 0 ? "text-foreground" : "text-muted-foreground"}`}>
+                      {h.puntos > 0 ? "+" : ""}{h.puntos} pts
                     </span>
                   </div>
                 ))}
