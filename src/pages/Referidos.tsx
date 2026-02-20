@@ -6,9 +6,10 @@ import PageHeader from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Copy, Users, Star, Gift, Clock, CheckCircle, TrendingUp, Share2, ArrowRight } from "lucide-react";
+import { Copy, Users, Star, Gift, Clock, CheckCircle, TrendingUp, Share2, Wallet, Sun, Moon } from "lucide-react";
+import ReferidosOnboarding from "@/components/referidos/ReferidosOnboarding";
+import ReferidosLeaderboard from "@/components/referidos/ReferidosLeaderboard";
 
 interface Referido {
   id: string;
@@ -33,7 +34,11 @@ const Referidos = () => {
   const [referidos, setReferidos] = useState<Referido[]>([]);
   const [historialPuntos, setHistorialPuntos] = useState<PuntoHistorial[]>([]);
   const [totalPuntos, setTotalPuntos] = useState(0);
+  const [saldo, setSaldo] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState("");
+  const [hasOnboarded, setHasOnboarded] = useState<boolean | null>(null);
+  const [tema, setTema] = useState<"claro" | "oscuro">("claro");
 
   useEffect(() => {
     checkUserAndLoad();
@@ -43,13 +48,33 @@ const Referidos = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setIsLoggedIn(false); setLoading(false); return; }
     setIsLoggedIn(true);
-    await Promise.all([
-      loadCodigo(user.id),
-      loadReferidos(user.id),
-      loadHistorialPuntos(user.id),
-      loadTotalPuntos(user.id),
-    ]);
+    setUserId(user.id);
+
+    // Check onboarding
+    const { data: perfil } = await supabase
+      .from("referidos_perfiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (perfil) {
+      setHasOnboarded(true);
+      setTema(perfil.tema_preferido === "oscuro" ? "oscuro" : "claro");
+      await loadAllData(user.id);
+    } else {
+      setHasOnboarded(false);
+    }
     setLoading(false);
+  };
+
+  const loadAllData = async (uid: string) => {
+    await Promise.all([
+      loadCodigo(uid),
+      loadReferidos(uid),
+      loadHistorialPuntos(uid),
+      loadTotalPuntos(uid),
+      loadSaldo(uid),
+    ]);
   };
 
   const loadCodigo = async (uid: string) => {
@@ -82,6 +107,11 @@ const Referidos = () => {
     setTotalPuntos(data?.puntos_referidos || 0);
   };
 
+  const loadSaldo = async (uid: string) => {
+    const { data } = await supabase.from("profiles").select("saldo").eq("user_id", uid).single();
+    setSaldo(data?.saldo || 0);
+  };
+
   const copiarCodigo = () => {
     navigator.clipboard.writeText(codigoReferido);
     toast.success("Codigo copiado al portapapeles");
@@ -95,9 +125,29 @@ const Referidos = () => {
   };
 
   const compartirWhatsApp = () => {
-    const msg = encodeURIComponent(`¡Únete a BRILLARTE con mi enlace! Regístrate aquí y ambos ganamos puntos: ${enlaceReferido}`);
+    const msg = encodeURIComponent(`Unete a BRILLARTE con mi enlace! Registrate aqui y ambos ganamos puntos: ${enlaceReferido}`);
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
+
+  const toggleTema = async () => {
+    const nuevoTema = tema === "claro" ? "oscuro" : "claro";
+    setTema(nuevoTema);
+    await supabase.from("referidos_perfiles").update({ tema_preferido: nuevoTema }).eq("user_id", userId);
+  };
+
+  const handleOnboardingComplete = async () => {
+    setHasOnboarded(true);
+    // Reload theme preference
+    const { data: perfil } = await supabase.from("referidos_perfiles").select("tema_preferido").eq("user_id", userId).maybeSingle();
+    if (perfil) setTema(perfil.tema_preferido === "oscuro" ? "oscuro" : "claro");
+    await loadAllData(userId);
+  };
+
+  // Theme classes
+  const bgPage = tema === "oscuro" ? "bg-neutral-950 text-white" : "bg-background";
+  const cardClass = tema === "oscuro" ? "bg-neutral-900 border-neutral-800 text-white" : "border bg-card";
+  const mutedText = tema === "oscuro" ? "text-neutral-400" : "text-muted-foreground";
+  const statBg = tema === "oscuro" ? "bg-neutral-900 border-neutral-800" : "border";
 
   if (loading) {
     return (
@@ -135,36 +185,79 @@ const Referidos = () => {
     );
   }
 
+  // Onboarding flow
+  if (hasOnboarded === false) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <PageHeader title="Programa de Referidos" subtitle="Configura tu cuenta de referidos" />
+        <ReferidosOnboarding userId={userId} onComplete={handleOnboardingComplete} />
+        <Footer />
+      </div>
+    );
+  }
+
   const pendientes = referidos.filter((r) => r.estado === "pendiente");
   const confirmados = referidos.filter((r) => r.estado === "confirmado");
-  const rechazados = referidos.filter((r) => r.estado === "rechazado");
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen transition-colors duration-300 ${bgPage}`}>
       <Navigation />
       <PageHeader title="Programa de Referidos" subtitle="Refiere amigos y gana puntos" />
 
       <div className="container mx-auto px-4 py-10 max-w-5xl space-y-10">
 
+        {/* Theme toggle */}
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={toggleTema} className={tema === "oscuro" ? "border-neutral-700 text-white hover:bg-neutral-800" : ""}>
+            {tema === "oscuro" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+            {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
+          </Button>
+        </div>
+
+        {/* Balance & Points */}
+        <Card className={cardClass}>
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5" />
+                  <p className={`text-xs uppercase tracking-[0.2em] font-medium ${mutedText}`}>Tu Saldo</p>
+                </div>
+                <p className="text-4xl font-bold font-mono">RD${saldo.toLocaleString("es-DO", { minimumFractionDigits: 2 })}</p>
+                <p className={`text-sm ${mutedText}`}>Saldo disponible en tu cuenta BRILLARTE</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  <p className={`text-xs uppercase tracking-[0.2em] font-medium ${mutedText}`}>Puntos de Referido</p>
+                </div>
+                <p className="text-4xl font-bold font-mono">{totalPuntos}</p>
+                <p className={`text-sm ${mutedText}`}>Puntos acumulados por referir amigos</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Hero Code Section */}
-        <Card className="border bg-card">
+        <Card className={cardClass}>
           <CardContent className="p-8 md:p-10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">Tu codigo de referido</p>
+                <p className={`text-xs uppercase tracking-[0.2em] font-medium ${mutedText}`}>Tu codigo de referido</p>
                 <div className="flex items-center gap-3">
                   <span className="text-3xl md:text-4xl font-mono font-bold tracking-[0.15em]">{codigoReferido}</span>
                   <Button size="icon" variant="ghost" onClick={copiarCodigo} className="h-10 w-10">
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground max-w-md">Comparte este codigo. Cuando se registren y compren, ambos ganan.</p>
+                <p className={`text-sm max-w-md ${mutedText}`}>Comparte este codigo. Cuando se registren y compren, ambos ganan.</p>
               </div>
               <div className="flex flex-col gap-2 min-w-[180px]">
                 <Button onClick={compartirWhatsApp} className="w-full">
                   <Share2 className="h-4 w-4 mr-2" /> Compartir
                 </Button>
-                <Button variant="outline" onClick={copiarCodigo} className="w-full">
+                <Button variant="outline" onClick={copiarCodigo} className={`w-full ${tema === "oscuro" ? "border-neutral-700 text-white hover:bg-neutral-800" : ""}`}>
                   <Copy className="h-4 w-4 mr-2" /> Copiar codigo
                 </Button>
               </div>
@@ -172,18 +265,18 @@ const Referidos = () => {
           </CardContent>
         </Card>
 
-        {/* Share Link Section */}
-        <Card className="border bg-card">
+        {/* Share Link */}
+        <Card className={cardClass}>
           <CardContent className="p-6 md:p-8 space-y-4">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">Compartir enlace de referido</p>
-              <p className="text-sm text-muted-foreground">Envía este enlace a quien quieras referir. Se registrarán directamente con tu código.</p>
+              <p className={`text-xs uppercase tracking-[0.2em] font-medium ${mutedText}`}>Compartir enlace de referido</p>
+              <p className={`text-sm ${mutedText}`}>Envia este enlace a quien quieras referir.</p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-muted rounded-lg px-4 py-2.5 font-mono text-sm text-foreground truncate border">
+              <div className={`flex-1 rounded-lg px-4 py-2.5 font-mono text-sm truncate border ${tema === "oscuro" ? "bg-neutral-800 border-neutral-700" : "bg-muted"}`}>
                 {enlaceReferido}
               </div>
-              <Button size="icon" variant="outline" onClick={copiarEnlace} className="h-10 w-10 flex-shrink-0">
+              <Button size="icon" variant="outline" onClick={copiarEnlace} className={`h-10 w-10 flex-shrink-0 ${tema === "oscuro" ? "border-neutral-700 text-white hover:bg-neutral-800" : ""}`}>
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
@@ -191,13 +284,14 @@ const Referidos = () => {
               <Button onClick={compartirWhatsApp} className="flex-1">
                 <Share2 className="h-4 w-4 mr-2" /> Compartir por WhatsApp
               </Button>
-              <Button variant="outline" onClick={copiarEnlace} className="flex-1">
+              <Button variant="outline" onClick={copiarEnlace} className={`flex-1 ${tema === "oscuro" ? "border-neutral-700 text-white hover:bg-neutral-800" : ""}`}>
                 <Copy className="h-4 w-4 mr-2" /> Copiar enlace
               </Button>
             </div>
           </CardContent>
         </Card>
 
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Puntos Totales", value: totalPuntos, icon: Star },
@@ -205,39 +299,42 @@ const Referidos = () => {
             { label: "Confirmados", value: confirmados.length, icon: CheckCircle },
             { label: "Pendientes", value: pendientes.length, icon: Clock },
           ].map((stat) => (
-            <Card key={stat.label} className="border">
+            <Card key={stat.label} className={statBg}>
               <CardContent className="pt-6 pb-5 text-center">
-                <stat.icon className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
+                <stat.icon className={`h-5 w-5 mx-auto mb-2 ${mutedText}`} />
                 <p className="text-3xl font-bold">{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+                <p className={`text-xs mt-1 ${mutedText}`}>{stat.label}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
+        {/* Leaderboard */}
+        <ReferidosLeaderboard tema={tema} />
+
         {/* How it works */}
-        <Card className="border">
+        <Card className={cardClass}>
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold">Como funciona</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {[
-              "Persona nueva se registra con tu código → queda pendiente de aprobación",
+              "Persona nueva se registra con tu codigo - queda pendiente de aprobacion",
               "BRILLARTE verifica que es una cuenta real (se revisa dispositivo e info)",
               "Una vez aprobado y cuando compre, tus puntos se confirman",
-              "Por cada compra de tu referido: +1 o +2 puntos extra según el producto",
+              "Por cada compra de tu referido: +1 o +2 puntos extra segun el producto",
               "Los puntos son validados manualmente por el equipo BRILLARTE",
             ].map((step, i) => (
               <div key={i} className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-foreground text-background text-xs flex items-center justify-center font-medium">{i + 1}</span>
-                <p className="text-sm text-muted-foreground">{step}</p>
+                <span className={`flex-shrink-0 w-6 h-6 rounded-full text-xs flex items-center justify-center font-medium ${tema === "oscuro" ? "bg-white text-black" : "bg-foreground text-background"}`}>{i + 1}</span>
+                <p className={`text-sm ${mutedText}`}>{step}</p>
               </div>
             ))}
           </CardContent>
         </Card>
 
         {/* Referidos List */}
-        <Card className="border">
+        <Card className={cardClass}>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center justify-between">
               <span>Mis Referidos</span>
@@ -246,29 +343,29 @@ const Referidos = () => {
           </CardHeader>
           <CardContent>
             {referidos.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
+              <div className={`text-center py-12 ${mutedText}`}>
                 <Users className="h-10 w-10 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">Aun no has referido a nadie</p>
               </div>
             ) : (
-              <div className="divide-y">
+              <div className={`divide-y ${tema === "oscuro" ? "divide-neutral-800" : ""}`}>
                 {referidos.map((ref) => (
                   <div key={ref.id} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${tema === "oscuro" ? "bg-neutral-800" : "bg-muted"}`}>
                         {ref.perfil?.nombre_completo?.[0]?.toUpperCase() || "?"}
                       </div>
                       <div>
                         <p className="text-sm font-medium">{ref.perfil?.nombre_completo || "Usuario"}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(ref.created_at).toLocaleDateString("es-DO")}</p>
+                        <p className={`text-xs ${mutedText}`}>{new Date(ref.created_at).toLocaleDateString("es-DO")}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge 
-                        variant={ref.estado === "confirmado" ? "default" : ref.estado === "rechazado" ? "destructive" : "outline"} 
+                      <Badge
+                        variant={ref.estado === "confirmado" ? "default" : ref.estado === "rechazado" ? "destructive" : "outline"}
                         className="text-xs"
                       >
-                        {ref.estado === "confirmado" ? "Aprobado" : ref.estado === "rechazado" ? "Rechazado" : "En revisión"}
+                        {ref.estado === "confirmado" ? "Aprobado" : ref.estado === "rechazado" ? "Rechazado" : "En revision"}
                       </Badge>
                       <span className="text-sm font-mono font-semibold">+{ref.puntos_otorgados}</span>
                     </div>
@@ -280,30 +377,30 @@ const Referidos = () => {
         </Card>
 
         {/* Historial */}
-        <Card className="border">
+        <Card className={cardClass}>
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center justify-between">
               <span>Historial de Puntos</span>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <TrendingUp className={`h-4 w-4 ${mutedText}`} />
             </CardTitle>
           </CardHeader>
           <CardContent>
             {historialPuntos.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
+              <div className={`text-center py-12 ${mutedText}`}>
                 <Star className="h-10 w-10 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">Sin movimientos de puntos</p>
               </div>
             ) : (
-              <div className="divide-y">
+              <div className={`divide-y ${tema === "oscuro" ? "divide-neutral-800" : ""}`}>
                 {historialPuntos.map((h) => (
                   <div key={h.id} className="flex items-center justify-between py-3">
                     <div>
                       <p className="text-sm font-medium">{h.descripcion || h.tipo}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className={`text-xs ${mutedText}`}>
                         {new Date(h.created_at).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}
                       </p>
                     </div>
-                    <span className={`text-sm font-mono font-bold ${h.puntos > 0 ? "text-foreground" : "text-muted-foreground"}`}>
+                    <span className={`text-sm font-mono font-bold ${h.puntos > 0 ? "" : mutedText}`}>
                       {h.puntos > 0 ? "+" : ""}{h.puntos} pts
                     </span>
                   </div>
