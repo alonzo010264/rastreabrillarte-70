@@ -36,6 +36,16 @@ export default function Promociones() {
 
   const checkSubscription = async () => {
     try {
+      // Check localStorage first for quick access
+      const cached = localStorage.getItem('brillarte_suscrito_promos');
+      if (cached === 'true') {
+        setIsSuscrito(true);
+        setCheckingSubscription(false);
+        // Still verify in background
+        verifySubscriptionInDb();
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.email) {
         setIsSuscrito(false);
@@ -50,13 +60,34 @@ export default function Promociones() {
         .eq('activo', true)
         .maybeSingle();
 
-      setIsSuscrito(!!data);
+      const subscribed = !!data;
+      setIsSuscrito(subscribed);
+      if (subscribed) {
+        localStorage.setItem('brillarte_suscrito_promos', 'true');
+      }
     } catch (error) {
       console.error('Error checking subscription:', error);
       setIsSuscrito(false);
     } finally {
       setCheckingSubscription(false);
     }
+  };
+
+  const verifySubscriptionInDb = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) return;
+      const { data } = await supabase
+        .from('suscriptores_newsletter')
+        .select('id, activo')
+        .eq('correo', user.email)
+        .eq('activo', true)
+        .maybeSingle();
+      if (!data) {
+        localStorage.removeItem('brillarte_suscrito_promos');
+        setIsSuscrito(false);
+      }
+    } catch {}
   };
 
   useEffect(() => {
@@ -96,6 +127,7 @@ export default function Promociones() {
       });
 
       toast.success('¡Te has suscrito exitosamente!');
+      localStorage.setItem('brillarte_suscrito_promos', 'true');
       setIsSuscrito(true);
     } catch (error) {
       console.error('Error subscribing:', error);
