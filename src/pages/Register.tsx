@@ -25,6 +25,7 @@ const Register = () => {
   const [verificationCode, setVerificationCode] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [referrerName, setReferrerName] = useState<string | null>(null);
+  const [hasRefFromUrl, setHasRefFromUrl] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
     correo: "",
@@ -61,6 +62,7 @@ const Register = () => {
     const ref = params.get("ref");
     if (ref) {
       setFormData(prev => ({ ...prev, codigoReferido: ref }));
+      setHasRefFromUrl(true);
       lookupReferrer(ref);
     }
   }, []);
@@ -397,23 +399,16 @@ const Register = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Código de Referido (opcional)</label>
-                  <Input
-                    type="text"
-                    placeholder="Ej: MARC-1234"
-                    value={formData.codigoReferido}
-                    onChange={(e) => {
-                      const val = e.target.value.toUpperCase();
-                      setFormData(prev => ({ ...prev, codigoReferido: val }));
-                      // Debounced lookup
-                      if (val.length >= 6) lookupReferrer(val);
-                      else setReferrerName(null);
-                    }}
-                    className="rounded-lg font-mono"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Si alguien te refirió, ingresa su código aquí</p>
-                </div>
+                {/* Referral code - only shown when coming from a referral link */}
+                {hasRefFromUrl && (
+                  <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Código de Referido</label>
+                    <div className="flex items-center gap-2">
+                      <Gift className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span className="font-mono font-bold text-foreground tracking-wider">{formData.codigoReferido}</span>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Correo Electronico</label>
