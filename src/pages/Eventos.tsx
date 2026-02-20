@@ -3,30 +3,30 @@ import Footer from "@/components/Footer";
 import PageHeader from "@/components/PageHeader";
 import { Calendar, Heart, Gift, Users, Star, Sparkles, PartyPopper, Music } from "lucide-react";
 import { Link } from "react-router-dom";
-import eventoBoda from "@/assets/eventos/evento-boda.jpg";
-import eventoCumple from "@/assets/eventos/evento-cumple.jpg";
-import eventoCorporativo from "@/assets/eventos/evento-corporativo.jpg";
+import eventoAretes from "@/assets/eventos/evento-aretes-flores.png";
+import eventoColeccion from "@/assets/eventos/evento-coleccion-anillos.png";
+import eventoPulsera from "@/assets/eventos/evento-pulsera-turquesa.png";
 
 const eventTypes = [
   {
     title: "Bodas & Compromisos",
     description: "Haz que el día más especial sea inolvidable con pulseras y accesorios personalizados para la novia, damas de honor y todos los invitados. Cada pieza cuenta una historia de amor.",
     icon: Heart,
-    image: eventoBoda,
+    image: eventoAretes,
     features: ["Pulseras personalizadas para damas de honor", "Recuerdos únicos para invitados", "Diseños exclusivos con los colores de tu boda", "Packaging especial para la ocasión"],
   },
   {
     title: "Cumpleaños & Celebraciones",
     description: "Dale vida a cualquier fiesta con accesorios coloridos y llenos de energía. Perfectos como regalos, souvenirs o para crear momentos memorables con tus seres queridos.",
     icon: PartyPopper,
-    image: eventoCumple,
+    image: eventoColeccion,
     features: ["Sets de pulseras temáticas", "Colores personalizados por fiesta", "Ideales para bolsas de regalo", "Opciones para todas las edades"],
   },
   {
     title: "Eventos Corporativos",
     description: "Eleva tu marca con accesorios artesanales de alta calidad. Perfectos para conferencias, lanzamientos de productos o regalos empresariales que dejan huella.",
     icon: Users,
-    image: eventoCorporativo,
+    image: eventoPulsera,
     features: ["Branding personalizado", "Pedidos por volumen con descuento", "Empaque corporativo elegante", "Entrega coordinada al evento"],
   },
 ];
