@@ -1981,10 +1981,14 @@ export type Database = {
       }
       referidos_perfiles: {
         Row: {
+          admin_revisor: string | null
           codigo_amigo: string | null
           como_conocio: string
           created_at: string
+          estado: string
+          fecha_revision: string | null
           id: string
+          razon_rechazo: string | null
           tema_preferido: string
           terminos_aceptados: boolean
           terminos_aceptados_at: string | null
@@ -1992,10 +1996,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_revisor?: string | null
           codigo_amigo?: string | null
           como_conocio?: string
           created_at?: string
+          estado?: string
+          fecha_revision?: string | null
           id?: string
+          razon_rechazo?: string | null
           tema_preferido?: string
           terminos_aceptados?: boolean
           terminos_aceptados_at?: string | null
@@ -2003,10 +2011,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_revisor?: string | null
           codigo_amigo?: string | null
           como_conocio?: string
           created_at?: string
+          estado?: string
+          fecha_revision?: string | null
           id?: string
+          razon_rechazo?: string | null
           tema_preferido?: string
           terminos_aceptados?: boolean
           terminos_aceptados_at?: string | null

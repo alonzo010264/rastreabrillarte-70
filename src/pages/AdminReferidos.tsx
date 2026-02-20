@@ -55,13 +55,26 @@ interface SolicitudCanje {
   perfil?: { nombre_completo: string; correo: string };
 }
 
+interface SolicitudAcceso {
+  id: string;
+  user_id: string;
+  estado: string;
+  como_conocio: string;
+  codigo_amigo: string | null;
+  razon_rechazo: string | null;
+  created_at: string;
+  fecha_revision: string | null;
+  perfil?: { nombre_completo: string; correo: string };
+}
+
 const AdminReferidos = () => {
   const navigate = useNavigate();
   const [referidos, setReferidos] = useState<ReferidoAdmin[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [solicitudesCanje, setSolicitudesCanje] = useState<SolicitudCanje[]>([]);
+  const [solicitudesAcceso, setSolicitudesAcceso] = useState<SolicitudAcceso[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"pendientes" | "aprobados" | "rechazados" | "canjes" | "puntos">("pendientes");
+  const [tab, setTab] = useState<"solicitudes" | "pendientes" | "aprobados" | "rechazados" | "canjes" | "puntos">("solicitudes");
   const [notaAdmin, setNotaAdmin] = useState<Record<string, string>>({});
 
   // Points form
@@ -78,10 +91,11 @@ const AdminReferidos = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [refRes, usersRes, canjesRes] = await Promise.all([
+    const [refRes, usersRes, canjesRes, accesoRes] = await Promise.all([
       supabase.from("referidos").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("profiles").select("user_id, nombre_completo, correo, puntos_referidos, avatar_url").order("nombre_completo"),
       supabase.from("solicitudes_canje_referidos").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("referidos_perfiles").select("id, user_id, estado, como_conocio, codigo_amigo, razon_rechazo, created_at, fecha_revision").order("created_at", { ascending: false }).limit(200),
     ]);
 
     if (refRes.data && refRes.data.length > 0) {
@@ -112,6 +126,19 @@ const AdminReferidos = () => {
       setSolicitudesCanje([]);
     }
 
+    // Load acceso profiles
+    if (accesoRes.data && accesoRes.data.length > 0) {
+      const accesoIds = [...new Set(accesoRes.data.map(a => a.user_id))];
+      const { data: accesoPerfiles } = await supabase.from("profiles").select("user_id, nombre_completo, correo").in("user_id", accesoIds);
+      const apMap = new Map(accesoPerfiles?.map(p => [p.user_id, p]) || []);
+      setSolicitudesAcceso(accesoRes.data.map(a => ({
+        ...a,
+        perfil: apMap.get(a.user_id) as any,
+      })));
+    } else {
+      setSolicitudesAcceso([]);
+    }
+
     setUsers(usersRes.data || []);
     setLoading(false);
   };
@@ -137,6 +164,59 @@ const AdminReferidos = () => {
     }).eq("id", ref.id);
     if (error) { toast.error("Error al rechazar"); return; }
     toast.success("Referido rechazado");
+    loadData();
+  };
+
+  // ── Solicitudes de acceso ──
+  const aprobarAcceso = async (sol: SolicitudAcceso) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("referidos_perfiles").update({
+      estado: "aprobado",
+      fecha_revision: new Date().toISOString(),
+      admin_revisor: user?.id,
+      razon_rechazo: null,
+    }).eq("id", sol.id);
+    if (error) { toast.error("Error al aprobar"); return; }
+    // Send email
+    await supabase.functions.invoke("send-referral-status", {
+      body: { destinatario: sol.perfil?.correo, nombre_usuario: sol.perfil?.nombre_completo, estado: "aprobado" },
+    });
+    toast.success("Acceso aprobado. Correo enviado.");
+    loadData();
+  };
+
+  const rechazarAcceso = async (sol: SolicitudAcceso) => {
+    const razon = notaAdmin[sol.id] || "No cumple los requisitos del programa en este momento";
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("referidos_perfiles").update({
+      estado: "rechazado",
+      fecha_revision: new Date().toISOString(),
+      admin_revisor: user?.id,
+      razon_rechazo: razon,
+    }).eq("id", sol.id);
+    if (error) { toast.error("Error al rechazar"); return; }
+    await supabase.functions.invoke("send-referral-status", {
+      body: { destinatario: sol.perfil?.correo, nombre_usuario: sol.perfil?.nombre_completo, estado: "rechazado", razon },
+    });
+    toast.success("Acceso rechazado. Correo enviado.");
+    loadData();
+  };
+
+  const revocarAcceso = async (sol: SolicitudAcceso) => {
+    const razon = notaAdmin[sol.id] || "Acceso revocado por el equipo BRILLARTE";
+    if (!confirm(`¿Revocar acceso a ${sol.perfil?.nombre_completo || "este usuario"}?`)) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("referidos_perfiles").update({
+      estado: "revocado",
+      fecha_revision: new Date().toISOString(),
+      admin_revisor: user?.id,
+      razon_rechazo: razon,
+    }).eq("id", sol.id);
+    if (error) { toast.error("Error al revocar"); return; }
+    await supabase.functions.invoke("send-referral-status", {
+      body: { destinatario: sol.perfil?.correo, nombre_usuario: sol.perfil?.nombre_completo, estado: "rechazado", razon },
+    });
+    toast.success("Acceso revocado. Correo enviado.");
     loadData();
   };
 
@@ -229,6 +309,9 @@ const AdminReferidos = () => {
   const aprobados = referidos.filter(r => r.aprobado);
   const rechazados = referidos.filter(r => r.rechazado);
   const canjesPendientes = solicitudesCanje.filter(c => c.estado === "pendiente");
+  const accesoPendientes = solicitudesAcceso.filter(a => a.estado === "pendiente");
+  const accesoAprobados = solicitudesAcceso.filter(a => a.estado === "aprobado");
+  const accesoRechazados = solicitudesAcceso.filter(a => a.estado === "rechazado" || a.estado === "revocado");
 
   const filteredUsers = users.filter(u =>
     u.nombre_completo?.toLowerCase().includes(searchUser.toLowerCase()) ||
@@ -305,40 +388,47 @@ const AdminReferidos = () => {
         </Button>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <Card className={`border ${accesoPendientes.length > 0 ? "border-foreground/30" : ""}`}>
+            <CardContent className="pt-5 text-center">
+              <Shield className="h-4 w-4 mx-auto mb-1.5 text-muted-foreground" />
+              <p className="text-xl font-bold">{accesoPendientes.length}</p>
+              <p className="text-[10px] text-muted-foreground">Solicitudes</p>
+            </CardContent>
+          </Card>
           <Card className="border">
             <CardContent className="pt-5 text-center">
               <Users className="h-4 w-4 mx-auto mb-1.5 text-muted-foreground" />
               <p className="text-xl font-bold">{referidos.length}</p>
-              <p className="text-[10px] text-muted-foreground">Total</p>
+              <p className="text-[10px] text-muted-foreground">Referidos</p>
             </CardContent>
           </Card>
-          <Card className="border border-yellow-500/30">
+          <Card className="border">
             <CardContent className="pt-5 text-center">
-              <AlertTriangle className="h-4 w-4 mx-auto mb-1.5 text-yellow-500" />
+              <AlertTriangle className="h-4 w-4 mx-auto mb-1.5 text-muted-foreground" />
               <p className="text-xl font-bold">{pendientes.length}</p>
-              <p className="text-[10px] text-muted-foreground">Pendientes</p>
+              <p className="text-[10px] text-muted-foreground">Ref. Pendientes</p>
             </CardContent>
           </Card>
           <Card className="border">
             <CardContent className="pt-5 text-center">
               <CheckCircle className="h-4 w-4 mx-auto mb-1.5 text-muted-foreground" />
               <p className="text-xl font-bold">{aprobados.length}</p>
-              <p className="text-[10px] text-muted-foreground">Aprobados</p>
+              <p className="text-[10px] text-muted-foreground">Ref. Aprobados</p>
             </CardContent>
           </Card>
           <Card className="border">
             <CardContent className="pt-5 text-center">
               <XCircle className="h-4 w-4 mx-auto mb-1.5 text-muted-foreground" />
               <p className="text-xl font-bold">{rechazados.length}</p>
-              <p className="text-[10px] text-muted-foreground">Rechazados</p>
+              <p className="text-[10px] text-muted-foreground">Ref. Rechazados</p>
             </CardContent>
           </Card>
-          <Card className={`border ${canjesPendientes.length > 0 ? "border-orange-500/30" : ""}`}>
+          <Card className={`border ${canjesPendientes.length > 0 ? "border-foreground/30" : ""}`}>
             <CardContent className="pt-5 text-center">
-              <Trophy className="h-4 w-4 mx-auto mb-1.5 text-orange-500" />
+              <Trophy className="h-4 w-4 mx-auto mb-1.5 text-muted-foreground" />
               <p className="text-xl font-bold">{canjesPendientes.length}</p>
-              <p className="text-[10px] text-muted-foreground">Canjes Pendientes</p>
+              <p className="text-[10px] text-muted-foreground">Canjes Pend.</p>
             </CardContent>
           </Card>
         </div>
@@ -346,7 +436,8 @@ const AdminReferidos = () => {
         {/* Tabs */}
         <div className="flex gap-1 border-b border-border pb-0 overflow-x-auto">
           {[
-            { key: "pendientes", label: "Pendientes", count: pendientes.length, icon: Clock },
+            { key: "solicitudes", label: "Solicitudes", count: accesoPendientes.length, icon: Shield },
+            { key: "pendientes", label: "Referidos Pend.", count: pendientes.length, icon: Clock },
             { key: "canjes", label: "Canjes", count: canjesPendientes.length, icon: Trophy },
             { key: "aprobados", label: "Aprobados", count: aprobados.length, icon: CheckCircle },
             { key: "rechazados", label: "Rechazados", count: rechazados.length, icon: XCircle },
@@ -375,6 +466,73 @@ const AdminReferidos = () => {
           </div>
         ) : (
           <>
+            {/* Solicitudes de acceso */}
+            {tab === "solicitudes" && (
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold">Pendientes de aprobación ({accesoPendientes.length})</h3>
+                {accesoPendientes.length === 0 ? (
+                  <Card className="border"><CardContent className="py-12 text-center"><Shield className="h-8 w-8 mx-auto mb-3 text-muted-foreground" /><p className="text-sm text-muted-foreground">No hay solicitudes pendientes</p></CardContent></Card>
+                ) : accesoPendientes.map(sol => (
+                  <div key={sol.id} className="border border-border rounded-lg p-4 space-y-3 bg-card">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 space-y-1">
+                        <p className="font-semibold text-sm">{sol.perfil?.nombre_completo || "Usuario"}</p>
+                        <p className="text-xs text-muted-foreground">{sol.perfil?.correo}</p>
+                        <p className="text-xs text-muted-foreground">Como conocio BRILLARTE: <strong>{sol.como_conocio?.replace("_", " ")}</strong></p>
+                        {sol.codigo_amigo && <p className="text-xs text-muted-foreground">Codigo amigo: <strong className="font-mono">{sol.codigo_amigo}</strong></p>}
+                        <p className="text-xs text-muted-foreground">{new Date(sol.created_at).toLocaleDateString("es-DO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">Pendiente</Badge>
+                    </div>
+                    <Textarea placeholder="Razon de rechazo (requerida si rechazas)..." value={notaAdmin[sol.id] || ""} onChange={(e) => setNotaAdmin(prev => ({ ...prev, [sol.id]: e.target.value }))} className="text-xs min-h-[60px]" />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => aprobarAcceso(sol)} className="flex-1"><CheckCircle className="h-3.5 w-3.5 mr-1" /> Aprobar</Button>
+                      <Button size="sm" variant="destructive" onClick={() => rechazarAcceso(sol)} className="flex-1"><XCircle className="h-3.5 w-3.5 mr-1" /> Rechazar</Button>
+                    </div>
+                  </div>
+                ))}
+
+                {accesoAprobados.length > 0 && (
+                  <>
+                    <h3 className="text-sm font-semibold pt-4">Con acceso ({accesoAprobados.length})</h3>
+                    {accesoAprobados.map(sol => (
+                      <div key={sol.id} className="border border-border rounded-lg p-4 space-y-3 bg-card">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 space-y-1">
+                            <p className="font-semibold text-sm">{sol.perfil?.nombre_completo || "Usuario"}</p>
+                            <p className="text-xs text-muted-foreground">{sol.perfil?.correo}</p>
+                          </div>
+                          <Badge variant="default" className="text-xs">Aprobado</Badge>
+                        </div>
+                        <Textarea placeholder="Razon para revocar acceso..." value={notaAdmin[sol.id] || ""} onChange={(e) => setNotaAdmin(prev => ({ ...prev, [sol.id]: e.target.value }))} className="text-xs min-h-[50px]" />
+                        <Button size="sm" variant="destructive" onClick={() => revocarAcceso(sol)} className="w-full">
+                          <XCircle className="h-3.5 w-3.5 mr-1" /> Revocar Acceso
+                        </Button>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {accesoRechazados.length > 0 && (
+                  <>
+                    <h3 className="text-sm font-semibold pt-4">Rechazados / Revocados ({accesoRechazados.length})</h3>
+                    {accesoRechazados.map(sol => (
+                      <div key={sol.id} className="border border-border rounded-lg p-4 space-y-2 bg-card opacity-70">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 space-y-1">
+                            <p className="font-semibold text-sm">{sol.perfil?.nombre_completo || "Usuario"}</p>
+                            <p className="text-xs text-muted-foreground">{sol.perfil?.correo}</p>
+                          </div>
+                          <Badge variant="destructive" className="text-xs">{sol.estado === "revocado" ? "Revocado" : "Rechazado"}</Badge>
+                        </div>
+                        {sol.razon_rechazo && <p className="text-xs text-muted-foreground italic border-l-2 border-border pl-2">{sol.razon_rechazo}</p>}
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
+
             {tab === "pendientes" && (
               <div className="space-y-3">
                 {pendientes.length === 0 ? (
