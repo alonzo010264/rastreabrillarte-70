@@ -562,6 +562,27 @@ export type Database = {
           },
         ]
       }
+      codigos_referido: {
+        Row: {
+          codigo: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       config_ceo: {
         Row: {
           ceo_nombre: string | null
@@ -1773,6 +1794,7 @@ export type Database = {
           id: string
           identificador: string | null
           nombre_completo: string
+          puntos_referidos: number | null
           saldo: number | null
           telefono: string | null
           updated_at: string | null
@@ -1791,6 +1813,7 @@ export type Database = {
           id?: string
           identificador?: string | null
           nombre_completo: string
+          puntos_referidos?: number | null
           saldo?: number | null
           telefono?: string | null
           updated_at?: string | null
@@ -1809,6 +1832,7 @@ export type Database = {
           id?: string
           identificador?: string | null
           nombre_completo?: string
+          puntos_referidos?: number | null
           saldo?: number | null
           telefono?: string | null
           updated_at?: string | null
@@ -1856,36 +1880,78 @@ export type Database = {
         }
         Relationships: []
       }
+      puntos_referidos: {
+        Row: {
+          admin_id: string | null
+          created_at: string | null
+          descripcion: string | null
+          id: string
+          puntos: number
+          referido_id: string | null
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          puntos: number
+          referido_id?: string | null
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          puntos?: number
+          referido_id?: string | null
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       referidos: {
         Row: {
           codigo_referido: string
           created_at: string | null
+          estado: string | null
           id: string
+          puntos_otorgados: number | null
           recompensa_otorgada: boolean | null
           recompensa_tipo: string | null
           recompensa_valor: number | null
           referido_id: string
           referidor_id: string
+          updated_at: string | null
         }
         Insert: {
           codigo_referido: string
           created_at?: string | null
+          estado?: string | null
           id?: string
+          puntos_otorgados?: number | null
           recompensa_otorgada?: boolean | null
           recompensa_tipo?: string | null
           recompensa_valor?: number | null
           referido_id: string
           referidor_id: string
+          updated_at?: string | null
         }
         Update: {
           codigo_referido?: string
           created_at?: string | null
+          estado?: string | null
           id?: string
+          puntos_otorgados?: number | null
           recompensa_otorgada?: boolean | null
           recompensa_tipo?: string | null
           recompensa_valor?: number | null
           referido_id?: string
           referidor_id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2759,6 +2825,7 @@ export type Database = {
         Returns: string
       }
       generate_order_code: { Args: never; Returns: string }
+      generate_referral_code: { Args: { p_user_id: string }; Returns: string }
       generate_verification_code: { Args: never; Returns: string }
       get_user_conversation_ids: {
         Args: { p_user_id: string }
