@@ -28,7 +28,7 @@ serve(async (req) => {
     }
 
     const enlace = `https://brillarte.lat/registro?ref=${codigo_referido}`;
-    const mensajeExtra = mensaje_personalizado ? `<p style="margin:20px 0;padding:15px;background:#f8f8f8;border-left:3px solid #e91e63;border-radius:4px;font-style:italic;color:#555;">"${mensaje_personalizado}"</p>` : '';
+    const mensajeExtra = mensaje_personalizado ? `<p style="margin:20px 0;padding:15px;background:#f5f5f5;border-left:3px solid #1a1a1a;border-radius:4px;font-style:italic;color:#555;">"${mensaje_personalizado}"</p>` : '';
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -38,28 +38,28 @@ serve(async (req) => {
   <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:20px;margin-bottom:20px;">
     <div style="background:#1a1a1a;padding:30px;text-align:center;">
       <h1 style="color:#ffffff;margin:0;font-size:28px;letter-spacing:2px;">BRILLARTE</h1>
-      <p style="color:#e91e63;margin:5px 0 0;font-size:12px;letter-spacing:3px;">ACCESORIOS ARTESANALES</p>
+      <p style="color:#999;margin:5px 0 0;font-size:12px;letter-spacing:3px;">ACCESORIOS ARTESANALES</p>
     </div>
     <div style="padding:30px;">
-      <h2 style="color:#1a1a1a;font-size:22px;">¡${nombre_referidor} te invita a BRILLARTE! ✨</h2>
+      <h2 style="color:#1a1a1a;font-size:22px;">${nombre_referidor} te invita a BRILLARTE</h2>
       <p style="color:#555;font-size:15px;line-height:1.6;">
-        Tu amigo/a <strong>${nombre_referidor}</strong> quiere que conozcas BRILLARTE, donde encontrarás accesorios únicos hechos a mano con amor.
+        <strong>${nombre_referidor}</strong> quiere que conozcas BRILLARTE, donde encontraras accesorios unicos hechos a mano.
       </p>
       ${mensajeExtra}
-      <p style="color:#555;font-size:15px;">Regístrate con su código y ambos ganan puntos:</p>
+      <p style="color:#555;font-size:15px;">Registrate con su codigo y ambos ganan puntos:</p>
       <div style="text-align:center;margin:25px 0;">
-        <div style="display:inline-block;background:#f8f8f8;border:2px dashed #e91e63;border-radius:8px;padding:15px 30px;">
-          <p style="margin:0;font-size:12px;color:#999;text-transform:uppercase;letter-spacing:2px;">Código de referido</p>
+        <div style="display:inline-block;background:#f5f5f5;border:2px solid #1a1a1a;border-radius:8px;padding:15px 30px;">
+          <p style="margin:0;font-size:12px;color:#999;text-transform:uppercase;letter-spacing:2px;">Codigo de referido</p>
           <p style="margin:5px 0 0;font-size:28px;font-weight:bold;color:#1a1a1a;letter-spacing:3px;">${codigo_referido}</p>
         </div>
       </div>
       <div style="text-align:center;margin:30px 0;">
-        <a href="${enlace}" style="display:inline-block;background:#e91e63;color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:8px;font-weight:bold;font-size:16px;">Registrarme Ahora</a>
+        <a href="${enlace}" style="display:inline-block;background:#1a1a1a;color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:8px;font-weight:bold;font-size:16px;">Registrarme Ahora</a>
       </div>
       <p style="color:#999;font-size:12px;text-align:center;">O copia este enlace: ${enlace}</p>
     </div>
-    <div style="background:#f8f8f8;padding:20px;text-align:center;">
-      <p style="color:#999;font-size:11px;margin:0;">© 2025 BRILLARTE · brillarte.lat</p>
+    <div style="background:#f5f5f5;padding:20px;text-align:center;">
+      <p style="color:#999;font-size:11px;margin:0;">BRILLARTE - brillarte.lat</p>
     </div>
   </div>
 </body>
@@ -75,7 +75,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: "BRILLARTE Referidos <referidos@oficial.brillarte.lat>",
         to: [destinatario],
-        subject: `${nombre_referidor} te invita a BRILLARTE ✨`,
+        subject: `${nombre_referidor} te invita a BRILLARTE`,
         html: htmlContent,
       }),
     });
