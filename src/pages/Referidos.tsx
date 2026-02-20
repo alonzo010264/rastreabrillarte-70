@@ -323,7 +323,7 @@ const Referidos = () => {
         </Card>
 
         {/* Canje Section */}
-        <Card className={`${cardClass} ${puedeCanjar ? (tema === "oscuro" ? "border-yellow-500/50" : "border-yellow-500/30") : ""}`}>
+        <Card className={`${cardClass} ${puedeCanjar ? (tema === "oscuro" ? "border-neutral-500/50" : "border-neutral-400/30") : ""}`}>
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Trophy className="h-4 w-4" /> Canjear Puntos
@@ -338,15 +338,15 @@ const Referidos = () => {
               </div>
               <div className={`w-full h-3 rounded-full ${tema === "oscuro" ? "bg-neutral-800" : "bg-muted"}`}>
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-500"
+                  className={`h-full rounded-full transition-all duration-500 ${tema === "oscuro" ? "bg-white" : "bg-foreground"}`}
                   style={{ width: `${progresoCanje}%` }}
                 />
               </div>
             </div>
 
             {canjeEnviado ? (
-              <div className={`flex items-center gap-3 p-4 rounded-lg ${tema === "oscuro" ? "bg-green-900/20 border border-green-800/30" : "bg-green-50 border border-green-200"}`}>
-                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+              <div className={`flex items-center gap-3 p-4 rounded-lg ${tema === "oscuro" ? "bg-neutral-800 border border-neutral-700" : "bg-muted border border-border"}`}>
+                <CheckCircle className="h-5 w-5 flex-shrink-0" />
                 <div>
                   <p className="text-sm font-medium">Solicitud enviada</p>
                   <p className={`text-xs ${mutedText}`}>El equipo BRILLARTE te contactará pronto para procesar tu canje.</p>
@@ -354,7 +354,7 @@ const Referidos = () => {
               </div>
             ) : puedeCanjar ? (
               <div className="space-y-3">
-                <p className="text-sm">🎉 ¡Tienes suficientes puntos! Envía tu solicitud y el equipo se encargará de contactarte.</p>
+                <p className="text-sm">Tienes suficientes puntos. Envia tu solicitud y el equipo se encargara de contactarte.</p>
                 <Textarea
                   placeholder="Nota opcional (ej: preferencia de recompensa, método de contacto...)"
                   value={notaCanje}
