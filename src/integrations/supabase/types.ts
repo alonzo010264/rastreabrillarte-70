@@ -1915,43 +1915,67 @@ export type Database = {
       }
       referidos: {
         Row: {
+          admin_revisor: string | null
+          aprobado: boolean | null
           codigo_referido: string
           created_at: string | null
+          dispositivo_info: Json | null
           estado: string | null
+          fecha_revision: string | null
           id: string
+          ip_aproximada: string | null
+          notas_admin: string | null
           puntos_otorgados: number | null
+          rechazado: boolean | null
           recompensa_otorgada: boolean | null
           recompensa_tipo: string | null
           recompensa_valor: number | null
           referido_id: string
           referidor_id: string
           updated_at: string | null
+          user_agent: string | null
         }
         Insert: {
+          admin_revisor?: string | null
+          aprobado?: boolean | null
           codigo_referido: string
           created_at?: string | null
+          dispositivo_info?: Json | null
           estado?: string | null
+          fecha_revision?: string | null
           id?: string
+          ip_aproximada?: string | null
+          notas_admin?: string | null
           puntos_otorgados?: number | null
+          rechazado?: boolean | null
           recompensa_otorgada?: boolean | null
           recompensa_tipo?: string | null
           recompensa_valor?: number | null
           referido_id: string
           referidor_id: string
           updated_at?: string | null
+          user_agent?: string | null
         }
         Update: {
+          admin_revisor?: string | null
+          aprobado?: boolean | null
           codigo_referido?: string
           created_at?: string | null
+          dispositivo_info?: Json | null
           estado?: string | null
+          fecha_revision?: string | null
           id?: string
+          ip_aproximada?: string | null
+          notas_admin?: string | null
           puntos_otorgados?: number | null
+          rechazado?: boolean | null
           recompensa_otorgada?: boolean | null
           recompensa_tipo?: string | null
           recompensa_valor?: number | null
           referido_id?: string
           referidor_id?: string
           updated_at?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }

@@ -28,8 +28,18 @@ const Register = () => {
     nombre: "",
     correo: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    codigoReferido: ""
   });
+
+  // Get referral code from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      setFormData(prev => ({ ...prev, codigoReferido: ref }));
+    }
+  }, []);
 
   // Countdown timer for resend
   useEffect(() => {
@@ -201,6 +211,43 @@ const Register = () => {
 
       if (signInError) throw signInError;
 
+      // Create referral record if referral code was used
+      if (formData.codigoReferido.trim()) {
+        try {
+          const { data: codeData } = await supabase
+            .from("codigos_referido")
+            .select("user_id")
+            .eq("codigo", formData.codigoReferido.trim())
+            .maybeSingle();
+
+          if (codeData) {
+            const { data: { user: newUser } } = await supabase.auth.getUser();
+            if (newUser && codeData.user_id !== newUser.id) {
+              const deviceInfo = {
+                screen: `${screen.width}x${screen.height}`,
+                language: navigator.language,
+                platform: navigator.platform,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                cookiesEnabled: navigator.cookieEnabled,
+                touchPoints: navigator.maxTouchPoints,
+              };
+              await supabase.from("referidos").insert({
+                referidor_id: codeData.user_id,
+                referido_id: newUser.id,
+                codigo_referido: formData.codigoReferido.trim(),
+                estado: "pendiente",
+                puntos_otorgados: 0,
+                aprobado: false,
+                user_agent: navigator.userAgent,
+                dispositivo_info: deviceInfo,
+              });
+            }
+          }
+        } catch (refErr) {
+          console.error("Error creating referral:", refErr);
+        }
+      }
+
       // Send welcome email (non-blocking)
       supabase.functions.invoke("send-registration-email", {
         body: {
@@ -311,6 +358,18 @@ const Register = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
                     className="rounded-lg"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Código de Referido (opcional)</label>
+                  <Input
+                    type="text"
+                    placeholder="Ej: MARC-1234"
+                    value={formData.codigoReferido}
+                    onChange={(e) => setFormData(prev => ({ ...prev, codigoReferido: e.target.value.toUpperCase() }))}
+                    className="rounded-lg font-mono"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Si alguien te refirió, ingresa su código aquí</p>
                 </div>
 
                 <div>
