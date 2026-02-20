@@ -87,8 +87,15 @@ const Referidos = () => {
     toast.success("Codigo copiado al portapapeles");
   };
 
+  const enlaceReferido = `${window.location.origin}/registro?ref=${codigoReferido}`;
+
+  const copiarEnlace = () => {
+    navigator.clipboard.writeText(enlaceReferido);
+    toast.success("Enlace de referido copiado");
+  };
+
   const compartirWhatsApp = () => {
-    const msg = encodeURIComponent(`Registrate en BRILLARTE con mi codigo ${codigoReferido} y obtiene beneficios exclusivos: ${window.location.origin}/registro?ref=${codigoReferido}`);
+    const msg = encodeURIComponent(`¡Únete a BRILLARTE con mi enlace! Regístrate aquí y ambos ganamos puntos: ${enlaceReferido}`);
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
 
@@ -165,7 +172,32 @@ const Referidos = () => {
           </CardContent>
         </Card>
 
-        {/* Stats */}
+        {/* Share Link Section */}
+        <Card className="border bg-card">
+          <CardContent className="p-6 md:p-8 space-y-4">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">Compartir enlace de referido</p>
+              <p className="text-sm text-muted-foreground">Envía este enlace a quien quieras referir. Se registrarán directamente con tu código.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-muted rounded-lg px-4 py-2.5 font-mono text-sm text-foreground truncate border">
+                {enlaceReferido}
+              </div>
+              <Button size="icon" variant="outline" onClick={copiarEnlace} className="h-10 w-10 flex-shrink-0">
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={compartirWhatsApp} className="flex-1">
+                <Share2 className="h-4 w-4 mr-2" /> Compartir por WhatsApp
+              </Button>
+              <Button variant="outline" onClick={copiarEnlace} className="flex-1">
+                <Copy className="h-4 w-4 mr-2" /> Copiar enlace
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Puntos Totales", value: totalPuntos, icon: Star },
