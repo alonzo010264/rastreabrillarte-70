@@ -45,6 +45,8 @@ const Referidos = () => {
   const [nombreUsuario, setNombreUsuario] = useState("");
   const [hasOnboarded, setHasOnboarded] = useState<boolean | null>(null);
   const [tema, setTema] = useState<"claro" | "oscuro">("claro");
+  const [estadoSolicitud, setEstadoSolicitud] = useState<string>("pendiente");
+  const [razonRechazo, setRazonRechazo] = useState<string | null>(null);
 
   // Canje state
   const [canjeEnviado, setCanjeEnviado] = useState(false);
@@ -73,9 +75,24 @@ const Referidos = () => {
       .maybeSingle();
 
     if (perfil) {
-      setHasOnboarded(true);
-      setTema(perfil.tema_preferido === "oscuro" ? "oscuro" : "claro");
-      await loadAllData(user.id);
+      if (perfil.estado === "aprobado") {
+        setHasOnboarded(true);
+        setEstadoSolicitud("aprobado");
+        setTema(perfil.tema_preferido === "oscuro" ? "oscuro" : "claro");
+        await loadAllData(user.id);
+      } else if (perfil.estado === "rechazado") {
+        setHasOnboarded(true);
+        setEstadoSolicitud("rechazado");
+        setRazonRechazo(perfil.razon_rechazo || null);
+      } else if (perfil.estado === "revocado") {
+        setHasOnboarded(true);
+        setEstadoSolicitud("revocado");
+        setRazonRechazo(perfil.razon_rechazo || null);
+      } else {
+        // pendiente
+        setHasOnboarded(true);
+        setEstadoSolicitud("pendiente");
+      }
     } else {
       setHasOnboarded(false);
     }
@@ -273,6 +290,56 @@ const Referidos = () => {
         <Navigation />
         <PageHeader title="Programa de Referidos" subtitle="Configura tu cuenta de referidos" />
         <ReferidosOnboarding userId={userId} onComplete={handleOnboardingComplete} />
+        <Footer />
+      </div>
+    );
+  }
+
+  // Pending approval
+  if (estadoSolicitud === "pendiente") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <PageHeader title="Programa de Referidos" subtitle="Solicitud en revisión" />
+        <div className="container mx-auto px-4 py-16 text-center max-w-lg">
+          <Card>
+            <CardContent className="pt-10 pb-10 space-y-5">
+              <div className="w-16 h-16 mx-auto rounded-full border-2 border-foreground flex items-center justify-center">
+                <Clock className="h-7 w-7" />
+              </div>
+              <h2 className="text-2xl font-bold">Solicitud en revisión</h2>
+              <p className="text-muted-foreground text-sm">Tu solicitud para unirte al programa de referidos está siendo revisada por el equipo BRILLARTE. Te notificaremos por correo cuando sea procesada.</p>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Rejected or revoked
+  if (estadoSolicitud === "rechazado" || estadoSolicitud === "revocado") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <PageHeader title="Programa de Referidos" subtitle={estadoSolicitud === "revocado" ? "Acceso revocado" : "Solicitud rechazada"} />
+        <div className="container mx-auto px-4 py-16 text-center max-w-lg">
+          <Card>
+            <CardContent className="pt-10 pb-10 space-y-5">
+              <div className="w-16 h-16 mx-auto rounded-full border-2 border-destructive flex items-center justify-center">
+                <Gift className="h-7 w-7 text-destructive" />
+              </div>
+              <h2 className="text-2xl font-bold">{estadoSolicitud === "revocado" ? "Acceso revocado" : "Solicitud rechazada"}</h2>
+              {razonRechazo && (
+                <div className="bg-muted rounded-lg p-4 text-left">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Razon</p>
+                  <p className="text-sm">{razonRechazo}</p>
+                </div>
+              )}
+              <p className="text-muted-foreground text-sm">Si consideras que fue un error, contacta al equipo de soporte a traves del chat.</p>
+            </CardContent>
+          </Card>
+        </div>
         <Footer />
       </div>
     );
