@@ -211,16 +211,13 @@ export const AdminChatActions = ({
       const isOfficial = newUser.correo === 'oficial@brillarte.lat' || newUser.correo?.endsWith('@brillarte.lat');
       const transferName = isOfficial ? 'BRILLARTE' : (newUser.nombre_completo || 'Usuario verificado');
 
-      // Send system message about transfer
+      // Send system message about transfer (chat stays active, not finalized)
       await supabase.from('messages').insert({
         conversation_id: conversationId,
         sender_id: user.id,
-        content: `Este chat fue transferido a ${transferName}.`,
+        content: `Este chat fue transferido a ${transferName}. Puedes continuar la conversación con esta persona.`,
         tipo: 'system'
       });
-
-      // Update conversation estado
-      await supabase.from('conversations').update({ estado: 'transferido' } as any).eq('id', conversationId);
 
       // Create new conversation between target client and new verified user
       // We use RPC to create the conversation as the new user
