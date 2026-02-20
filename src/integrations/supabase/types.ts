@@ -1979,6 +1979,42 @@ export type Database = {
         }
         Relationships: []
       }
+      referidos_perfiles: {
+        Row: {
+          codigo_amigo: string | null
+          como_conocio: string
+          created_at: string
+          id: string
+          tema_preferido: string
+          terminos_aceptados: boolean
+          terminos_aceptados_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          codigo_amigo?: string | null
+          como_conocio?: string
+          created_at?: string
+          id?: string
+          tema_preferido?: string
+          terminos_aceptados?: boolean
+          terminos_aceptados_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          codigo_amigo?: string | null
+          como_conocio?: string
+          created_at?: string
+          id?: string
+          tema_preferido?: string
+          terminos_aceptados?: boolean
+          terminos_aceptados_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       registros_acceso: {
         Row: {
           activo: boolean | null
