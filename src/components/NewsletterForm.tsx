@@ -20,6 +20,24 @@ const NewsletterForm = () => {
     setIsSubmitting(true);
 
     try {
+      // Save subscriber to database
+      const { error: dbError } = await supabase
+        .from('suscriptores_newsletter')
+        .insert({ correo: email.trim() });
+
+      if (dbError && dbError.code !== '23505') {
+        throw dbError;
+      }
+
+      // If already exists (23505), reactivate
+      if (dbError?.code === '23505') {
+        await supabase
+          .from('suscriptores_newsletter')
+          .update({ activo: true })
+          .eq('correo', email.trim());
+      }
+
+      // Send welcome email
       const { error } = await supabase.functions.invoke('send-newsletter-subscription', {
         body: { correo: email }
       });

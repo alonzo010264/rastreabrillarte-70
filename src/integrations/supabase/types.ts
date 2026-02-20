@@ -2269,6 +2269,30 @@ export type Database = {
           },
         ]
       }
+      suscriptores_newsletter: {
+        Row: {
+          activo: boolean
+          correo: string
+          created_at: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          activo?: boolean
+          correo: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          activo?: boolean
+          correo?: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tarjetas_brillarte: {
         Row: {
           activa: boolean
