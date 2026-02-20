@@ -62,6 +62,42 @@ const Referidos = () => {
     checkUserAndLoad();
   }, []);
 
+  // Realtime: escuchar cambios en referidos_perfiles para actualización instantánea
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel('referidos-perfil-status')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'referidos_perfiles',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const newData = payload.new as any;
+          const nuevoEstado = newData.estado;
+          setEstadoSolicitud(nuevoEstado);
+          setRazonRechazo(newData.razon_rechazo || null);
+          if (nuevoEstado === "aprobado") {
+            setTema(newData.tema_preferido === "oscuro" ? "oscuro" : "claro");
+            toast.success("Tu solicitud ha sido aprobada. Bienvenido al programa de referidos.");
+            loadAllData(userId);
+          } else if (nuevoEstado === "rechazado") {
+            toast.error("Tu solicitud ha sido rechazada.");
+          } else if (nuevoEstado === "revocado") {
+            toast.error("Tu acceso al programa ha sido revocado.");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
   const checkUserAndLoad = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setIsLoggedIn(false); setLoading(false); return; }
@@ -186,9 +222,7 @@ const Referidos = () => {
 
   const handleOnboardingComplete = async () => {
     setHasOnboarded(true);
-    const { data: perfil } = await supabase.from("referidos_perfiles").select("tema_preferido").eq("user_id", userId).maybeSingle();
-    if (perfil) setTema(perfil.tema_preferido === "oscuro" ? "oscuro" : "claro");
-    await loadAllData(userId);
+    setEstadoSolicitud("pendiente");
   };
 
   const enviarSolicitudCanje = async () => {
