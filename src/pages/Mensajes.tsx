@@ -345,7 +345,7 @@ const Mensajes = () => {
   }, [currentConversation]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentConversation || !user || sending || conversationEstado === 'finalizado' || conversationEstado === 'transferido') return;
+    if (!newMessage.trim() || !currentConversation || !user || sending || conversationEstado === 'finalizado') return;
     setSending(true);
     const messageContent = newMessage.trim();
     setNewMessage('');
@@ -765,9 +765,13 @@ const Mensajes = () => {
                           loadConversations();
                         }}
                         onChatTransferred={(newUserId) => {
-                          setConversationEstado('transferido');
-                          setCurrentConversation(null);
+                          // Don't finalize - just reload and navigate to the new conversation
+                          loadMessages(currentConversation!);
                           loadConversations();
+                          // Open conversation with the transferred user
+                          getOrCreateConversation(newUserId).then(convId => {
+                            if (convId) setCurrentConversation(convId);
+                          });
                         }}
                       />
                     )}
@@ -902,7 +906,7 @@ const Mensajes = () => {
                   </div>
 
                   {/* Input or Finalized state */}
-                  {conversationEstado === 'finalizado' || conversationEstado === 'transferido' ? (
+                  {conversationEstado === 'finalizado' ? (
                     <div className="p-4 border-t bg-muted/30 text-center space-y-2">
                       <p className="text-sm font-semibold text-muted-foreground">
                         Chat finalizado. No puedes escribir. Se finalizo el chat.
