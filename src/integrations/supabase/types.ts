@@ -2199,6 +2199,42 @@ export type Database = {
         }
         Relationships: []
       }
+      solicitudes_canje_referidos: {
+        Row: {
+          admin_revisor: string | null
+          created_at: string
+          estado: string
+          fecha_revision: string | null
+          id: string
+          notas_admin: string | null
+          notas_usuario: string | null
+          puntos_canjeados: number
+          user_id: string
+        }
+        Insert: {
+          admin_revisor?: string | null
+          created_at?: string
+          estado?: string
+          fecha_revision?: string | null
+          id?: string
+          notas_admin?: string | null
+          notas_usuario?: string | null
+          puntos_canjeados?: number
+          user_id: string
+        }
+        Update: {
+          admin_revisor?: string | null
+          created_at?: string
+          estado?: string
+          fecha_revision?: string | null
+          id?: string
+          notas_admin?: string | null
+          notas_usuario?: string | null
+          puntos_canjeados?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       solicitudes_ia: {
         Row: {
           admin_revisor: string | null
