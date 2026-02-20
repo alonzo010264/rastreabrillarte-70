@@ -87,7 +87,7 @@ const Referidos = () => {
     toast.success("Codigo copiado al portapapeles");
   };
 
-  const enlaceReferido = `${window.location.origin}/registro?ref=${codigoReferido}`;
+  const enlaceReferido = `https://brillarte.lat/registro?ref=${codigoReferido}`;
 
   const copiarEnlace = () => {
     navigator.clipboard.writeText(enlaceReferido);
