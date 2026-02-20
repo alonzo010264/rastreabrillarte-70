@@ -174,27 +174,54 @@ const AdminReferidos = () => {
     setSubmitting(true);
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Check max 100
     const { data: profile } = await supabase.from("profiles").select("puntos_referidos").eq("user_id", selectedUserId).single();
     const currentPts = profile?.puntos_referidos || 0;
-    if (currentPts + puntosNum > 100) {
-      toast.error(`No se puede exceder 100 puntos. El usuario tiene ${currentPts} puntos actualmente.`);
-      setSubmitting(false); return;
+
+    if (tipo === "quitar") {
+      const newTotal = Math.max(0, currentPts - puntosNum);
+      const { error: pError } = await supabase.from("puntos_referidos").insert({
+        user_id: selectedUserId, puntos: -puntosNum, tipo: "quitar",
+        descripcion: descripcion || "Puntos removidos manualmente",
+        admin_id: user?.id,
+      });
+      if (pError) { toast.error("Error al quitar puntos"); setSubmitting(false); return; }
+      await supabase.from("profiles").update({ puntos_referidos: newTotal }).eq("user_id", selectedUserId);
+      toast.success(`-${puntosNum} puntos (Total: ${newTotal}/100)`);
+    } else {
+      if (currentPts + puntosNum > 100) {
+        toast.error(`No se puede exceder 100 puntos. El usuario tiene ${currentPts} puntos actualmente.`);
+        setSubmitting(false); return;
+      }
+      const { error: pError } = await supabase.from("puntos_referidos").insert({
+        user_id: selectedUserId, puntos: puntosNum, tipo,
+        descripcion: descripcion || `Puntos otorgados manualmente - ${tipo}`,
+        admin_id: user?.id,
+      });
+      if (pError) { toast.error("Error al otorgar puntos"); setSubmitting(false); return; }
+      const newTotal = currentPts + puntosNum;
+      await supabase.from("profiles").update({ puntos_referidos: newTotal }).eq("user_id", selectedUserId);
+      toast.success(`+${puntosNum} puntos (Total: ${newTotal}/100)`);
     }
 
-    const { error: pError } = await supabase.from("puntos_referidos").insert({
-      user_id: selectedUserId, puntos: puntosNum, tipo,
-      descripcion: descripcion || `Puntos otorgados manualmente - ${tipo}`,
-      admin_id: user?.id,
-    });
-    if (pError) { toast.error("Error al otorgar puntos"); setSubmitting(false); return; }
-
-    const newTotal = currentPts + puntosNum;
-    await supabase.from("profiles").update({ puntos_referidos: newTotal }).eq("user_id", selectedUserId);
-
-    toast.success(`+${puntos} puntos otorgados (Total: ${newTotal}/100)`);
     setSelectedUserId(""); setPuntos(""); setDescripcion(""); setSearchUser("");
     setSubmitting(false);
+    loadData();
+  };
+
+  const resetearPuntos = async (uid: string, nombre: string) => {
+    if (!confirm(`¿Seguro que quieres resetear los puntos de ${nombre} a 0? Esto lo quitará de la tabla de clasificación.`)) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = await supabase.from("profiles").select("puntos_referidos").eq("user_id", uid).single();
+    const currentPts = profile?.puntos_referidos || 0;
+    if (currentPts > 0) {
+      await supabase.from("puntos_referidos").insert({
+        user_id: uid, puntos: -currentPts, tipo: "reset",
+        descripcion: "Puntos reseteados por admin",
+        admin_id: user?.id,
+      });
+    }
+    await supabase.from("profiles").update({ puntos_referidos: 0 }).eq("user_id", uid);
+    toast.success(`Puntos de ${nombre} reseteados a 0`);
     loadData();
   };
 
@@ -462,6 +489,7 @@ const AdminReferidos = () => {
                           <SelectItem value="compra">Compra de referido</SelectItem>
                           <SelectItem value="bonus">Bonus manual</SelectItem>
                           <SelectItem value="ajuste">Ajuste</SelectItem>
+                          <SelectItem value="quitar">Quitar puntos</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -470,8 +498,8 @@ const AdminReferidos = () => {
                       <Input placeholder="Razón..." value={descripcion} onChange={e => setDescripcion(e.target.value)} />
                     </div>
                   </div>
-                  <Button onClick={otorgarPuntos} disabled={submitting || !selectedUserId || !puntos} className="w-full md:w-auto">
-                    {submitting ? "Otorgando..." : "Otorgar Puntos"}
+                  <Button onClick={otorgarPuntos} disabled={submitting || !selectedUserId || !puntos} className="w-full md:w-auto" variant={tipo === "quitar" ? "destructive" : "default"}>
+                    {submitting ? "Procesando..." : tipo === "quitar" ? "Quitar Puntos" : "Otorgar Puntos"}
                   </Button>
 
                   <div className="border-t border-border pt-4 mt-4">
@@ -486,11 +514,16 @@ const AdminReferidos = () => {
                               <p className="text-xs text-muted-foreground">{u.correo}</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 rounded-full bg-muted">
-                              <div className="h-full rounded-full bg-foreground" style={{ width: `${Math.min((u.puntos_referidos / 100) * 100, 100)}%` }} />
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 h-1.5 rounded-full bg-muted">
+                                <div className="h-full rounded-full bg-foreground" style={{ width: `${Math.min((u.puntos_referidos / 100) * 100, 100)}%` }} />
+                              </div>
+                              <span className="font-mono font-bold text-sm">{u.puntos_referidos}/100</span>
                             </div>
-                            <span className="font-mono font-bold text-sm">{u.puntos_referidos}/100</span>
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive" onClick={() => resetearPuntos(u.user_id, u.nombre_completo || "Usuario")}>
+                              <XCircle className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
                         </div>
                       ))}
