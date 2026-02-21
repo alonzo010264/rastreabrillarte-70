@@ -82,7 +82,7 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
         .select('role')
         .eq('user_id', targetUserId)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
 
       setIsAdmin(!!roleData);
     } catch (error) {
