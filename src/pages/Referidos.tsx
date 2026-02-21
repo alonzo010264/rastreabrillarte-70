@@ -312,8 +312,8 @@ const Referidos = () => {
               <h2 className="text-2xl font-bold">Inicia sesion para participar</h2>
               <p className="text-muted-foreground text-sm">Necesitas una cuenta para obtener tu codigo de referido y empezar a ganar puntos.</p>
               <div className="flex gap-3 justify-center pt-2">
-                <Button onClick={() => (window.location.href = "/login")}>Iniciar Sesion</Button>
-                <Button variant="outline" onClick={() => (window.location.href = "/registro")}>Registrarse</Button>
+                <Button asChild><a href="/login">Iniciar Sesion</a></Button>
+                <Button variant="outline" asChild><a href="/registro">Registrarse</a></Button>
               </div>
             </CardContent>
           </Card>
