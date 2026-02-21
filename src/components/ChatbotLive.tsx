@@ -1009,18 +1009,27 @@ export const ChatbotLive = memo(() => {
           ) : !isAuthenticated ? (
             <div className="p-4 space-y-4">
               <p className="text-sm text-muted-foreground text-center">
-                Para acceder al chat de soporte debes iniciar sesion.
+                Para acceder al chat de soporte debes iniciar sesion o registrarte.
               </p>
               <p className="text-xs text-muted-foreground text-center">
                 Tus datos seran protegidos en BRILLARTE.
               </p>
-              <Button 
-                onClick={() => window.location.href = '/auth'} 
-                className="w-full"
-              >
-                <User className="w-4 h-4 mr-2" />
-                Iniciar Sesion / Registrarse
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  onClick={() => window.location.href = '/login'} 
+                  className="w-full"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Iniciar Sesion
+                </Button>
+                <Button 
+                  onClick={() => window.location.href = '/registro'} 
+                  variant="outline"
+                  className="w-full"
+                >
+                  Registrarse
+                </Button>
+              </div>
             </div>
           ) : !hasStarted ? (
             <div className="p-4 space-y-4">
