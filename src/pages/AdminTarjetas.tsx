@@ -48,7 +48,7 @@ export default function AdminTarjetas() {
         .from('profiles')
         .select('verificado')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       const isAdmin = roleData?.role === 'admin';
       const isVerified = profileData?.verificado === true;
@@ -134,7 +134,7 @@ export default function AdminTarjetas() {
           diseno
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

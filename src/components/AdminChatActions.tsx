@@ -80,7 +80,7 @@ export const AdminChatActions = ({
       .from('profiles')
       .select('nombre_completo')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
     const { error } = await supabase
       .from('verificaciones_envio' as any)
       .insert({
@@ -133,10 +133,10 @@ export const AdminChatActions = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No autenticado');
 
-      const { data: myProfile } = await supabase.from('profiles').select('nombre_completo').eq('user_id', user.id).single();
+      const { data: myProfile } = await supabase.from('profiles').select('nombre_completo').eq('user_id', user.id).maybeSingle();
 
       // Get target user email
-      const { data: targetProfile } = await supabase.from('profiles').select('correo, nombre_completo').eq('user_id', targetUserId).single();
+      const { data: targetProfile } = await supabase.from('profiles').select('correo, nombre_completo').eq('user_id', targetUserId).maybeSingle();
 
       // Get all messages for the report
       const { data: allMessages } = await supabase
@@ -147,7 +147,7 @@ export const AdminChatActions = ({
 
       // Enrich messages with sender names
       const enrichedMessages = await Promise.all((allMessages || []).map(async (msg) => {
-        const { data: p } = await supabase.from('profiles').select('nombre_completo, correo').eq('user_id', msg.sender_id).single();
+        const { data: p } = await supabase.from('profiles').select('nombre_completo, correo').eq('user_id', msg.sender_id).maybeSingle();
         const isOfficial = p?.correo === 'oficial@brillarte.lat' || p?.correo?.endsWith('@brillarte.lat');
         return { ...msg, sender_name: isOfficial ? 'BRILLARTE' : (p?.nombre_completo || 'Usuario') };
       }));
@@ -245,7 +245,7 @@ export const AdminChatActions = ({
 
       if (!newConvId) {
         // Create new conversation
-        const { data: newConv } = await supabase.from('conversations').insert({}).select('id').single();
+        const { data: newConv } = await supabase.from('conversations').insert({}).select('id').maybeSingle();
         if (newConv) {
           newConvId = newConv.id;
           await supabase.from('conversation_participants').insert([

@@ -55,7 +55,7 @@ export const MiSaldo = () => {
         .from('profiles')
         .select('saldo')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         setSaldo(profile.saldo || 0);

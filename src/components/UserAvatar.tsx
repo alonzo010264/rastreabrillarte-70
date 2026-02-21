@@ -72,7 +72,7 @@ export default function UserAvatar({ size = "md", showName = false, showVerified
         .from('profiles')
         .select('*')
         .eq('user_id', targetUserId)
-        .single();
+        .maybeSingle();
       
       setProfile(profileData);
 

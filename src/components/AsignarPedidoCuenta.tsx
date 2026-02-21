@@ -37,7 +37,7 @@ const AsignarPedidoCuenta = () => {
       .from("profiles")
       .select("*")
       .eq("correo", email.toLowerCase().trim())
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       toast({ title: "No encontrado", description: "No existe una cuenta con ese correo", variant: "destructive" });

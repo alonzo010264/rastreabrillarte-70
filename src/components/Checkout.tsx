@@ -66,7 +66,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
         
         setUserProfile(profile);
         if (profile?.direccion) {
@@ -142,7 +142,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         .eq('numero_tarjeta', numeroLimpio)
         .eq('fecha_expiracion', fechaExp.trim())
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error || !tarjeta) {
         setCardValid(false);
@@ -214,7 +214,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!profile) {
         toast.error("Error al cargar perfil");
@@ -270,7 +270,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
           estado: estadoPedido
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (pedidoError) throw pedidoError;
 
@@ -346,7 +346,7 @@ export const Checkout = ({ cartItems, subtotal, descuento, total, codigoDescuent
         .from('profiles')
         .select('user_id')
         .eq('correo', 'oficial@brillarte.lat')
-        .single();
+        .maybeSingle();
 
       const metodoTexto = metodoEntrega === 'envio' ? 'Envío Vimenpaq' : 
                           metodoEntrega === 'pago_contra_entrega' ? 'Pago contra entrega' : 'Retiro';

@@ -68,7 +68,7 @@ const AgentDashboard = () => {
       .from("agent_profiles")
       .select("*")
       .eq("user_id", session.user.id)
-      .single();
+      .maybeSingle();
 
     if (error || !profile) {
       toast({

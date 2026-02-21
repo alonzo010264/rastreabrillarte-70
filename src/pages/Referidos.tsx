@@ -148,7 +148,7 @@ const Referidos = () => {
   };
 
   const loadNombreUsuario = async (uid: string) => {
-    const { data } = await supabase.from("profiles").select("nombre_completo").eq("user_id", uid).single();
+    const { data } = await supabase.from("profiles").select("nombre_completo").eq("user_id", uid).maybeSingle();
     setNombreUsuario(data?.nombre_completo || "Usuario");
   };
 
@@ -178,12 +178,12 @@ const Referidos = () => {
   };
 
   const loadTotalPuntos = async (uid: string) => {
-    const { data } = await supabase.from("profiles").select("puntos_referidos").eq("user_id", uid).single();
+    const { data } = await supabase.from("profiles").select("puntos_referidos").eq("user_id", uid).maybeSingle();
     setTotalPuntos(data?.puntos_referidos || 0);
   };
 
   const loadSaldo = async (uid: string) => {
-    const { data } = await supabase.from("profiles").select("saldo").eq("user_id", uid).single();
+    const { data } = await supabase.from("profiles").select("saldo").eq("user_id", uid).maybeSingle();
     setSaldo(data?.saldo || 0);
   };
 

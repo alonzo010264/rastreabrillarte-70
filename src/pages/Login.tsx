@@ -110,7 +110,7 @@ const Login = () => {
         .eq('activo', true)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (banData) {
         // Verificar si la suspensión sigue activa

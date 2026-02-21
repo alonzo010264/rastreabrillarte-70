@@ -84,7 +84,7 @@ export default function PerfilPublico() {
       .from('profiles')
       .select('correo')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     const isOfficialBrillarte = profileData?.correo === 'oficial@brillarte.lat';
 
@@ -112,7 +112,7 @@ export default function PerfilPublico() {
         .select('id')
         .eq('follower_id', currentUser.id)
         .eq('following_id', userId)
-        .single();
+        .maybeSingle();
 
       setIsFollowing(!!data);
     }
@@ -133,7 +133,7 @@ export default function PerfilPublico() {
         .from('profiles')
         .select('id, user_id, nombre_completo, avatar_url, verificado, fecha_creacion, correo')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

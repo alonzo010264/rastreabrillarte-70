@@ -71,7 +71,7 @@ const OrderTracker = () => {
         .from('pedidos_online')
         .select('*, empresas_envio(nombre)')
         .eq('codigo_pedido', orderCode)
-        .single();
+        .maybeSingle();
 
       if (pedidoOnline) {
         const orderData = {
@@ -127,7 +127,7 @@ const OrderTracker = () => {
           Estatus!inner(id, nombre, descripcion, categoria)
         `)
         .eq('Código de pedido', orderCode)
-        .single();
+        .maybeSingle();
 
       if (error || !pedido) {
         setOrderFound(null);
