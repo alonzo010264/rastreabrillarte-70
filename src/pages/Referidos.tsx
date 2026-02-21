@@ -99,40 +99,45 @@ const Referidos = () => {
   }, [userId]);
 
   const checkUserAndLoad = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setIsLoggedIn(false); setLoading(false); return; }
-    setIsLoggedIn(true);
-    setUserId(user.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setIsLoggedIn(false); setLoading(false); return; }
+      setIsLoggedIn(true);
+      setUserId(user.id);
 
-    const { data: perfil } = await supabase
-      .from("referidos_perfiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
+      const { data: perfil } = await supabase
+        .from("referidos_perfiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-    if (perfil) {
-      if (perfil.estado === "aprobado") {
-        setHasOnboarded(true);
-        setEstadoSolicitud("aprobado");
-        setTema(perfil.tema_preferido === "oscuro" ? "oscuro" : "claro");
-        await loadAllData(user.id);
-      } else if (perfil.estado === "rechazado") {
-        setHasOnboarded(true);
-        setEstadoSolicitud("rechazado");
-        setRazonRechazo(perfil.razon_rechazo || null);
-      } else if (perfil.estado === "revocado") {
-        setHasOnboarded(true);
-        setEstadoSolicitud("revocado");
-        setRazonRechazo(perfil.razon_rechazo || null);
+      if (perfil) {
+        if (perfil.estado === "aprobado") {
+          setHasOnboarded(true);
+          setEstadoSolicitud("aprobado");
+          setTema(perfil.tema_preferido === "oscuro" ? "oscuro" : "claro");
+          await loadAllData(user.id);
+        } else if (perfil.estado === "rechazado") {
+          setHasOnboarded(true);
+          setEstadoSolicitud("rechazado");
+          setRazonRechazo(perfil.razon_rechazo || null);
+        } else if (perfil.estado === "revocado") {
+          setHasOnboarded(true);
+          setEstadoSolicitud("revocado");
+          setRazonRechazo(perfil.razon_rechazo || null);
+        } else {
+          setHasOnboarded(true);
+          setEstadoSolicitud("pendiente");
+        }
       } else {
-        // pendiente
-        setHasOnboarded(true);
-        setEstadoSolicitud("pendiente");
+        setHasOnboarded(false);
       }
-    } else {
-      setHasOnboarded(false);
+    } catch (error) {
+      console.error("Error loading referidos:", error);
+      setIsLoggedIn(false);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const loadAllData = async (uid: string) => {

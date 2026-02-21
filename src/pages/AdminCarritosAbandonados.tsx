@@ -60,7 +60,7 @@ const AdminCarritosAbandonados = () => {
       .from('profiles')
       .select('verificado')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const hasAdminRole = roles?.some(r => r.role === 'admin');
     const isVerified = profileData?.verificado === true;

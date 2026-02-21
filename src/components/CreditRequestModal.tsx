@@ -63,7 +63,7 @@ const CreditRequestModal = ({ userId, isVerified }: CreditRequestModalProps) => 
         .from('profiles')
         .select('user_id')
         .eq('correo', 'oficial@brillarte.lat')
-        .single();
+        .maybeSingle();
 
       if (officialProfile) {
         await supabase.from('notifications').insert({

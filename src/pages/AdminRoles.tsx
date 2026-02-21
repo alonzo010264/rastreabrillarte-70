@@ -53,7 +53,7 @@ const AdminRoles = () => {
       .from('profiles')
       .select('verificado')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const hasAdminRole = roles?.some(r => r.role === 'admin');
     const isVerified = profileData?.verificado === true;
@@ -81,7 +81,7 @@ const AdminRoles = () => {
             .from('profiles')
             .select('nombre_completo, correo')
             .eq('user_id', role.user_id)
-            .single();
+            .maybeSingle();
 
           return {
             ...role,
@@ -111,7 +111,7 @@ const AdminRoles = () => {
         .from('profiles')
         .select('user_id, verificado, nombre_completo')
         .eq('correo', email)
-        .single();
+        .maybeSingle();
 
       if (!profile) {
         toast.error('Usuario no encontrado');

@@ -59,7 +59,7 @@ const RastrearTicket = () => {
           .from("profiles")
           .select("correo")
           .eq("user_id", session.user.id)
-          .single();
+          .maybeSingle();
         if (profile) {
           setEmail(profile.correo);
         }
@@ -85,7 +85,7 @@ const RastrearTicket = () => {
         .from("tickets_ayuda")
         .select("*")
         .or(`id.ilike.${ticketId}%,id.eq.${ticketId}`)
-        .single();
+        .maybeSingle();
 
       if (error || !ticketData) {
         toast({

@@ -120,7 +120,7 @@ export default function AdminBrillartePay() {
             .from('profiles')
             .select('nombre_completo, correo')
             .eq('user_id', t.user_id)
-            .single();
+            .maybeSingle();
           return { ...t, profiles: profile };
         })
       );
@@ -151,7 +151,7 @@ export default function AdminBrillartePay() {
       .from('config_pagos_saldo' as any)
       .select('*')
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (configData) {
       setConfigSaldo({ activado: (configData as any).activado, id: (configData as any).id });

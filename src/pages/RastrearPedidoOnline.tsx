@@ -68,7 +68,7 @@ const RastrearPedidoOnline = () => {
           empresas_envio(nombre, logo_url)
         `)
         .eq('codigo_pedido', codigoPedido)
-        .single();
+        .maybeSingle();
 
       if (fetchError) throw fetchError;
       
