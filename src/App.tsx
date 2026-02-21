@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,77 +13,90 @@ const PageLoader = () => (
   </div>
 );
 
+// Helper: lazy load with automatic retry on chunk load failure (common on mobile)
+function lazyWithRetry(importFn: () => Promise<any>, retries = 3): ReturnType<typeof lazy> {
+  return lazy(() => {
+    const attempt = (triesLeft: number): Promise<any> =>
+      importFn().catch((err: any) => {
+        if (triesLeft <= 0) throw err;
+        // Wait briefly then retry (helps with flaky mobile connections)
+        return new Promise(resolve => setTimeout(resolve, 500)).then(() => attempt(triesLeft - 1));
+      });
+    return attempt(retries);
+  });
+}
+
 // Lazy load de páginas principales
-const Home = lazy(() => import("./pages/Home"));
-const OrderTracking = lazy(() => import("./pages/OrderTracking"));
-const AboutUs = lazy(() => import("./pages/AboutUs"));
-const Products = lazy(() => import("./pages/Products"));
-const FAQ = lazy(() => import("./pages/FAQ"));
-const Contact = lazy(() => import("./pages/Contact"));
-const Account = lazy(() => import("./pages/Account"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const OrderRequest = lazy(() => import("./pages/OrderRequest"));
-const OrderManagement = lazy(() => import("./components/OrderManagement"));
-const Auth = lazy(() => import("./pages/Auth"));
-const CustomerDashboard = lazy(() => import("./pages/CustomerDashboard"));
-const PickupRequest = lazy(() => import("./pages/PickupRequest"));
-const CancelNotifications = lazy(() => import("./pages/CancelNotifications"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const ShippingPolicy = lazy(() => import("./pages/ShippingPolicy"));
-const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
-const TermsConditions = lazy(() => import("./pages/TermsConditions"));
-const AdminPoliticas = lazy(() => import("./pages/AdminPoliticas"));
-const Register = lazy(() => import("./pages/Register"));
-const Login = lazy(() => import("./pages/Login"));
-const RegistroConfirmado = lazy(() => import("./pages/RegistroConfirmado"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const AdminProductos = lazy(() => import("./pages/AdminProductos"));
-const BrillartePedidos = lazy(() => import("./pages/BrillartePedidos"));
-const Promociones = lazy(() => import("./pages/Promociones"));
-const AdminPromociones = lazy(() => import("./pages/AdminPromociones"));
-const Favoritos = lazy(() => import("./pages/Favoritos"));
-const Perfil = lazy(() => import("./pages/Perfil"));
-const PerfilPublico = lazy(() => import("./pages/PerfilPublico"));
-const TarjetasRegalo = lazy(() => import("./pages/TarjetasRegalo"));
-const AdminTarjetas = lazy(() => import("./pages/AdminTarjetas"));
-const AdminRoles = lazy(() => import("./pages/AdminRoles"));
-const AdminEmails = lazy(() => import("./pages/AdminEmails"));
-const AdminCuentas = lazy(() => import("./pages/AdminCuentas"));
-const AdminCuentaDetalle = lazy(() => import("./pages/AdminCuentaDetalle"));
-const Comunidad = lazy(() => import("./pages/Comunidad"));
-const Mensajes = lazy(() => import("./pages/Mensajes"));
-const AdminTickets = lazy(() => import("./pages/AdminTickets"));
-const AdminVerificaciones = lazy(() => import("./pages/AdminVerificaciones"));
-const AdminContabilidad = lazy(() => import("./pages/AdminContabilidad"));
-const SolicitudVerificacion = lazy(() => import("./pages/SolicitudVerificacion"));
-const BannedAccount = lazy(() => import("./pages/BannedAccount"));
-const AdminCarritosAbandonados = lazy(() => import("./pages/AdminCarritosAbandonados"));
-const AdminEnvios = lazy(() => import("./pages/AdminEnvios"));
-const ApelacionBaneo = lazy(() => import("./pages/ApelacionBaneo"));
-const AdminSolicitudesIA = lazy(() => import("./pages/AdminSolicitudesIA"));
-const GuiaCodigosPago = lazy(() => import("./pages/GuiaCodigosPago"));
-const AdminCodigosPago = lazy(() => import("./pages/AdminCodigosPago"));
-const AdminBrillartePay = lazy(() => import("./pages/AdminBrillartePay"));
-const RastrearPedidoOnline = lazy(() => import("./pages/RastrearPedidoOnline"));
-const AgentLogin = lazy(() => import("./pages/AgentLogin"));
-const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
-const RastrearTicket = lazy(() => import("./pages/RastrearTicket"));
-const Cupones = lazy(() => import("./pages/Cupones"));
-const AdminCupones = lazy(() => import("./pages/AdminCupones"));
-const Eventos = lazy(() => import("./pages/Eventos"));
-const AdminNoticias = lazy(() => import("./pages/AdminNoticias"));
-const Novedades = lazy(() => import("./pages/Novedades"));
-const MiPedidoDetalle = lazy(() => import("./pages/MiPedidoDetalle"));
-const VerificacionPage = lazy(() => import("./pages/Verificacion"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const Referidos = lazy(() => import("./pages/Referidos"));
-const AdminReferidos = lazy(() => import("./pages/AdminReferidos"));
+const Home = lazyWithRetry(() => import("./pages/Home"));
+const OrderTracking = lazyWithRetry(() => import("./pages/OrderTracking"));
+const AboutUs = lazyWithRetry(() => import("./pages/AboutUs"));
+const Products = lazyWithRetry(() => import("./pages/Products"));
+const FAQ = lazyWithRetry(() => import("./pages/FAQ"));
+const Contact = lazyWithRetry(() => import("./pages/Contact"));
+const Account = lazyWithRetry(() => import("./pages/Account"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const OrderRequest = lazyWithRetry(() => import("./pages/OrderRequest"));
+const OrderManagement = lazyWithRetry(() => import("./components/OrderManagement"));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const CustomerDashboard = lazyWithRetry(() => import("./pages/CustomerDashboard"));
+const PickupRequest = lazyWithRetry(() => import("./pages/PickupRequest"));
+const CancelNotifications = lazyWithRetry(() => import("./pages/CancelNotifications"));
+const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
+const ShippingPolicy = lazyWithRetry(() => import("./pages/ShippingPolicy"));
+const RefundPolicy = lazyWithRetry(() => import("./pages/RefundPolicy"));
+const TermsConditions = lazyWithRetry(() => import("./pages/TermsConditions"));
+const AdminPoliticas = lazyWithRetry(() => import("./pages/AdminPoliticas"));
+const Register = lazyWithRetry(() => import("./pages/Register"));
+const Login = lazyWithRetry(() => import("./pages/Login"));
+const RegistroConfirmado = lazyWithRetry(() => import("./pages/RegistroConfirmado"));
+const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
+const AdminProductos = lazyWithRetry(() => import("./pages/AdminProductos"));
+const BrillartePedidos = lazyWithRetry(() => import("./pages/BrillartePedidos"));
+const Promociones = lazyWithRetry(() => import("./pages/Promociones"));
+const AdminPromociones = lazyWithRetry(() => import("./pages/AdminPromociones"));
+const Favoritos = lazyWithRetry(() => import("./pages/Favoritos"));
+const Perfil = lazyWithRetry(() => import("./pages/Perfil"));
+const PerfilPublico = lazyWithRetry(() => import("./pages/PerfilPublico"));
+const TarjetasRegalo = lazyWithRetry(() => import("./pages/TarjetasRegalo"));
+const AdminTarjetas = lazyWithRetry(() => import("./pages/AdminTarjetas"));
+const AdminRoles = lazyWithRetry(() => import("./pages/AdminRoles"));
+const AdminEmails = lazyWithRetry(() => import("./pages/AdminEmails"));
+const AdminCuentas = lazyWithRetry(() => import("./pages/AdminCuentas"));
+const AdminCuentaDetalle = lazyWithRetry(() => import("./pages/AdminCuentaDetalle"));
+const Comunidad = lazyWithRetry(() => import("./pages/Comunidad"));
+const Mensajes = lazyWithRetry(() => import("./pages/Mensajes"));
+const AdminTickets = lazyWithRetry(() => import("./pages/AdminTickets"));
+const AdminVerificaciones = lazyWithRetry(() => import("./pages/AdminVerificaciones"));
+const AdminContabilidad = lazyWithRetry(() => import("./pages/AdminContabilidad"));
+const SolicitudVerificacion = lazyWithRetry(() => import("./pages/SolicitudVerificacion"));
+const BannedAccount = lazyWithRetry(() => import("./pages/BannedAccount"));
+const AdminCarritosAbandonados = lazyWithRetry(() => import("./pages/AdminCarritosAbandonados"));
+const AdminEnvios = lazyWithRetry(() => import("./pages/AdminEnvios"));
+const ApelacionBaneo = lazyWithRetry(() => import("./pages/ApelacionBaneo"));
+const AdminSolicitudesIA = lazyWithRetry(() => import("./pages/AdminSolicitudesIA"));
+const GuiaCodigosPago = lazyWithRetry(() => import("./pages/GuiaCodigosPago"));
+const AdminCodigosPago = lazyWithRetry(() => import("./pages/AdminCodigosPago"));
+const AdminBrillartePay = lazyWithRetry(() => import("./pages/AdminBrillartePay"));
+const RastrearPedidoOnline = lazyWithRetry(() => import("./pages/RastrearPedidoOnline"));
+const AgentLogin = lazyWithRetry(() => import("./pages/AgentLogin"));
+const AgentDashboard = lazyWithRetry(() => import("./pages/AgentDashboard"));
+const RastrearTicket = lazyWithRetry(() => import("./pages/RastrearTicket"));
+const Cupones = lazyWithRetry(() => import("./pages/Cupones"));
+const AdminCupones = lazyWithRetry(() => import("./pages/AdminCupones"));
+const Eventos = lazyWithRetry(() => import("./pages/Eventos"));
+const AdminNoticias = lazyWithRetry(() => import("./pages/AdminNoticias"));
+const Novedades = lazyWithRetry(() => import("./pages/Novedades"));
+const MiPedidoDetalle = lazyWithRetry(() => import("./pages/MiPedidoDetalle"));
+const VerificacionPage = lazyWithRetry(() => import("./pages/Verificacion"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const Referidos = lazyWithRetry(() => import("./pages/Referidos"));
+const AdminReferidos = lazyWithRetry(() => import("./pages/AdminReferidos"));
 
 // Componentes de protección
-const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
+const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
 
 // Chatbot se carga de forma diferida
-const ChatbotWrapper = lazy(() => import("./components/ChatbotWrapper").then(m => ({ default: m.ChatbotWrapper })));
+const ChatbotWrapper = lazyWithRetry(() => import("./components/ChatbotWrapper").then(m => ({ default: m.ChatbotWrapper })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
