@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -312,8 +313,8 @@ const Referidos = () => {
               <h2 className="text-2xl font-bold">Inicia sesion para participar</h2>
               <p className="text-muted-foreground text-sm">Necesitas una cuenta para obtener tu codigo de referido y empezar a ganar puntos.</p>
               <div className="flex gap-3 justify-center pt-2">
-                <Button asChild><a href="/login">Iniciar Sesion</a></Button>
-                <Button variant="outline" asChild><a href="/registro">Registrarse</a></Button>
+                <Button asChild><Link to="/login">Iniciar Sesion</Link></Button>
+                <Button variant="outline" asChild><Link to="/registro">Registrarse</Link></Button>
               </div>
             </CardContent>
           </Card>
