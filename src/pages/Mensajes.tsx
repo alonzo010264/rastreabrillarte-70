@@ -546,6 +546,11 @@ const Mensajes = () => {
             accion_url: `/mensajes?userId=${user.id}`,
             imagen_url: BRILLARTE_LOGO_URL
           });
+
+          // Send email notification to the user
+          supabase.functions.invoke('notify-brillarte-new-chat', {
+            body: { targetUserId: otherUserId }
+          }).catch(err => console.error('Error sending chat email:', err));
         }
       }
 
@@ -628,28 +633,30 @@ const Mensajes = () => {
               </Button>
               <h1 className="text-3xl font-bold">Mensajes</h1>
             </div>
-            <div className="flex gap-2">
-              {isVerified && (
+            {(isVerified || isAdmin) && (
+              <div className="flex gap-2">
+                {isVerified && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowSearchModal(true)}
+                    className="gap-2"
+                  >
+                    <Search className="h-4 w-4" />
+                    Buscar
+                  </Button>
+                )}
                 <Button 
-                  variant="outline" 
+                  variant="default" 
                   size="sm"
-                  onClick={() => setShowSearchModal(true)}
+                  onClick={() => setShowVerifiedModal(true)}
                   className="gap-2"
                 >
-                  <Search className="h-4 w-4" />
-                  Buscar
+                  <MessageCircle className="h-4 w-4" />
+                  Contactos
                 </Button>
-              )}
-              <Button 
-                variant="default" 
-                size="sm"
-                onClick={() => setShowVerifiedModal(true)}
-                className="gap-2"
-              >
-                <MessageCircle className="h-4 w-4" />
-                {isVerified ? 'Contactos' : 'Verificadas'}
-              </Button>
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
@@ -663,15 +670,17 @@ const Mensajes = () => {
                   {conversations.length === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground text-sm mb-4">
-                        No tienes conversaciones aún
+                        {(isVerified || isAdmin) ? 'No tienes conversaciones aún' : 'Aún no has recibido mensajes. BRILLARTE puede contactarte aquí.'}
                       </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowVerifiedModal(true)}
-                      >
-                        Iniciar chat
-                      </Button>
+                      {(isVerified || isAdmin) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowVerifiedModal(true)}
+                        >
+                          Iniciar chat
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     conversations.map((conv) => (
@@ -988,14 +997,23 @@ const Mensajes = () => {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center text-muted-foreground">
                     <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg mb-2">Selecciona una conversación</p>
-                    <p className="text-sm mb-4">o inicia una nueva</p>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowVerifiedModal(true)}
-                    >
-                      Chatear con cuenta verificada
-                    </Button>
+                    {(isVerified || isAdmin) ? (
+                      <>
+                        <p className="text-lg mb-2">Selecciona una conversación</p>
+                        <p className="text-sm mb-4">o inicia una nueva</p>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowVerifiedModal(true)}
+                        >
+                          Chatear con cuenta verificada
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg mb-2">Tus mensajes</p>
+                        <p className="text-sm">Aquí recibirás mensajes de BRILLARTE</p>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
