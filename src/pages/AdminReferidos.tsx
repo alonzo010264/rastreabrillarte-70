@@ -254,7 +254,7 @@ const AdminReferidos = () => {
     setSubmitting(true);
     const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: profile } = await supabase.from("profiles").select("puntos_referidos").eq("user_id", selectedUserId).single();
+    const { data: profile } = await supabase.from("profiles").select("puntos_referidos").eq("user_id", selectedUserId).maybeSingle();
     const currentPts = profile?.puntos_referidos || 0;
 
     if (tipo === "quitar") {
@@ -291,7 +291,7 @@ const AdminReferidos = () => {
   const resetearPuntos = async (uid: string, nombre: string) => {
     if (!confirm(`¿Seguro que quieres resetear los puntos de ${nombre} a 0? Esto lo quitará de la tabla de clasificación.`)) return;
     const { data: { user } } = await supabase.auth.getUser();
-    const { data: profile } = await supabase.from("profiles").select("puntos_referidos").eq("user_id", uid).single();
+    const { data: profile } = await supabase.from("profiles").select("puntos_referidos").eq("user_id", uid).maybeSingle();
     const currentPts = profile?.puntos_referidos || 0;
     if (currentPts > 0) {
       await supabase.from("puntos_referidos").insert({

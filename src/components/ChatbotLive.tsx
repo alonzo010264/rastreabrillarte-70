@@ -385,7 +385,7 @@ export const ChatbotLive = memo(() => {
           atendido_por: "ia",
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

@@ -38,7 +38,7 @@ const PrivacyPolicy = () => {
           .eq("user_id", session.user.id)
           .eq("tipo_politica", "privacidad")
           .eq("accion", "aceptado")
-          .single();
+          .maybeSingle();
 
         if (data) setHasAccepted(true);
       }

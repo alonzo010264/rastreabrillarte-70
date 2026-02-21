@@ -98,7 +98,7 @@ export const useChat = (userId: string | null) => {
               .from('profiles')
               .select('nombre_completo, avatar_url, verificado, correo')
               .eq('user_id', otherParticipant.user_id)
-              .single();
+              .maybeSingle();
 
             const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL;
             
@@ -147,7 +147,7 @@ export const useChat = (userId: string | null) => {
             .from('profiles')
             .select('nombre_completo, avatar_url, verificado, correo')
             .eq('user_id', msg.sender_id)
-            .single();
+            .maybeSingle();
 
           const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL;
 
@@ -191,7 +191,7 @@ export const useChat = (userId: string | null) => {
             .select('id')
             .eq('conversation_id', participation.conversation_id)
             .eq('user_id', otherUserId)
-            .single();
+            .maybeSingle();
 
           if (otherParticipation) {
             console.log('Conversación existente encontrada:', participation.conversation_id);
@@ -207,7 +207,7 @@ export const useChat = (userId: string | null) => {
         .from('conversations')
         .insert({})
         .select()
-        .single();
+        .maybeSingle();
 
       if (convError) {
         console.error('Error creating conversation:', convError);
@@ -304,7 +304,7 @@ export const useChat = (userId: string | null) => {
             .from('profiles')
             .select('correo')
             .eq('user_id', participants[0].user_id)
-            .single();
+            .maybeSingle();
 
           if (otherProfile?.correo === BRILLARTE_OFFICIAL_EMAIL) {
             supabase.functions.invoke('chat-ai-responder', {
@@ -370,7 +370,7 @@ export const useChat = (userId: string | null) => {
             .from('profiles')
             .select('nombre_completo, avatar_url, verificado, correo')
             .eq('user_id', payload.new.sender_id)
-            .single();
+            .maybeSingle();
 
           const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL;
 

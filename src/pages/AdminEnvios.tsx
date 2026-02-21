@@ -99,7 +99,7 @@ const AdminEnvios = () => {
         .from('profiles')
         .select('verificado')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       const isAdmin = roleData?.role === 'admin';
       const isVerified = profileData?.verificado === true;

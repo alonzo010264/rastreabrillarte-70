@@ -35,7 +35,7 @@ const RefundPolicy = () => {
           .eq("user_id", session.user.id)
           .eq("tipo_politica", "reembolso")
           .eq("accion", "aceptado")
-          .single();
+          .maybeSingle();
 
         if (data) setHasAccepted(true);
       }

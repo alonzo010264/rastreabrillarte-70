@@ -101,7 +101,7 @@ const ChatPopup = ({
             .select('id')
             .eq('conversation_id', p.conversation_id)
             .eq('user_id', targetUserId)
-            .single();
+            .maybeSingle();
 
           if (otherParticipation) {
             foundConversation = p.conversation_id;
@@ -116,7 +116,7 @@ const ChatPopup = ({
           .from('conversations')
           .insert({})
           .select()
-          .single();
+          .maybeSingle();
 
         if (convError) throw convError;
 
@@ -162,7 +162,7 @@ const ChatPopup = ({
           .from('profiles')
           .select('nombre_completo, avatar_url, verificado, correo')
           .eq('user_id', msg.sender_id)
-          .single();
+          .maybeSingle();
 
         const isOff = profile?.correo === BRILLARTE_OFFICIAL_EMAIL;
         return {
@@ -195,7 +195,7 @@ const ChatPopup = ({
             .from('profiles')
             .select('nombre_completo, avatar_url, verificado, correo')
             .eq('user_id', payload.new.sender_id)
-            .single();
+            .maybeSingle();
 
           const isOff = profile?.correo === BRILLARTE_OFFICIAL_EMAIL;
           const newMsg: Message = {

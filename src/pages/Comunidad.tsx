@@ -91,7 +91,7 @@ const Comunidad = () => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       setUserProfile(profile);
     }
   };
@@ -126,7 +126,7 @@ const Comunidad = () => {
               .from('profiles')
               .select('nombre_completo, avatar_url, verificado, correo, identificador')
               .eq('user_id', post.user_id)
-              .single();
+              .maybeSingle();
 
             // Si es cuenta oficial, usar datos de BRILLARTE con logo importado
             const isOfficial = isOfficialBrillarteAccount(profileData?.correo || '');
@@ -170,7 +170,7 @@ const Comunidad = () => {
                 .select('id')
                 .eq('post_id', post.id)
                 .eq('user_id', user.id)
-                .single();
+                .maybeSingle();
               userLike = data;
             }
 
@@ -219,7 +219,7 @@ const Comunidad = () => {
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       userLike = data;
     }
 
@@ -318,7 +318,7 @@ const Comunidad = () => {
         .select('id')
         .eq('respuesta_id', respuestaId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       userLike = data;
     }
 
@@ -339,7 +339,7 @@ const Comunidad = () => {
         .from('profiles')
         .select('user_id')
         .eq('identificador', identificador)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         navigate(`/mensajes?userId=${profile.user_id}`);
@@ -401,7 +401,7 @@ const Comunidad = () => {
           es_pregunta: newPost.includes('?')
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -513,7 +513,7 @@ const Comunidad = () => {
               .from('profiles')
               .select('nombre_completo, avatar_url, verificado, correo, identificador')
               .eq('user_id', resp.user_id)
-              .single();
+              .maybeSingle();
             
             // Si es cuenta oficial, usar datos de BRILLARTE con logo importado
             const isOfficial = isOfficialBrillarteAccount(data?.correo || '');
@@ -543,7 +543,7 @@ const Comunidad = () => {
               .select('id')
               .eq('respuesta_id', resp.id)
               .eq('user_id', user.id)
-              .single();
+              .maybeSingle();
             userLike = data;
           }
 
@@ -645,7 +645,7 @@ const Comunidad = () => {
           es_ia: false
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

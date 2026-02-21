@@ -45,7 +45,7 @@ const AdminCodigosPago = () => {
       .from('profiles')
       .select('correo')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profile?.correo !== 'oficial@brillarte.lat') {
       const { data: role } = await supabase

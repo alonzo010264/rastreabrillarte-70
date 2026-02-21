@@ -74,7 +74,7 @@ export default function Perfil() {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setProfile(profileData);
@@ -161,7 +161,7 @@ export default function Perfil() {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (updatedProfile) {
         setProfile(updatedProfile);

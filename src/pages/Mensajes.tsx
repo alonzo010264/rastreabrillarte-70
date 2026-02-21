@@ -124,7 +124,7 @@ const Mensajes = () => {
         .from('profiles')
         .select('verificado, correo')
         .eq('user_id', currentUser.id)
-        .single();
+        .maybeSingle();
       const userIsVerified = profileData?.verificado || profileData?.correo?.endsWith('@brillarte.lat') || false;
       setIsVerified(userIsVerified);
     }
@@ -171,7 +171,7 @@ const Mensajes = () => {
               .from('profiles')
               .select('nombre_completo, avatar_url, verificado, correo, identificador')
               .eq('user_id', otherParticipant.user_id)
-              .single();
+              .maybeSingle();
 
             const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL || profile?.correo?.endsWith('@brillarte.lat');
             const isVerified = isOfficial || profile?.verificado;
@@ -224,7 +224,7 @@ const Mensajes = () => {
             .from('profiles')
             .select('nombre_completo, avatar_url, verificado, correo')
             .eq('user_id', msg.sender_id)
-            .single();
+            .maybeSingle();
 
           const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL || profile?.correo?.endsWith('@brillarte.lat');
           return {
@@ -290,7 +290,7 @@ const Mensajes = () => {
         .from('conversations')
         .select('ia_activa, estado')
         .eq('id', currentConversation)
-        .single()
+        .maybeSingle()
         .then(({ data }) => {
           setIaActiva((data as any)?.ia_activa || false);
           setConversationEstado((data as any)?.estado || 'activo');
@@ -317,7 +317,7 @@ const Mensajes = () => {
             .from('profiles')
             .select('nombre_completo, avatar_url, verificado, correo')
             .eq('user_id', payload.new.sender_id)
-            .single();
+            .maybeSingle();
 
           const isOfficial = profile?.correo === BRILLARTE_OFFICIAL_EMAIL || profile?.correo?.endsWith('@brillarte.lat');
 
@@ -437,7 +437,7 @@ const Mensajes = () => {
           .from('profiles')
           .select('nombre_completo')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         await supabase
           .from('verificaciones_envio' as any)
@@ -533,7 +533,7 @@ const Mensajes = () => {
           .from('profiles')
           .select('correo')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
         
         const isOfficial = myProfile?.correo === BRILLARTE_OFFICIAL_EMAIL || myProfile?.correo?.endsWith('@brillarte.lat');
         if (isOfficial) {
