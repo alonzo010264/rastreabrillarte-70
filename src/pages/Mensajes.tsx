@@ -191,7 +191,7 @@ const Mensajes = () => {
               other_user: {
                 id: otherParticipant.user_id,
                 nombre_completo: isOfficial ? 'BRILLARTE' : (profile?.nombre_completo || 'Usuario'),
-                avatar_url: isOfficial ? brillarteLogo : (isVerified ? profile?.avatar_url : null),
+                avatar_url: isOfficial ? brillarteLogo : (profile?.avatar_url || null),
                 verificado: isVerified,
                 isOfficial,
                 identificador: profile?.identificador,
@@ -683,18 +683,10 @@ const Mensajes = () => {
                         }`}
                       >
                         <Avatar className={`h-10 w-10 ${conv.other_user?.isOfficial ? 'ring-2 ring-primary' : ''}`}>
-                          {conv.other_user?.verificado ? (
-                            <>
-                              <AvatarImage src={conv.other_user?.avatar_url || undefined} />
-                              <AvatarFallback className={conv.other_user?.isOfficial ? 'bg-primary text-primary-foreground' : ''}>
-                                {conv.other_user?.displayName?.[0]?.toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </>
-                          ) : (
-                            <AvatarFallback className="bg-muted">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                            </AvatarFallback>
-                          )}
+                          <AvatarImage src={conv.other_user?.avatar_url || undefined} />
+                          <AvatarFallback className={conv.other_user?.isOfficial ? 'bg-primary text-primary-foreground' : 'bg-muted'}>
+                            {conv.other_user?.avatar_url ? null : conv.other_user?.displayName?.[0]?.toUpperCase() || <User className="h-4 w-4 text-muted-foreground" />}
+                          </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1">
@@ -726,18 +718,10 @@ const Mensajes = () => {
                   {/* Header */}
                   <div className="p-4 border-b flex items-center gap-3">
                     <Avatar className={`h-10 w-10 ${currentConversationData.other_user.isOfficial ? 'ring-2 ring-primary' : ''}`}>
-                      {currentConversationData.other_user.verificado ? (
-                        <>
-                          <AvatarImage src={currentConversationData.other_user.avatar_url || undefined} />
-                          <AvatarFallback className={currentConversationData.other_user.isOfficial ? 'bg-primary text-primary-foreground' : ''}>
-                            {currentConversationData.other_user.displayName[0]?.toUpperCase()}
-                          </AvatarFallback>
-                        </>
-                      ) : (
-                        <AvatarFallback className="bg-muted">
-                          <User className="h-5 w-5 text-muted-foreground" />
-                        </AvatarFallback>
-                      )}
+                      <AvatarImage src={currentConversationData.other_user.avatar_url || undefined} />
+                      <AvatarFallback className={currentConversationData.other_user.isOfficial ? 'bg-primary text-primary-foreground' : 'bg-muted'}>
+                        {currentConversationData.other_user.displayName[0]?.toUpperCase() || <User className="h-5 w-5 text-muted-foreground" />}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-1">
