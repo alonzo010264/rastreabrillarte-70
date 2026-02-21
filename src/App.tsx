@@ -81,7 +81,7 @@ const RastrearPedidoOnline = lazyWithRetry(() => import("./pages/RastrearPedidoO
 const AgentLogin = lazyWithRetry(() => import("./pages/AgentLogin"));
 const AgentDashboard = lazyWithRetry(() => import("./pages/AgentDashboard"));
 const RastrearTicket = lazyWithRetry(() => import("./pages/RastrearTicket"));
-const Cupones = lazyWithRetry(() => import("./pages/Cupones"));
+
 const AdminCupones = lazyWithRetry(() => import("./pages/AdminCupones"));
 const Eventos = lazyWithRetry(() => import("./pages/Eventos"));
 const AdminNoticias = lazyWithRetry(() => import("./pages/AdminNoticias"));
@@ -151,7 +151,7 @@ const App = () => (
             <Route path="/rastrear-pedido/:codigoPedido" element={<RastrearPedidoOnline />} />
             <Route path="/cuenta" element={<Account />} />
             <Route path="/rastrear-ticket" element={<RastrearTicket />} />
-            <Route path="/cupones" element={<Cupones />} />
+            
             <Route path="/eventos" element={<Eventos />} />
             <Route path="/novedades" element={<Novedades />} />
             <Route path="/mi-pedido/:codigoPedido" element={<MiPedidoDetalle />} />
