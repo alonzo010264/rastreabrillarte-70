@@ -76,7 +76,7 @@ const AgentLogin = () => {
         .from("agent_profiles")
         .select("*")
         .eq("user_id", data.user.id)
-        .single();
+        .maybeSingle();
 
       if (!agentProfile) {
         await supabase.auth.signOut();

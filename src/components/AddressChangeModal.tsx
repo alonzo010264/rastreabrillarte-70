@@ -51,7 +51,7 @@ const AddressChangeModal = ({ orderCode }: AddressChangeModalProps) => {
         .from('Estatus')
         .select('id')
         .eq('nombre', 'En Revisión')
-        .single();
+        .maybeSingle();
 
       if (estatusError) {
         console.error('Error finding En Revisión status:', estatusError);

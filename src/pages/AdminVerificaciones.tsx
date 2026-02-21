@@ -65,7 +65,7 @@ const AdminVerificaciones = () => {
       .from('profiles')
       .select('verificado')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const hasAdminRole = roles?.some(r => r.role === 'admin');
     const isVerified = profileData?.verificado === true;
@@ -112,7 +112,7 @@ const AdminVerificaciones = () => {
           .from('profiles')
           .select('nombre_completo, correo, avatar_url')
           .eq('user_id', sol.user_id)
-          .single();
+          .maybeSingle();
 
         return { ...sol, profiles: profile };
       })

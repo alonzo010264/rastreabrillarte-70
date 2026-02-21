@@ -82,7 +82,7 @@ const AdminSolicitudesIA = () => {
             .from('profiles')
             .select('nombre_completo, correo, verificado')
             .eq('user_id', sol.user_id)
-            .single();
+            .maybeSingle();
           return { ...sol, profiles: profile };
         })
       );

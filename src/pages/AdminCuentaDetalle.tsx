@@ -118,7 +118,7 @@ const AdminCuentaDetalle = () => {
       .from('profiles')
       .select('verificado')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const hasAdminRole = roles?.some(r => r.role === 'admin');
     const isVerified = profileData?.verificado === true;
@@ -136,7 +136,7 @@ const AdminCuentaDetalle = () => {
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
       setProfile(profileData);

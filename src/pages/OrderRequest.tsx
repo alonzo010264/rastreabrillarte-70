@@ -71,7 +71,7 @@ const OrderRequest = () => {
         .from("Pedidos")
         .select("Código de pedido")
         .eq("Código de pedido", orderCode)
-        .single();
+        .maybeSingle();
       
       // Si existe, generar uno nuevo
       while (existingOrder) {
@@ -80,7 +80,7 @@ const OrderRequest = () => {
           .from("Pedidos")
           .select("Código de pedido")
           .eq("Código de pedido", orderCode)
-          .single();
+          .maybeSingle();
         existingOrder = checkExisting;
       }
 

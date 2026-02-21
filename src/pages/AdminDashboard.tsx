@@ -122,8 +122,8 @@ const AdminDashboard = () => {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('verificado')
-        .eq('user_id', session.user.id)
-        .single();
+      .eq('user_id', session.user.id)
+      .maybeSingle();
 
       const isAdmin = roleData?.role === 'admin';
       const isVerified = profileData?.verificado === true;
@@ -192,8 +192,8 @@ const AdminDashboard = () => {
         const { data: profile } = await supabase
           .from('profiles')
           .select('nombre_completo, correo')
-          .eq('user_id', ticket.user_id)
-          .single();
+        .eq('user_id', ticket.user_id)
+          .maybeSingle();
         
         return {
           ...ticket,
@@ -246,7 +246,7 @@ const AdminDashboard = () => {
         .from('profiles')
         .select('nombre_completo')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       const { error: creditError } = await supabase
         .from('creditos_dados')
@@ -323,7 +323,7 @@ const AdminDashboard = () => {
         .from('profiles')
         .select('nombre_completo')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (notifTarget === "individual" && !selectedProfile) {
         toast({
@@ -389,7 +389,7 @@ const AdminDashboard = () => {
         .from('profiles')
         .select('nombre_completo')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       const total = packageForm.total || packageForm.precio;
 

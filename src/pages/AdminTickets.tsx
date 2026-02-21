@@ -78,7 +78,7 @@ const AdminTickets = () => {
       .from('profiles')
       .select('verificado')
       .eq('user_id', currentUser.id)
-      .single();
+      .maybeSingle();
 
     const hasAdminRole = roles?.some(r => r.role === 'admin');
     const isVerified = profileData?.verificado === true;
@@ -120,7 +120,7 @@ const AdminTickets = () => {
             .from('profiles')
             .select('nombre_completo, correo')
             .eq('user_id', ticket.user_id)
-            .single();
+            .maybeSingle();
 
           // Obtener respuestas del ticket
           const { data: responses } = await supabase
@@ -137,7 +137,7 @@ const AdminTickets = () => {
                   .from('profiles')
                   .select('nombre_completo')
                   .eq('user_id', resp.user_id)
-                  .single();
+                  .maybeSingle();
 
                 return {
                   ...resp,

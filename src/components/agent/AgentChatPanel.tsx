@@ -113,7 +113,7 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
       .from("chat_sessions")
       .select("*")
       .eq("id", sessionId)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setSession(data);
@@ -138,7 +138,7 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
       .from("profiles")
       .select("*")
       .eq("correo", email)
-      .single();
+      .maybeSingle();
 
     if (profile) {
       setClientProfile(profile);
@@ -238,7 +238,7 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
       .select("id")
       .eq("session_id", sessionId)
       .eq("user_type", "agente")
-      .single();
+      .maybeSingle();
 
     if (existing) {
       await supabase
@@ -420,7 +420,7 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
       .from("agent_profiles")
       .select("chats_atendidos")
       .eq("id", agentProfile.id)
-      .single();
+      .maybeSingle();
 
     await supabase
       .from("agent_profiles")
@@ -460,7 +460,7 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
       .from("pedidos_online")
       .select("*")
       .eq("codigo_pedido", orderSearchCode.toUpperCase())
-      .single();
+      .maybeSingle();
 
     if (data) {
       setOrderInfo(data);
@@ -469,7 +469,7 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
         .from("pedidos_registro")
         .select("*")
         .eq("codigo_pedido", orderSearchCode.toUpperCase())
-        .single();
+        .maybeSingle();
 
       if (registroData) {
         setOrderInfo(registroData);

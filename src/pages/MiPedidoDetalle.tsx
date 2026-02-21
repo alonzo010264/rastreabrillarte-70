@@ -24,7 +24,7 @@ const MiPedidoDetalle = () => {
         .select("*")
         .eq("codigo_pedido", codigoPedido)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (data) setPedido(data);
       setLoading(false);
