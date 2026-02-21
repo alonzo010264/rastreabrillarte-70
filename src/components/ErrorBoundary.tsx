@@ -21,6 +21,28 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("ErrorBoundary caught:", error, errorInfo);
+
+    // Auto-recover from chunk loading errors (common on mobile)
+    const msg = error?.message || "";
+    if (
+      msg.includes("Loading chunk") ||
+      msg.includes("Failed to fetch") ||
+      msg.includes("dynamically imported module") ||
+      msg.includes("Importing a module script failed") ||
+      msg.includes("NetworkError") ||
+      msg.includes("Load failed")
+    ) {
+      // Clear the error and reload the page once
+      const reloadKey = "brillarte_chunk_reload";
+      const lastReload = sessionStorage.getItem(reloadKey);
+      const now = Date.now();
+      // Only auto-reload once per 30 seconds to avoid loops
+      if (!lastReload || now - parseInt(lastReload) > 30000) {
+        sessionStorage.setItem(reloadKey, now.toString());
+        window.location.reload();
+        return;
+      }
+    }
   }
 
   handleRetry = () => {
