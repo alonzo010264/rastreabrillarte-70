@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Package, Plus, Copy, Edit } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import OnlineOrdersManagement from "./OnlineOrdersManagement";
 import AsignarPedidoCuenta from "./AsignarPedidoCuenta";
 
@@ -50,6 +51,9 @@ const OrderManagement = () => {
   const [newDate, setNewDate] = useState("");
   const [description, setDescription] = useState("");
   const [statuses, setStatuses] = useState<Estatus[]>([]);
+  const [mostrarNotificaciones, setMostrarNotificaciones] = useState(true);
+  const [mostrarCambioDireccion, setMostrarCambioDireccion] = useState(true);
+  const [mostrarAyuda, setMostrarAyuda] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -310,20 +314,29 @@ const OrderManagement = () => {
         .update({ 'Estatus_id': newStatusId })
         .eq('Código de pedido', selectedOrder['Código de pedido']);
 
-      // Insertar en historial con fecha personalizada o actual
-      const historialData: any = {
-        'Código de pedido': selectedOrder['Código de pedido'],
-        'Estatus_id': newStatusId,
-        'Descripcion': description || 'Actualización de estatus'
-      };
-
-      if (newDate) {
-        historialData.Fecha = newDate;
-      }
-
-      await supabase
+      // Verificar si ya existe este estatus en el historial para evitar duplicados
+      const { data: existingHistory } = await supabase
         .from('Historial_Estatus')
-        .insert(historialData);
+        .select('id')
+        .eq('Código de pedido', selectedOrder['Código de pedido'])
+        .eq('Estatus_id', newStatusId)
+        .limit(1);
+
+      if (!existingHistory || existingHistory.length === 0) {
+        const historialData: any = {
+          'Código de pedido': selectedOrder['Código de pedido'],
+          'Estatus_id': newStatusId,
+          'Descripcion': description || 'Actualización de estatus'
+        };
+
+        if (newDate) {
+          historialData.Fecha = newDate;
+        }
+
+        await supabase
+          .from('Historial_Estatus')
+          .insert(historialData);
+      }
 
       // Enviar notificación por correo de actualización
       const status = statuses.find(s => s.id === newStatusId);
@@ -504,10 +517,23 @@ const OrderManagement = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>Seleccionar Pedido</Label>
-            <Select value={selectedOrder?.['Código de pedido'] || ""} onValueChange={(value) => {
+            <Select value={selectedOrder?.['Código de pedido'] || ""} onValueChange={async (value) => {
               const order = existingOrders.find(o => o['Código de pedido'] === value);
               setSelectedOrder(order || null);
               setSelectedOrderEmail(order?.['Correo_cliente'] || "");
+              // Load action button config
+              if (order) {
+                const { data } = await supabase
+                  .from('Pedidos')
+                  .select('mostrar_notificaciones, mostrar_cambio_direccion, mostrar_ayuda')
+                  .eq('Código de pedido', value)
+                  .maybeSingle();
+                if (data) {
+                  setMostrarNotificaciones(data.mostrar_notificaciones ?? true);
+                  setMostrarCambioDireccion(data.mostrar_cambio_direccion ?? true);
+                  setMostrarAyuda(data.mostrar_ayuda ?? true);
+                }
+              }
             }}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar pedido" />
@@ -568,6 +594,36 @@ const OrderManagement = () => {
           </div>
         </div>
         
+        {/* Botones de acción visibles al rastrear */}
+        {selectedOrder && (
+          <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
+            <h3 className="text-sm font-medium mb-3">Botones visibles al rastrear este pedido</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Recibir Notificaciones</Label>
+                <Switch checked={mostrarNotificaciones} onCheckedChange={async (val) => {
+                  setMostrarNotificaciones(val);
+                  await supabase.from('Pedidos').update({ mostrar_notificaciones: val }).eq('Código de pedido', selectedOrder['Código de pedido']);
+                }} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Cambiar Dirección</Label>
+                <Switch checked={mostrarCambioDireccion} onCheckedChange={async (val) => {
+                  setMostrarCambioDireccion(val);
+                  await supabase.from('Pedidos').update({ mostrar_cambio_direccion: val }).eq('Código de pedido', selectedOrder['Código de pedido']);
+                }} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Ayuda de Emergencia</Label>
+                <Switch checked={mostrarAyuda} onCheckedChange={async (val) => {
+                  setMostrarAyuda(val);
+                  await supabase.from('Pedidos').update({ mostrar_ayuda: val }).eq('Código de pedido', selectedOrder['Código de pedido']);
+                }} />
+              </div>
+            </div>
+          </div>
+        )}
+
         <Button onClick={updateOrderStatus} disabled={loading || !selectedOrder || !newStatusId || !selectedOrderEmail} className="mt-4">
           Actualizar Estatus y Notificar
         </Button>
