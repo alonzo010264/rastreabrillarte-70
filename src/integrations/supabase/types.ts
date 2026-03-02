@@ -1396,6 +1396,9 @@ export type Database = {
           Fecha_actualizacion: string | null
           Fecha_creacion: string | null
           Fecha_estimada_entrega: string | null
+          mostrar_ayuda: boolean | null
+          mostrar_cambio_direccion: boolean | null
+          mostrar_notificaciones: boolean | null
           Notas: string | null
           Peso: number | null
           Precio: number | null
@@ -1412,6 +1415,9 @@ export type Database = {
           Fecha_actualizacion?: string | null
           Fecha_creacion?: string | null
           Fecha_estimada_entrega?: string | null
+          mostrar_ayuda?: boolean | null
+          mostrar_cambio_direccion?: boolean | null
+          mostrar_notificaciones?: boolean | null
           Notas?: string | null
           Peso?: number | null
           Precio?: number | null
@@ -1428,6 +1434,9 @@ export type Database = {
           Fecha_actualizacion?: string | null
           Fecha_creacion?: string | null
           Fecha_estimada_entrega?: string | null
+          mostrar_ayuda?: boolean | null
+          mostrar_cambio_direccion?: boolean | null
+          mostrar_notificaciones?: boolean | null
           Notas?: string | null
           Peso?: number | null
           Precio?: number | null

@@ -152,6 +152,9 @@ const OrderTracker = () => {
         price: pedido.Precio || undefined,
         weight: pedido.Peso || undefined,
         estimatedDelivery: pedido.Fecha_estimada_entrega || undefined,
+        mostrarNotificaciones: (pedido as any).mostrar_notificaciones ?? true,
+        mostrarCambioDireccion: (pedido as any).mostrar_cambio_direccion ?? true,
+        mostrarAyuda: (pedido as any).mostrar_ayuda ?? true,
         statusHistory: historial?.map(h => ({
           status: h.Estatus.nombre,
           date: new Date(h.Fecha).toLocaleDateString(),
@@ -247,6 +250,9 @@ const OrderTracker = () => {
           price={orderFound.price}
           weight={orderFound.weight}
           estimatedDelivery={orderFound.estimatedDelivery}
+          mostrarNotificaciones={orderFound.mostrarNotificaciones}
+          mostrarCambioDireccion={orderFound.mostrarCambioDireccion}
+          mostrarAyuda={orderFound.mostrarAyuda}
           statusHistory={orderFound.statusHistory}
         />
         

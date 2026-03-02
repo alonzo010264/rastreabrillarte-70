@@ -16,6 +16,9 @@ interface OrderStatusProps {
   price?: number;
   weight?: number;
   estimatedDelivery?: string;
+  mostrarNotificaciones?: boolean;
+  mostrarCambioDireccion?: boolean;
+  mostrarAyuda?: boolean;
   statusHistory: {
     status: string;
     date: string;
@@ -25,7 +28,7 @@ interface OrderStatusProps {
   }[];
 }
 
-const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, price, weight, estimatedDelivery, statusHistory: initialHistory }: OrderStatusProps) => {
+const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, price, weight, estimatedDelivery, mostrarNotificaciones = true, mostrarCambioDireccion = true, mostrarAyuda = true, statusHistory: initialHistory }: OrderStatusProps) => {
   const [statusHistory, setStatusHistory] = useState(initialHistory);
 
   useEffect(() => {
@@ -141,9 +144,14 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
     return descriptions[statusName] || 'Tu pedido está siendo procesado. Te notificaremos cuando haya actualizaciones.';
   };
 
+  // Deduplicate statuses - keep only the first occurrence of each status name
+  const deduplicatedHistory = statusHistory.filter((item, index, self) =>
+    index === self.findIndex(t => t.status === item.status)
+  );
+
   // Find the current status from the actual status history
-  const currentStatusIndex = statusHistory.findIndex(status => status.status === currentStatus);
-  const hasStatusHistory = statusHistory.length > 0;
+  const currentStatusIndex = deduplicatedHistory.findIndex(status => status.status === currentStatus);
+  const hasStatusHistory = deduplicatedHistory.length > 0;
 
   return (
     <Card className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
@@ -178,7 +186,7 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
         </h3>
         
         <div className="relative max-w-md mx-auto">
-          {statusHistory.map((item, index) => {
+          {deduplicatedHistory.map((item, index) => {
             // All statuses in the history are considered "completed" since they actually happened
             const isCompleted = true;
             const isCurrent = item.status === currentStatus;
@@ -186,9 +194,9 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
             return (
               <div key={index} className="flex items-start space-x-4 pb-6 relative">
                 {/* Línea conectora */}
-                {index < statusHistory.length - 1 && (
+                {index < deduplicatedHistory.length - 1 && (
                   <div className={`absolute left-2.5 top-8 w-0.5 h-12 ${
-                    isCompleted ? 'bg-green-300' : 'bg-gray-200'
+                    isCompleted ? 'bg-green-300' : 'bg-muted'
                   }`} />
                 )}
                 
@@ -226,16 +234,18 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
 
       <div className="mt-8 space-y-4">
         <div className="flex flex-wrap gap-3 justify-center">
-          <Button
-            onClick={() => window.location.href = `/suscribir-pedido?codigo=${orderCode}`}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Bell className="w-4 h-4" />
-            Recibir Notificaciones por Correo
-          </Button>
-          <AddressChangeModal orderCode={orderCode} />
-          <HelpModal />
+          {mostrarNotificaciones && (
+            <Button
+              onClick={() => window.location.href = `/suscribir-pedido?codigo=${orderCode}`}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Bell className="w-4 h-4" />
+              Recibir Notificaciones por Correo
+            </Button>
+          )}
+          {mostrarCambioDireccion && <AddressChangeModal orderCode={orderCode} />}
+          {mostrarAyuda && <HelpModal />}
         </div>
         
         <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
