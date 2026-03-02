@@ -1,7 +1,8 @@
 
-import { CheckCircle, Clock, Package, Truck, Home, AlertCircle, Plane, Building2, Warehouse } from "lucide-react";
+import { CheckCircle, Clock, Package, Truck, Home, AlertCircle, Plane, Building2, Warehouse, CreditCard, Settings, Scissors, PackageCheck, HandMetal, RotateCcw, XCircle, FileSearch, Send, Bell } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import HelpModal from "./HelpModal";
@@ -72,34 +73,43 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
   const getStatusIcon = (category: string, isCompleted: boolean, statusName?: string) => {
     const iconClass = `w-5 h-5 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`;
     
-    // Iconos específicos por nombre de estatus
-    if (statusName === 'Pedido realizado') {
-      return <CheckCircle className={iconClass} />;
-    }
-    if (statusName === 'Embarcado') {
-      return <Plane className={iconClass} />;
-    }
-    if (statusName === 'En aduanas') {
-      return <Building2 className={iconClass} />;
-    }
-    if (statusName === 'Recibido en centro de distribución') {
-      return <Warehouse className={iconClass} />;
-    }
-    if (statusName === 'Listo para entregar') {
-      return <CheckCircle className={iconClass} />;
+    const iconMap: Record<string, JSX.Element> = {
+      'Recibido': <Package className={iconClass} />,
+      'Confirmado': <CheckCircle className={iconClass} />,
+      'Pago Recibido': <CreditCard className={iconClass} />,
+      'Procesando': <Settings className={iconClass} />,
+      'Preparación': <Scissors className={iconClass} />,
+      'En preparación': <Scissors className={iconClass} />,
+      'En Preparación': <Scissors className={iconClass} />,
+      'Etiquetado': <PackageCheck className={iconClass} />,
+      'Almacenado': <Warehouse className={iconClass} />,
+      'Listo para Recoger': <PackageCheck className={iconClass} />,
+      'Listo para entrega': <PackageCheck className={iconClass} />,
+      'En ruta de entrega': <Truck className={iconClass} />,
+      'Entregado': <Home className={iconClass} />,
+      'Entregado en Mano': <HandMetal className={iconClass} />,
+      'Embarcado': <Plane className={iconClass} />,
+      'Enviado con Vimenpaq': <Send className={iconClass} />,
+      'Recibido por Vimenpaq': <Warehouse className={iconClass} />,
+      'Entregado por Vimenpaq': <Home className={iconClass} />,
+      'Enviado con otra empresa': <Send className={iconClass} />,
+      'Recibido por empresa': <Warehouse className={iconClass} />,
+      'Entregado por empresa': <Home className={iconClass} />,
+      'Devuelto': <RotateCcw className={iconClass} />,
+      'Cancelado': <XCircle className={iconClass} />,
+      'En Revisión': <FileSearch className={iconClass} />,
+    };
+
+    if (statusName && iconMap[statusName]) {
+      return iconMap[statusName];
     }
     
     switch (category) {
-      case 'processing':
-        return <Package className={iconClass} />;
-      case 'shipping':
-        return <Truck className={iconClass} />;
-      case 'delivered':
-        return <Home className={iconClass} />;
-      case 'special':
-        return <Clock className={iconClass} />;
-      default:
-        return <Clock className={iconClass} />;
+      case 'processing': return <Package className={iconClass} />;
+      case 'shipping': return <Truck className={iconClass} />;
+      case 'delivered': return <Home className={iconClass} />;
+      case 'special': return <Clock className={iconClass} />;
+      default: return <Clock className={iconClass} />;
     }
   };
 
@@ -121,6 +131,11 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
       'Devuelto': 'El pedido fue devuelto por alguna razón y será recogido por nuestro agente transportista. Nos comunicaremos contigo para darte seguimiento.',
       'Cancelado': 'Tu pedido ha sido cancelado. No es posible cancelar un pedido si ya está confirmado o en preparación.',
       'En Revisión': 'Tu solicitud está siendo revisada por nuestro equipo. Te contactaremos lo más antes posible para atender tu caso y buscar la mejor solución.',
+      'Pago Recibido': 'Tu pago ha sido recibido y verificado correctamente. Procederemos con tu pedido de inmediato.',
+      'Procesando': 'Tu pedido se está procesando. Estamos determinando la mejor forma de prepararlo y calculando la fecha estimada de entrega.',
+      'Preparación': 'Los materiales están siendo seleccionados y se está verificando la disponibilidad de cada artículo de tu pedido.',
+      'Listo para Recoger': 'Tu pedido está listo y empacado. Puedes pasar a recogerlo en nuestro punto de entrega. ¡Te esperamos!',
+      'Entregado en Mano': 'Tu pedido fue entregado correctamente en tus manos. ¡Gracias por confiar en BRILLARTE!',
     };
 
     return descriptions[statusName] || 'Tu pedido está siendo procesado. Te notificaremos cuando haya actualizaciones.';
@@ -210,7 +225,15 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
       </div>
 
       <div className="mt-8 space-y-4">
-        <div className="flex gap-3 justify-center">
+        <div className="flex flex-wrap gap-3 justify-center">
+          <Button
+            onClick={() => window.location.href = `/suscribir-pedido?codigo=${orderCode}`}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Bell className="w-4 h-4" />
+            Recibir Notificaciones por Correo
+          </Button>
           <AddressChangeModal orderCode={orderCode} />
           <HelpModal />
         </div>
