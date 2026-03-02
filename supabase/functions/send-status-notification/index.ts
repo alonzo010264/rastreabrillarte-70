@@ -44,9 +44,31 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY not found");
     }
 
+    // For status updates (not new orders), check if customer is subscribed
+    if (!isNewOrder) {
+      const { data: subscription } = await supabase
+        .from('suscripciones_pedidos')
+        .select('id')
+        .eq('correo', customerEmail.toLowerCase())
+        .eq('codigo_pedido', orderCode)
+        .eq('activo', true)
+        .maybeSingle();
+
+      if (!subscription) {
+        console.log(`Customer ${customerEmail} not subscribed to order ${orderCode}, skipping email`);
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: "Customer not subscribed, notification skipped" 
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+    }
+
     const subject = isNewOrder 
-      ? `Tu pedido ${orderCode} ha sido creado - BRILLARTE`
-      : `Actualizacion de tu pedido ${orderCode} - BRILLARTE`;
+      ? `${customerName}, tu pedido ${orderCode} ha sido creado - BRILLARTE`
+      : `${customerName}, tu pedido ${orderCode} cambió de estado - BRILLARTE`;
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -115,13 +137,23 @@ const handler = async (req: Request): Promise<Response> => {
                    </p>`
             }
             
-            <!-- Action Button -->
+            <!-- Action Buttons -->
             <div style="text-align: center; margin: 30px 0;">
               <a href="https://brillarte.lat/rastrear" 
                  style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px;">
                 RASTREAR PEDIDO
               </a>
             </div>
+            ${isNewOrder ? `
+            <div style="text-align: center; margin: 20px 0;">
+              <a href="https://brillarte.lat/suscribir-pedido?codigo=${orderCode}" 
+                 style="display: inline-block; background-color: #ffffff; color: #000000; border: 2px solid #000000; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                SUSCRIBIRME A NOTIFICACIONES
+              </a>
+              <p style="color: #999999; font-size: 12px; margin-top: 10px;">
+                Recibe un correo cada vez que tu pedido cambie de estado
+              </p>
+            </div>` : ''}
             
             <p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
               Gracias por confiar en BRILLARTE.
