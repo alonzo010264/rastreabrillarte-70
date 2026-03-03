@@ -63,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Create user with admin API (auto-confirms email)
+    // Try to create user with admin API (auto-confirms email)
     const { data: userData, error: createError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password,
@@ -77,8 +77,48 @@ const handler = async (req: Request): Promise<Response> => {
     if (createError) {
       console.error("Error creating user:", createError);
       
+      // If user exists in auth but not in profiles (incomplete registration),
+      // try to find and update the existing auth user
       if (createError.message?.includes('already been registered') || 
           createError.message?.includes('already exists')) {
+        
+        // List users to find the existing one
+        const { data: listData } = await supabase.auth.admin.listUsers();
+        const existingUser = listData?.users?.find(u => u.email === email.toLowerCase());
+        
+        if (existingUser) {
+          // Update the existing user's password and confirm email
+          const { error: updateErr } = await supabase.auth.admin.updateUserById(existingUser.id, {
+            password,
+            email_confirm: true,
+            user_metadata: { nombre_completo: nombre, telefono: telefono || null },
+          });
+          
+          if (!updateErr) {
+            // Ensure profile and role exist
+            await supabase.from('profiles').upsert({
+              user_id: existingUser.id,
+              correo: email.toLowerCase(),
+              nombre_completo: nombre,
+              telefono: telefono || null,
+            }, { onConflict: 'user_id' });
+
+            await supabase.from('user_roles').upsert({
+              user_id: existingUser.id,
+              role: 'user',
+            }, { onConflict: 'user_id,role' });
+
+            return new Response(JSON.stringify({ 
+              success: true, 
+              message: "Cuenta recuperada y actualizada exitosamente",
+              userId: existingUser.id
+            }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            });
+          }
+        }
+        
         return new Response(JSON.stringify({ 
           success: false, 
           error: "Este correo ya está registrado. Intenta iniciar sesión." 
