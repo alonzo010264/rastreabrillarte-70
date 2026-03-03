@@ -57,7 +57,6 @@ const Login = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          // Check if admin
           const { data: roleData } = await supabase
             .from("user_roles")
             .select("role")
@@ -78,6 +77,15 @@ const Login = () => {
       }
     };
     checkExistingSession();
+
+    // Listen for auth state changes (handles page refresh after login)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        navigate('/', { replace: true });
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {

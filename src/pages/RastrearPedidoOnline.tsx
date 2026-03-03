@@ -72,10 +72,22 @@ const RastrearPedidoOnline = () => {
 
       if (fetchError) throw fetchError;
       
+      if (!data) {
+        setError('No se encontró el pedido');
+        return;
+      }
+
       // Parse historial_estados if it's a string
       const pedidoData = data as any;
       if (typeof pedidoData.historial_estados === 'string') {
-        pedidoData.historial_estados = JSON.parse(pedidoData.historial_estados);
+        try {
+          pedidoData.historial_estados = JSON.parse(pedidoData.historial_estados);
+        } catch {
+          pedidoData.historial_estados = [];
+        }
+      }
+      if (!pedidoData.historial_estados) {
+        pedidoData.historial_estados = [];
       }
       
       setPedido(pedidoData as PedidoOnline);
