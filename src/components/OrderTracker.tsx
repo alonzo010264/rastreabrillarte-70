@@ -124,22 +124,22 @@ const OrderTracker = () => {
         .from('Pedidos')
         .select(`
           *,
-          Estatus!inner(id, nombre, descripcion, categoria)
+          Estatus(id, nombre, descripcion, categoria)
         `)
         .eq('Código de pedido', orderCode)
         .maybeSingle();
 
-      if (error || !pedido) {
+      if (error || !pedido || !pedido.Estatus) {
         setOrderFound(null);
         setIsSearching(false);
         return;
       }
 
-      const { data: historial, error: historialError } = await supabase
+      const { data: historial } = await supabase
         .from('Historial_Estatus')
         .select(`
           *,
-          Estatus!inner(id, nombre, descripcion, categoria)
+          Estatus(id, nombre, descripcion, categoria)
         `)
         .eq('Código de pedido', orderCode)
         .order('Fecha', { ascending: true });
@@ -155,12 +155,12 @@ const OrderTracker = () => {
         mostrarNotificaciones: (pedido as any).mostrar_notificaciones ?? true,
         mostrarCambioDireccion: (pedido as any).mostrar_cambio_direccion ?? true,
         mostrarAyuda: (pedido as any).mostrar_ayuda ?? true,
-        statusHistory: historial?.map(h => ({
+        statusHistory: historial?.filter(h => h.Estatus).map(h => ({
           status: h.Estatus.nombre,
-          date: new Date(h.Fecha).toLocaleDateString(),
-          time: new Date(h.Fecha).toLocaleTimeString(),
+          date: h.Fecha ? new Date(h.Fecha).toLocaleDateString() : '',
+          time: h.Fecha ? new Date(h.Fecha).toLocaleTimeString() : '',
           description: h.Descripcion || '',
-          category: h.Estatus.categoria as 'processing' | 'shipping' | 'returns' | 'special'
+          category: (h.Estatus.categoria as 'processing' | 'shipping' | 'returns' | 'special') || 'processing'
         })) || []
       };
 
