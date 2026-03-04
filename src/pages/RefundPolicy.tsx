@@ -255,11 +255,11 @@ const RefundPolicy = () => {
                 
                 <div className="space-y-4">
                   <div className="p-4 border border-yellow-200 dark:border-yellow-800 rounded-lg bg-primary-foreground">
-                    <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2 flex items-center gap-2">
+                    <h4 className="font-medium mb-2 flex items-center gap-2 text-primary">
                       <XCircle className="w-4 h-4" />
                       Productos Personalizados
                     </h4>
-                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    <p className="text-sm text-primary">
                       Los productos hechos a medida o con personalizacion (nombres, colores especificos, 
                       disenos unicos) NO son elegibles para devolucion por cambio de opinion. 
                       Solo aplica cambio si hay defecto de fabrica.
