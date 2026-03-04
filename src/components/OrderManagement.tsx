@@ -78,7 +78,7 @@ const OrderManagement = () => {
       .from('Pedidos')
       .select(`
         *,
-        Estatus!inner(id, nombre, descripcion, categoria, orden)
+        Estatus(id, nombre, descripcion, categoria, orden)
       `)
       .order('Fecha_creacion', { ascending: false });
     

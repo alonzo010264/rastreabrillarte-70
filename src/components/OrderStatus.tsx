@@ -51,18 +51,18 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
             .from('Historial_Estatus')
             .select(`
               *,
-              Estatus!inner(id, nombre, descripcion, categoria)
+              Estatus(id, nombre, descripcion, categoria)
             `)
             .eq('Código de pedido', orderCode)
             .order('Fecha', { ascending: true });
 
           if (historial) {
-            setStatusHistory(historial.map(h => ({
+            setStatusHistory(historial.filter(h => h.Estatus).map(h => ({
               status: h.Estatus.nombre,
-              date: new Date(h.Fecha).toLocaleDateString(),
-              time: new Date(h.Fecha).toLocaleTimeString(),
+              date: h.Fecha ? new Date(h.Fecha).toLocaleDateString() : '',
+              time: h.Fecha ? new Date(h.Fecha).toLocaleTimeString() : '',
               description: h.Descripcion || '',
-              category: h.Estatus.categoria as 'processing' | 'shipping' | 'returns' | 'special'
+              category: (h.Estatus.categoria as 'processing' | 'shipping' | 'returns' | 'special') || 'processing'
             })));
           }
         }
