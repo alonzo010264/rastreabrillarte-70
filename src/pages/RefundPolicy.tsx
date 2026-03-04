@@ -29,13 +29,13 @@ const RefundPolicy = () => {
           accion: "visualizado"
         }, { onConflict: "user_id,tipo_politica,accion" });
 
-        const { data } = await supabase
-          .from("aceptaciones_politicas")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .eq("tipo_politica", "reembolso")
-          .eq("accion", "aceptado")
-          .maybeSingle();
+        const { data } = await supabase.
+        from("aceptaciones_politicas").
+        select("*").
+        eq("user_id", session.user.id).
+        eq("tipo_politica", "reembolso").
+        eq("accion", "aceptado").
+        maybeSingle();
 
         if (data) setHasAccepted(true);
       }
@@ -139,7 +139,7 @@ const RefundPolicy = () => {
                 
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="p-4 bg-muted/50 rounded-lg text-center">
-                    <div className="text-3xl font-bold text-primary mb-1">48h</div>
+                    <div className="text-3xl font-bold text-primary mb-1">24h</div>
                     <div className="text-sm font-medium">Para reportar daños</div>
                     <p className="text-xs text-muted-foreground mt-1">Desde la recepcion</p>
                   </div>
@@ -254,7 +254,7 @@ const RefundPolicy = () => {
                 <h2 className="text-xl font-semibold mb-4">5. Excepciones y Consideraciones</h2>
                 
                 <div className="space-y-4">
-                  <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <div className="p-4 border border-yellow-200 dark:border-yellow-800 rounded-lg bg-primary-foreground">
                     <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2 flex items-center gap-2">
                       <XCircle className="w-4 h-4" />
                       Productos Personalizados
@@ -313,44 +313,44 @@ const RefundPolicy = () => {
 
         {/* Accept Section */}
         <div className="mt-12 p-6 bg-card border rounded-xl">
-          {hasAccepted ? (
-            <div className="flex items-center justify-center gap-3 text-green-600">
+          {hasAccepted ?
+          <div className="flex items-center justify-center gap-3 text-green-600">
               <CheckCircle2 className="w-6 h-6" />
               <span className="font-medium">Has aceptado estas politicas de reembolso</span>
-            </div>
-          ) : (
-            <div className="space-y-4">
+            </div> :
+
+          <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <Checkbox 
-                  id="accept-refund" 
-                  checked={checkboxChecked}
-                  onCheckedChange={(checked) => setCheckboxChecked(checked === true)}
-                />
+                <Checkbox
+                id="accept-refund"
+                checked={checkboxChecked}
+                onCheckedChange={(checked) => setCheckboxChecked(checked === true)} />
+              
                 <label htmlFor="accept-refund" className="text-sm text-muted-foreground cursor-pointer">
                   He leido y acepto las Politicas de Reembolso de BRILLARTE. Entiendo las condiciones 
                   de garantia, plazos y excepciones para devoluciones.
                 </label>
               </div>
-              <Button 
-                onClick={handleAccept} 
-                disabled={!checkboxChecked || loading}
-                className="w-full"
-              >
+              <Button
+              onClick={handleAccept}
+              disabled={!checkboxChecked || loading}
+              className="w-full">
+              
                 {loading ? "Procesando..." : user ? "Aceptar Politicas de Reembolso" : "Iniciar Sesion para Aceptar"}
               </Button>
-              {!user && (
-                <p className="text-xs text-center text-muted-foreground">
+              {!user &&
+            <p className="text-xs text-center text-muted-foreground">
                   Debes tener una cuenta para aceptar las politicas
                 </p>
-              )}
+            }
             </div>
-          )}
+          }
         </div>
       </main>
       
       <Footer />
-    </div>
-  );
+    </div>);
+
 };
 
 export default RefundPolicy;
