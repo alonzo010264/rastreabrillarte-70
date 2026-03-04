@@ -32,7 +32,19 @@ export default function NotificationBell() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkUserAndLoadNotifications();
+    let cleanup: (() => void) | undefined;
+
+    checkUserAndLoadNotifications()
+      .then((cleanupFn) => {
+        cleanup = cleanupFn;
+      })
+      .catch((error) => {
+        console.error('Error initializing notifications:', error);
+      });
+
+    return () => {
+      cleanup?.();
+    };
   }, []);
 
   const checkUserAndLoadNotifications = async () => {
@@ -76,6 +88,9 @@ export default function NotificationBell() {
         supabase.removeChannel(channel);
       };
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       console.error('Error loading notifications:', error);
     } finally {
       setLoading(false);

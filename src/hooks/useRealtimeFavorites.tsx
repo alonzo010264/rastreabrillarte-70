@@ -28,9 +28,15 @@ export const useRealtimeFavorites = () => {
 
   useEffect(() => {
     const initUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id || null);
-      loadFavoritesCount(user?.id || null);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUserId(user?.id || null);
+        loadFavoritesCount(user?.id || null);
+      } catch (error) {
+        console.error('Error initializing favorites realtime:', error);
+        setUserId(null);
+        setItemCount(0);
+      }
     };
 
     initUser();
