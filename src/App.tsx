@@ -91,6 +91,8 @@ const VerificacionPage = lazyWithRetry(() => import("./pages/Verificacion"));
 const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const Referidos = lazyWithRetry(() => import("./pages/Referidos"));
 const AdminReferidos = lazyWithRetry(() => import("./pages/AdminReferidos"));
+const Blog = lazyWithRetry(() => import("./pages/Blog"));
+const AdminBlog = lazyWithRetry(() => import("./pages/AdminBlog"));
 
 // Componentes de protección
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
@@ -155,6 +157,7 @@ const App = () => (
             
             <Route path="/eventos" element={<Eventos />} />
             <Route path="/novedades" element={<Novedades />} />
+            <Route path="/blog" element={<Blog />} />
             <Route path="/mi-pedido/:codigoPedido" element={<MiPedidoDetalle />} />
             <Route path="/verificacion" element={<VerificacionPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -184,6 +187,7 @@ const App = () => (
             <Route path="/admin/politicas" element={<ProtectedRoute><AdminPoliticas /></ProtectedRoute>} />
             <Route path="/admin/cupones" element={<ProtectedRoute><AdminCupones /></ProtectedRoute>} />
             <Route path="/admin/noticias" element={<ProtectedRoute><AdminNoticias /></ProtectedRoute>} />
+            <Route path="/admin/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
             <Route path="/admin/referidos" element={<ProtectedRoute><AdminReferidos /></ProtectedRoute>} />
             <Route path="/brillarte-pedidos" element={<ProtectedRoute><BrillartePedidos /></ProtectedRoute>} />
             <Route path="/manage" element={<ProtectedRoute><OrderManagement /></ProtectedRoute>} />
