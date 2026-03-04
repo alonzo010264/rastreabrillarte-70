@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Package, CheckCircle, Truck, ArrowLeft } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 
 interface HistorialEstado {
@@ -53,11 +53,38 @@ const RastrearPedidoOnline = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (codigoPedido) {
-      loadPedido();
-      setupRealtime();
-    }
+    if (!codigoPedido) return;
+
+    loadPedido();
+    const cleanupRealtime = setupRealtime();
+    return cleanupRealtime;
   }, [codigoPedido]);
+
+  const toSafeDate = (value?: string | null) => {
+    if (!value) return null;
+    const parsedDate = new Date(value);
+    return isValid(parsedDate) ? parsedDate : null;
+  };
+
+  const formatSafeDate = (value: string | null | undefined, formatPattern: string, fallback = "Fecha no disponible") => {
+    const dateValue = toSafeDate(value);
+    return dateValue ? format(dateValue, formatPattern, { locale: es }) : fallback;
+  };
+
+  const normalizeArrayField = (value: unknown): any[] => {
+    if (Array.isArray(value)) return value;
+
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  };
 
   const loadPedido = async () => {
     try {
@@ -77,19 +104,16 @@ const RastrearPedidoOnline = () => {
         return;
       }
 
-      // Parse historial_estados if it's a string
-      const pedidoData = data as any;
-      if (typeof pedidoData.historial_estados === 'string') {
-        try {
-          pedidoData.historial_estados = JSON.parse(pedidoData.historial_estados);
-        } catch {
-          pedidoData.historial_estados = [];
-        }
-      }
-      if (!pedidoData.historial_estados) {
-        pedidoData.historial_estados = [];
-      }
-      
+      // Normalizar data para evitar crashes en clientes con datos antiguos/incompletos
+      const pedidoData = data as Record<string, any>;
+      pedidoData.historial_estados = normalizeArrayField(pedidoData.historial_estados).filter(
+        (item) => item && typeof item === "object"
+      );
+      pedidoData.items = normalizeArrayField(pedidoData.items).filter(
+        (item) => item && typeof item === "object"
+      );
+      pedidoData.total = Number(pedidoData.total) || 0;
+
       setPedido(pedidoData as PedidoOnline);
     } catch (err: any) {
       console.error('Error loading pedido:', err);
@@ -100,8 +124,10 @@ const RastrearPedidoOnline = () => {
   };
 
   const setupRealtime = () => {
+    if (!codigoPedido) return () => undefined;
+
     const channel = supabase
-      .channel('pedido-tracking')
+      .channel(`pedido-tracking-${codigoPedido}`)
       .on(
         'postgres_changes',
         {
@@ -178,7 +204,7 @@ const RastrearPedidoOnline = () => {
                 <div>
                   <h1 className="text-2xl font-bold mb-1">Pedido {pedido.codigo_pedido}</h1>
                   <p className="text-primary-foreground/70">
-                    {format(new Date(pedido.created_at), "d 'de' MMMM, yyyy", { locale: es })}
+                    {formatSafeDate(pedido.created_at, "d 'de' MMMM, yyyy")}
                   </p>
                 </div>
                 <div className="text-right">
@@ -313,7 +339,7 @@ const RastrearPedidoOnline = () => {
                       <p className="font-medium">{historial.estado}</p>
                       <p className="text-sm text-muted-foreground">{historial.descripcion}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(historial.fecha), "d 'de' MMMM, yyyy - h:mm a", { locale: es })}
+                        {formatSafeDate(historial.fecha, "d 'de' MMMM, yyyy - h:mm a")}
                       </p>
                     </div>
                   </div>

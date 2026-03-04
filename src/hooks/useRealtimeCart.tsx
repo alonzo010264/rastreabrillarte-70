@@ -29,9 +29,15 @@ export const useRealtimeCart = () => {
 
   useEffect(() => {
     const initUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id || null);
-      loadCartCount(user?.id || null);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUserId(user?.id || null);
+        loadCartCount(user?.id || null);
+      } catch (error) {
+        console.error('Error initializing cart realtime:', error);
+        setUserId(null);
+        setItemCount(0);
+      }
     };
 
     initUser();
