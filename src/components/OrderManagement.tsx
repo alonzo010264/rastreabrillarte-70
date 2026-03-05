@@ -445,6 +445,12 @@ const OrderManagement = () => {
               const order = existingOrders.find(o => o['Código de pedido'] === value);
               setSelectedOrder(order || null);
               setSelectedOrderEmail(order?.['Correo_cliente'] || "");
+              setEditClientName(order?.Cliente || "");
+              setEditPrice(order?.Precio?.toString() || "");
+              setEditWeight(order?.Peso?.toString() || "");
+              setEditTotal(order?.Total?.toString() || "");
+              setEditDeliveryDate(order?.['Fecha_estimada_entrega'] || "");
+              setEditNotes(order?.Notas || "");
               if (order) {
                 const { data } = await supabase
                   .from('Pedidos')
