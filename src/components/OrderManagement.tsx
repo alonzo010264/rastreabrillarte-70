@@ -48,6 +48,12 @@ const OrderManagement = () => {
   const [existingOrders, setExistingOrders] = useState<Pedido[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Pedido | null>(null);
   const [selectedOrderEmail, setSelectedOrderEmail] = useState("");
+  const [editClientName, setEditClientName] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editWeight, setEditWeight] = useState("");
+  const [editTotal, setEditTotal] = useState("");
+  const [editDeliveryDate, setEditDeliveryDate] = useState("");
+  const [editNotes, setEditNotes] = useState("");
   const [newStatusId, setNewStatusId] = useState<number | null>(null);
   const [newDate, setNewDate] = useState("");
   const [description, setDescription] = useState("");
@@ -58,6 +64,7 @@ const OrderManagement = () => {
   const [esEnvio, setEsEnvio] = useState(false);
   const [facturaFile, setFacturaFile] = useState<File | null>(null);
   const [uploadingFactura, setUploadingFactura] = useState(false);
+  const [savingInfo, setSavingInfo] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
