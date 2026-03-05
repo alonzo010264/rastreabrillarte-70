@@ -2458,6 +2458,33 @@ export type Database = {
           },
         ]
       }
+      suscripciones_pedidos: {
+        Row: {
+          activo: boolean | null
+          codigo_pedido: string
+          correo: string
+          created_at: string | null
+          id: string
+          nombre: string
+        }
+        Insert: {
+          activo?: boolean | null
+          codigo_pedido: string
+          correo: string
+          created_at?: string | null
+          id?: string
+          nombre: string
+        }
+        Update: {
+          activo?: boolean | null
+          codigo_pedido?: string
+          correo?: string
+          created_at?: string | null
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
       suscriptores_newsletter: {
         Row: {
           activo: boolean

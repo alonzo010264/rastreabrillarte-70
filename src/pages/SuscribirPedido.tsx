@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, CheckCircle, Mail } from "lucide-react";
+import { Bell, CheckCircle, Mail, Loader2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PageHeader from "@/components/PageHeader";
@@ -30,7 +30,7 @@ const SuscribirPedido = () => {
     try {
       // Check if already subscribed
       const { data: existing } = await supabase
-        .from("suscripciones_pedidos" as any)
+        .from("suscripciones_pedidos")
         .select("id")
         .eq("correo", correo.toLowerCase())
         .eq("codigo_pedido", codigo.toUpperCase())
@@ -43,16 +43,32 @@ const SuscribirPedido = () => {
         return;
       }
 
-      const { error } = await supabase.from("suscripciones_pedidos" as any).insert({
+      const { error } = await supabase.from("suscripciones_pedidos").insert({
         correo: correo.toLowerCase(),
         nombre: nombre.trim(),
         codigo_pedido: codigo.toUpperCase(),
       });
 
       if (error) throw error;
+
+      // Send confirmation email
+      try {
+        await supabase.functions.invoke("send-subscription-confirmation", {
+          body: {
+            nombre: nombre.trim(),
+            correo: correo.toLowerCase(),
+            codigoPedido: codigo.toUpperCase(),
+          },
+        });
+      } catch (emailErr) {
+        console.error("Error sending confirmation email:", emailErr);
+        // Don't block the subscription if email fails
+      }
+
       setSuccess(true);
       toast.success("¡Suscripción exitosa! Recibirás notificaciones por correo");
     } catch (err: any) {
+      console.error("Subscription error:", err);
       toast.error("Error al suscribirse. Intenta de nuevo.");
     } finally {
       setLoading(false);
