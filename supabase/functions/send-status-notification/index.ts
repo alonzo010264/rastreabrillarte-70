@@ -14,6 +14,7 @@ interface StatusNotificationRequest {
   statusName: string;
   statusDescription: string;
   isNewOrder?: boolean;
+  facturaUrl?: string | null;
 }
 
 const LOGO_URL = "https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg";

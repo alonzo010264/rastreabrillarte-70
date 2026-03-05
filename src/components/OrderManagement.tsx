@@ -323,6 +323,17 @@ const OrderManagement = () => {
           .eq('activo', true);
 
         if (subscribers && subscribers.length > 0) {
+          // Get factura URL if status is Factura Creada
+          let facturaUrl: string | null = null;
+          if (status.nombre === 'Factura Creada') {
+            const { data: pedidoData } = await supabase
+              .from('Pedidos')
+              .select('factura_url')
+              .eq('Código de pedido', selectedOrder['Código de pedido'])
+              .single();
+            facturaUrl = pedidoData?.factura_url || null;
+          }
+
           for (const sub of subscribers) {
             await supabase.functions.invoke('send-status-notification', {
               body: {
@@ -331,7 +342,8 @@ const OrderManagement = () => {
                 orderCode: selectedOrder['Código de pedido'],
                 statusName: status.nombre,
                 statusDescription: description || status.descripcion || 'Tu pedido ha sido actualizado.',
-                isNewOrder: false
+                isNewOrder: false,
+                facturaUrl
               }
             });
           }
