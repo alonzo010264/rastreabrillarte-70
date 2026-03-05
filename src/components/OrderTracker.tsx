@@ -272,7 +272,7 @@ const OrderTracker = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               onClick={handleNewSearch}
-              className="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-xl transition-all duration-300"
+              className="bg-foreground hover:bg-foreground/90 text-background font-medium py-2 px-6 rounded-xl transition-all duration-300"
             >
               Buscar Otro Pedido
             </Button>
