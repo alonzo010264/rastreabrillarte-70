@@ -14,6 +14,7 @@ interface StatusNotificationRequest {
   statusName: string;
   statusDescription: string;
   isNewOrder?: boolean;
+  facturaUrl?: string | null;
 }
 
 const LOGO_URL = "https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg";
@@ -34,7 +35,8 @@ const handler = async (req: Request): Promise<Response> => {
       orderCode, 
       statusName, 
       statusDescription,
-      isNewOrder = false
+      isNewOrder = false,
+      facturaUrl = null
     }: StatusNotificationRequest = await req.json();
 
     console.log(`Sending status notification for order ${orderCode} to ${customerEmail}`);
@@ -66,9 +68,13 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    const subject = isNewOrder 
-      ? `${customerName}, tu pedido ${orderCode} ha sido creado - BRILLARTE`
-      : `${customerName}, tu pedido ${orderCode} cambió de estado - BRILLARTE`;
+    const isFacturaCreada = statusName === 'Factura Creada';
+
+    const subject = isFacturaCreada
+      ? `${customerName}, tu factura del pedido ${orderCode} está lista - BRILLARTE`
+      : isNewOrder 
+        ? `${customerName}, tu pedido ${orderCode} ha sido creado - BRILLARTE`
+        : `${customerName}, tu pedido ${orderCode} cambió de estado - BRILLARTE`;
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -97,13 +103,18 @@ const handler = async (req: Request): Promise<Response> => {
               Hola ${customerName || 'Cliente'},
             </p>
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold; text-align: center;">
-              ${isNewOrder 
-                ? 'Acabamos de Crear tu Pedido' 
-                : statusName === 'Entregado' 
-                  ? 'Pedido Entregado Exitosamente' 
-                  : 'Obtuvimos una actualizacion de tu pedido'}
+              ${isFacturaCreada
+                ? '📄 Tu Factura ha sido Creada'
+                : isNewOrder 
+                  ? 'Acabamos de Crear tu Pedido' 
+                  : statusName === 'Entregado' 
+                    ? 'Pedido Entregado Exitosamente' 
+                    : 'Obtuvimos una actualizacion de tu pedido'}
             </h2>
-            ${!isNewOrder && statusName !== 'Entregado' ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
+            ${isFacturaCreada ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
+              La factura de tu pedido ya está disponible para descargar
+            </p>` : ''}
+            ${!isNewOrder && !isFacturaCreada && statusName !== 'Entregado' ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
               Pronto estara contigo
             </p>` : ''}
             ${isNewOrder ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
@@ -139,8 +150,15 @@ const handler = async (req: Request): Promise<Response> => {
             
             <!-- Action Buttons -->
             <div style="text-align: center; margin: 30px 0;">
+              ${isFacturaCreada && facturaUrl ? `
+              <a href="${facturaUrl}" 
+                 style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px; margin-bottom: 15px;">
+                📄 VER FACTURA
+              </a>
+              <br><br>
+              ` : ''}
               <a href="https://brillarte.lat/rastrear" 
-                 style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px;">
+                 style="display: inline-block; ${isFacturaCreada && facturaUrl ? 'background-color: #ffffff; color: #000000; border: 2px solid #000000;' : 'background-color: #000000; color: #ffffff;'} padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px;">
                 RASTREAR PEDIDO
               </a>
             </div>
