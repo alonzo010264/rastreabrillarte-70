@@ -266,6 +266,7 @@ const OrderTracker = () => {
           mostrarNotificaciones={orderFound.mostrarNotificaciones}
           mostrarCambioDireccion={orderFound.mostrarCambioDireccion}
           mostrarAyuda={orderFound.mostrarAyuda}
+          facturaUrl={orderFound.facturaUrl}
           statusHistory={orderFound.statusHistory}
         />
         
