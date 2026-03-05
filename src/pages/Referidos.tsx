@@ -175,7 +175,10 @@ const Referidos = () => {
       const { data: perfiles } = await supabase.from("profiles").select("user_id, nombre_completo, avatar_url, correo").in("user_id", ids);
       const map = new Map(perfiles?.map((p) => [p.user_id, p]) || []);
       setReferidos(data.map((r) => ({ ...r, perfil: map.get(r.referido_id) as any })));
+      return;
     }
+
+    setReferidos([]);
   };
 
   const loadHistorialPuntos = async (uid: string) => {
@@ -287,6 +290,13 @@ const Referidos = () => {
   const mutedText = tema === "oscuro" ? "text-neutral-400" : "text-muted-foreground";
   const statBg = tema === "oscuro" ? "bg-neutral-900 border-neutral-800" : "border";
   const inputClass = tema === "oscuro" ? "bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500" : "";
+
+  const formatDateSafe = (value?: string | null, locale = "es-DO") => {
+    if (!value) return "Fecha no disponible";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "Fecha no disponible";
+    return parsed.toLocaleDateString(locale);
+  };
 
   if (loading) {
     return (
@@ -636,7 +646,7 @@ const Referidos = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium">{ref.perfil?.nombre_completo || "Usuario"}</p>
-                        <p className={`text-xs ${mutedText}`}>{new Date(ref.created_at).toLocaleDateString("es-DO")}</p>
+                        <p className={`text-xs ${mutedText}`}>{formatDateSafe(ref.created_at)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -673,7 +683,7 @@ const Referidos = () => {
                     <div>
                       <p className="text-sm font-medium">{h.descripcion || h.tipo}</p>
                       <p className={`text-xs ${mutedText}`}>
-                        {new Date(h.created_at).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}
+                        {formatDateSafe(h.created_at, "es-DO")}
                       </p>
                     </div>
                     <span className={`text-sm font-mono font-bold ${h.puntos > 0 ? "" : mutedText}`}>

@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeCart } from "@/hooks/useRealtimeCart";
 import { useRealtimeFavorites } from "@/hooks/useRealtimeFavorites";
 import { Badge } from "@/components/ui/badge";
+import SafeBoundary from "@/components/SafeBoundary";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -107,36 +108,92 @@ const Navigation = () => {
             {/* Cart and Favorites - Only on products page */}
             {isProductsPage && (
               <div className="flex items-center gap-1 ml-2 border-l pl-2">
-                <div className="relative" data-cart-icon>
-                  <ShoppingCart />
-                  {cartCount > 0 && (
-                    <Badge 
-                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
-                      variant="destructive"
-                    >
-                      {cartCount}
-                    </Badge>
-                  )}
-                </div>
-                <Button variant="ghost" size="icon" asChild className="relative" data-favorites-icon>
-                  <Link to="/favoritos">
-                    <Heart className="h-5 w-5" />
-                    {favoritesCount > 0 && (
+                <SafeBoundary>
+                  <div className="relative" data-cart-icon>
+                    <ShoppingCart />
+                    {cartCount > 0 && (
                       <Badge 
-                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                        className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
                         variant="destructive"
                       >
-                        {favoritesCount}
+                        {cartCount}
                       </Badge>
                     )}
-                  </Link>
-                </Button>
+                  </div>
+                </SafeBoundary>
+                <SafeBoundary>
+                  <Button variant="ghost" size="icon" asChild className="relative" data-favorites-icon>
+                    <Link to="/favoritos">
+                      <Heart className="h-5 w-5" />
+                      {favoritesCount > 0 && (
+                        <Badge 
+                          className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                          variant="destructive"
+                        >
+                          {favoritesCount}
+                        </Badge>
+                      )}
+                    </Link>
+                  </Button>
+                </SafeBoundary>
               </div>
             )}
             
             {/* Notifications and User Account */}
             <div className="ml-2 border-l pl-2 flex items-center gap-1">
+              <SafeBoundary>
+                <NotificationBell />
+              </SafeBoundary>
+              <SafeBoundary>
+                {isAdmin ? <AdminMenu /> : (
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link to="/perfil">
+                      <UserAvatar size="sm" />
+                    </Link>
+                  </Button>
+                )}
+              </SafeBoundary>
+            </div>
+          </div>
+
+          {/* Mobile menu and actions */}
+          <div className="md:hidden flex items-center gap-2">
+            {isProductsPage && (
+              <>
+                <SafeBoundary>
+                  <div className="relative" data-cart-icon>
+                    <ShoppingCart />
+                    {cartCount > 0 && (
+                      <Badge 
+                        className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                        variant="destructive"
+                      >
+                        {cartCount}
+                      </Badge>
+                    )}
+                  </div>
+                </SafeBoundary>
+                <SafeBoundary>
+                  <Button variant="ghost" size="icon" asChild className="relative" data-favorites-icon>
+                    <Link to="/favoritos">
+                      <Heart className="h-5 w-5" />
+                      {favoritesCount > 0 && (
+                        <Badge 
+                          className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
+                          variant="destructive"
+                        >
+                          {favoritesCount}
+                        </Badge>
+                      )}
+                    </Link>
+                  </Button>
+                </SafeBoundary>
+              </>
+            )}
+            <SafeBoundary>
               <NotificationBell />
+            </SafeBoundary>
+            <SafeBoundary>
               {isAdmin ? (
                 <AdminMenu />
               ) : (
@@ -146,49 +203,7 @@ const Navigation = () => {
                   </Link>
                 </Button>
               )}
-            </div>
-          </div>
-
-          {/* Mobile menu and actions */}
-          <div className="md:hidden flex items-center gap-2">
-            {isProductsPage && (
-              <>
-                <div className="relative" data-cart-icon>
-                  <ShoppingCart />
-                  {cartCount > 0 && (
-                    <Badge 
-                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
-                      variant="destructive"
-                    >
-                      {cartCount}
-                    </Badge>
-                  )}
-                </div>
-                <Button variant="ghost" size="icon" asChild className="relative" data-favorites-icon>
-                  <Link to="/favoritos">
-                    <Heart className="h-5 w-5" />
-                    {favoritesCount > 0 && (
-                      <Badge 
-                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in"
-                        variant="destructive"
-                      >
-                        {favoritesCount}
-                      </Badge>
-                    )}
-                  </Link>
-                </Button>
-              </>
-            )}
-            <NotificationBell />
-            {isAdmin ? (
-              <AdminMenu />
-            ) : (
-              <Button variant="ghost" size="icon" asChild>
-                <Link to="/perfil">
-                  <UserAvatar size="sm" />
-                </Link>
-              </Button>
-            )}
+            </SafeBoundary>
             <Button
               variant="ghost"
               size="icon"
