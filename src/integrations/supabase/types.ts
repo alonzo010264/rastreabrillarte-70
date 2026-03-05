@@ -1391,8 +1391,10 @@ export type Database = {
           correo_cliente: string | null
           Correo_cliente: string | null
           created_at: string | null
+          es_envio: boolean | null
           estado: string | null
           Estatus_id: number | null
+          factura_url: string | null
           Fecha_actualizacion: string | null
           Fecha_creacion: string | null
           Fecha_estimada_entrega: string | null
@@ -1410,8 +1412,10 @@ export type Database = {
           correo_cliente?: string | null
           Correo_cliente?: string | null
           created_at?: string | null
+          es_envio?: boolean | null
           estado?: string | null
           Estatus_id?: number | null
+          factura_url?: string | null
           Fecha_actualizacion?: string | null
           Fecha_creacion?: string | null
           Fecha_estimada_entrega?: string | null
@@ -1429,8 +1433,10 @@ export type Database = {
           correo_cliente?: string | null
           Correo_cliente?: string | null
           created_at?: string | null
+          es_envio?: boolean | null
           estado?: string | null
           Estatus_id?: number | null
+          factura_url?: string | null
           Fecha_actualizacion?: string | null
           Fecha_creacion?: string | null
           Fecha_estimada_entrega?: string | null
