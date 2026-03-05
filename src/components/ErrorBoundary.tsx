@@ -23,22 +23,37 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error("ErrorBoundary caught:", error, errorInfo);
 
     // Auto-recover from chunk loading errors (common on mobile)
-    const msg = error?.message || "";
-    if (
-      msg.includes("Loading chunk") ||
-      msg.includes("Failed to fetch") ||
+    const msg = (error?.message || "").toLowerCase();
+    const shouldAutoReload =
+      msg.includes("loading chunk") ||
+      msg.includes("failed to fetch") ||
       msg.includes("dynamically imported module") ||
-      msg.includes("Importing a module script failed") ||
-      msg.includes("NetworkError") ||
-      msg.includes("Load failed")
-    ) {
+      msg.includes("importing a module script failed") ||
+      msg.includes("failed to load module script") ||
+      msg.includes("networkerror") ||
+      msg.includes("load failed") ||
+      msg.includes("chunkloaderror");
+
+    if (shouldAutoReload) {
       // Clear the error and reload the page once
       const reloadKey = "brillarte_chunk_reload";
-      const lastReload = sessionStorage.getItem(reloadKey);
+      let lastReload: string | null = null;
+
+      try {
+        lastReload = sessionStorage.getItem(reloadKey);
+      } catch {
+        lastReload = null;
+      }
+
       const now = Date.now();
+      const lastReloadTs = lastReload ? Number(lastReload) : 0;
       // Only auto-reload once per 30 seconds to avoid loops
-      if (!lastReload || now - parseInt(lastReload) > 30000) {
-        sessionStorage.setItem(reloadKey, now.toString());
+      if (!lastReloadTs || now - lastReloadTs > 30000) {
+        try {
+          sessionStorage.setItem(reloadKey, now.toString());
+        } catch {
+          // Ignore storage errors on restrictive browsers
+        }
         window.location.reload();
         return;
       }

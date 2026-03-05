@@ -19,7 +19,7 @@ interface Notification {
   mensaje: string;
   tipo: string;
   leido: boolean;
-  created_at: string;
+  created_at: string | null;
   imagen_url?: string;
   accion_url?: string;
 }
@@ -133,6 +133,23 @@ export default function NotificationBell() {
     }
   };
 
+  const formatNotificationDate = (value?: string | null) => {
+    if (!value) return "Ahora";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Ahora";
+
+    try {
+      return date.toLocaleDateString('es-MX', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return "Ahora";
+    }
+  };
+
   const handleNotificationClick = async (notification: Notification) => {
     await markAsRead(notification.id);
     
@@ -228,12 +245,7 @@ export default function NotificationBell() {
                         {notif.mensaje}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(notif.created_at).toLocaleDateString('es-MX', {
-                          day: 'numeric',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {formatNotificationDate(notif.created_at)}
                       </p>
                     </div>
                   </div>
