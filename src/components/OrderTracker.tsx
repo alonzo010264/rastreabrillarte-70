@@ -272,7 +272,7 @@ const OrderTracker = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               onClick={handleNewSearch}
-              className="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-xl transition-all duration-300"
+              className="bg-foreground hover:bg-foreground/90 text-background font-medium py-2 px-6 rounded-xl transition-all duration-300"
             >
               Buscar Otro Pedido
             </Button>
@@ -360,17 +360,17 @@ const OrderTracker = () => {
   if (searchAttempted && !orderFound && !isSearching) {
     return (
       <div className="space-y-6">
-        <Card className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 text-center">
-          <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-            <Package className="text-red-500" size={24} />
+      <Card className="bg-background rounded-2xl shadow-sm p-8 border border-border text-center">
+          <div className="bg-muted rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+            <Package className="text-foreground" size={24} />
           </div>
-          <h2 className="text-2xl font-light text-gray-800 mb-4">Pedido No Encontrado</h2>
-          <p className="text-gray-600 mb-6">
-            No pudimos encontrar un pedido con el código <strong>{orderCode}</strong>
+          <h2 className="text-2xl font-light text-foreground mb-4">Pedido No Encontrado</h2>
+          <p className="text-muted-foreground mb-6">
+            No pudimos encontrar un pedido con el código <strong className="text-foreground">{orderCode}</strong>
           </p>
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-left">
-            <p className="text-amber-800 text-sm">
-              <strong>Verifica que:</strong><br />
+          <div className="bg-muted border border-border rounded-xl p-4 mb-6 text-left">
+            <p className="text-muted-foreground text-sm">
+              <strong className="text-foreground">Verifica que:</strong><br />
               • El código esté correctamente escrito<br />
               • Siga el formato B01-XXXXX<br />
               • Hayas recibido confirmación de tu pedido
@@ -378,7 +378,7 @@ const OrderTracker = () => {
           </div>
           <Button 
             onClick={handleNewSearch}
-            className="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-xl transition-all duration-300"
+            className="bg-foreground hover:bg-foreground/90 text-background font-medium py-2 px-6 rounded-xl transition-all duration-300"
           >
             Intentar de Nuevo
           </Button>
@@ -389,18 +389,18 @@ const OrderTracker = () => {
 
   // Formulario de búsqueda
   return (
-    <Card className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 hover:shadow-md transition-all duration-300">
+    <Card className="bg-background rounded-2xl shadow-sm p-8 border border-border hover:shadow-md transition-all duration-300">
       <div className="text-center mb-8">
-        <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-          <Package className="text-gray-600" size={24} />
+        <div className="bg-muted rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+          <Package className="text-foreground" size={24} />
         </div>
-        <h2 className="text-2xl font-light text-gray-800 mb-3">Rastrea tu Pedido</h2>
-        <p className="text-gray-500">Ingresa tu código de orden para conocer el estado de tu pedido</p>
+        <h2 className="text-2xl font-light text-foreground mb-3">Rastrea tu Pedido</h2>
+        <p className="text-muted-foreground">Ingresa tu código de orden para conocer el estado de tu pedido</p>
       </div>
 
       <div className="space-y-6 max-w-md mx-auto">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="block text-sm font-medium text-foreground mb-3">
             Código de Pedido
           </label>
           <Input
@@ -413,10 +413,10 @@ const OrderTracker = () => {
                 handleSearch();
               }
             }}
-            className="text-center text-lg font-mono tracking-wider border-gray-200 focus:border-gray-400 focus:ring-gray-400 rounded-xl h-12"
+            className="text-center text-lg font-mono tracking-wider border-border focus:border-foreground focus:ring-foreground rounded-xl h-12"
             maxLength={12}
           />
-          <p className="text-xs text-gray-500 mt-2 text-center">
+          <p className="text-xs text-muted-foreground mt-2 text-center">
             Tu código puede ser B01-XXXXX (antiguo) o BXXXXX-XXXXX (tienda online)
           </p>
         </div>
@@ -424,7 +424,7 @@ const OrderTracker = () => {
         <Button 
           onClick={handleSearch}
           disabled={orderCode.length < 9 || isSearching}
-          className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 text-base rounded-xl transition-all duration-300 disabled:bg-gray-300"
+          className="w-full bg-foreground hover:bg-foreground/90 text-background font-medium py-3 text-base rounded-xl transition-all duration-300 disabled:opacity-40"
         >
           {isSearching ? (
             <div className="flex items-center justify-center">
