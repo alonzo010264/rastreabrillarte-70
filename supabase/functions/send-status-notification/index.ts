@@ -103,13 +103,18 @@ const handler = async (req: Request): Promise<Response> => {
               Hola ${customerName || 'Cliente'},
             </p>
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold; text-align: center;">
-              ${isNewOrder 
-                ? 'Acabamos de Crear tu Pedido' 
-                : statusName === 'Entregado' 
-                  ? 'Pedido Entregado Exitosamente' 
-                  : 'Obtuvimos una actualizacion de tu pedido'}
+              ${isFacturaCreada
+                ? '📄 Tu Factura ha sido Creada'
+                : isNewOrder 
+                  ? 'Acabamos de Crear tu Pedido' 
+                  : statusName === 'Entregado' 
+                    ? 'Pedido Entregado Exitosamente' 
+                    : 'Obtuvimos una actualizacion de tu pedido'}
             </h2>
-            ${!isNewOrder && statusName !== 'Entregado' ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
+            ${isFacturaCreada ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
+              La factura de tu pedido ya está disponible para descargar
+            </p>` : ''}
+            ${!isNewOrder && !isFacturaCreada && statusName !== 'Entregado' ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
               Pronto estara contigo
             </p>` : ''}
             ${isNewOrder ? `<p style="color: #000000; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; text-align: center; font-weight: 500;">
