@@ -475,6 +475,80 @@ const OrderManagement = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Editable order info */}
+          {selectedOrder && (
+            <div className="md:col-span-2 p-4 bg-muted/30 rounded-lg border space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2">
+                <Edit size={14} />
+                Información del Pedido
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Cliente</Label>
+                  <Input value={editClientName} onChange={(e) => setEditClientName(e.target.value)} placeholder="Nombre del cliente" />
+                </div>
+                <div>
+                  <Label className="text-xs">Correo del Cliente</Label>
+                  <Input type="email" value={selectedOrderEmail} onChange={(e) => setSelectedOrderEmail(e.target.value)} placeholder="cliente@gmail.com" />
+                </div>
+                <div>
+                  <Label className="text-xs">Precio</Label>
+                  <Input type="number" step="0.01" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Peso (kg)</Label>
+                  <Input type="number" step="0.01" value={editWeight} onChange={(e) => setEditWeight(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Total</Label>
+                  <Input type="number" step="0.01" value={editTotal} onChange={(e) => setEditTotal(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Fecha Estimada Entrega</Label>
+                  <Input type="date" value={editDeliveryDate} onChange={(e) => setEditDeliveryDate(e.target.value)} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label className="text-xs">Notas</Label>
+                  <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="Notas del pedido..." rows={2} />
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={savingInfo}
+                onClick={async () => {
+                  if (!selectedOrder) return;
+                  setSavingInfo(true);
+                  try {
+                    const updateData: any = {};
+                    if (editClientName) updateData.Cliente = editClientName;
+                    if (selectedOrderEmail) updateData.Correo_cliente = selectedOrderEmail;
+                    if (editPrice) updateData.Precio = parseFloat(editPrice);
+                    if (editWeight) updateData.Peso = parseFloat(editWeight);
+                    if (editTotal) updateData.Total = parseFloat(editTotal);
+                    if (editDeliveryDate) updateData.Fecha_estimada_entrega = editDeliveryDate;
+                    updateData.Notas = editNotes || null;
+
+                    const { error } = await supabase
+                      .from('Pedidos')
+                      .update(updateData)
+                      .eq('Código de pedido', selectedOrder['Código de pedido']);
+                    if (error) throw error;
+                    toast({ title: "✓", description: "Información del pedido actualizada" });
+                    loadExistingOrders();
+                  } catch (err) {
+                    console.error(err);
+                    toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" });
+                  } finally {
+                    setSavingInfo(false);
+                  }
+                }}
+              >
+                {savingInfo ? "Guardando..." : "Guardar Información"}
+              </Button>
+            </div>
+          )}
           
           <div>
             <Label>Nuevo Estatus</Label>
@@ -486,12 +560,6 @@ const OrderManagement = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div>
-            <Label>Correo del Cliente *</Label>
-            <Input type="email" placeholder="cliente@gmail.com" value={selectedOrderEmail} onChange={(e) => setSelectedOrderEmail(e.target.value)} />
-            <p className="text-xs text-muted-foreground mt-1">Requerido para notificar el cambio de estatus</p>
           </div>
           
           <div>
