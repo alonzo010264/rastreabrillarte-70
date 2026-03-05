@@ -35,7 +35,8 @@ const handler = async (req: Request): Promise<Response> => {
       orderCode, 
       statusName, 
       statusDescription,
-      isNewOrder = false
+      isNewOrder = false,
+      facturaUrl = null
     }: StatusNotificationRequest = await req.json();
 
     console.log(`Sending status notification for order ${orderCode} to ${customerEmail}`);
@@ -67,9 +68,13 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    const subject = isNewOrder 
-      ? `${customerName}, tu pedido ${orderCode} ha sido creado - BRILLARTE`
-      : `${customerName}, tu pedido ${orderCode} cambió de estado - BRILLARTE`;
+    const isFacturaCreada = statusName === 'Factura Creada';
+
+    const subject = isFacturaCreada
+      ? `${customerName}, tu factura del pedido ${orderCode} está lista - BRILLARTE`
+      : isNewOrder 
+        ? `${customerName}, tu pedido ${orderCode} ha sido creado - BRILLARTE`
+        : `${customerName}, tu pedido ${orderCode} cambió de estado - BRILLARTE`;
     
     const emailHtml = `
       <!DOCTYPE html>
