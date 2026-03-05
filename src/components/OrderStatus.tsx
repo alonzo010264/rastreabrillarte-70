@@ -59,8 +59,8 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
           if (historial) {
             setStatusHistory(historial.filter(h => h.Estatus).map(h => ({
               status: h.Estatus.nombre,
-              date: h.Fecha ? new Date(h.Fecha).toLocaleDateString() : '',
-              time: h.Fecha ? new Date(h.Fecha).toLocaleTimeString() : '',
+              date: formatSafeDate(h.Fecha, 'date'),
+              time: formatSafeDate(h.Fecha, 'time'),
               description: h.Descripcion || '',
               category: (h.Estatus.categoria as 'processing' | 'shipping' | 'returns' | 'special') || 'processing'
             })));
@@ -73,6 +73,18 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
       supabase.removeChannel(channel);
     };
   }, [orderCode, initialHistory]);
+  const formatSafeDate = (value: string | null | undefined, mode: 'date' | 'time' = 'date') => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+
+    try {
+      return mode === 'time' ? date.toLocaleTimeString() : date.toLocaleDateString();
+    } catch {
+      return '';
+    }
+  };
+
   const getStatusIcon = (category: string, isCompleted: boolean, statusName?: string) => {
     const iconClass = `w-5 h-5 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`;
     
@@ -167,7 +179,7 @@ const OrderStatus = ({ orderCode, customerName, currentStatus, totalAmount, pric
           {price && <p><span className="font-medium">Precio:</span> ${price}</p>}
           {weight && <p><span className="font-medium">Peso:</span> {weight}kg</p>}
           {estimatedDelivery && (
-            <p><span className="font-medium">Entrega Estimada:</span> {new Date(estimatedDelivery).toLocaleDateString()}</p>
+            <p><span className="font-medium">Entrega Estimada:</span> {formatSafeDate(estimatedDelivery, 'date') || 'Pendiente'}</p>
           )}
         </div>
       </div>
