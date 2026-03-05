@@ -642,8 +642,8 @@ const OrderManagement = () => {
           </div>
         )}
 
-        <Button onClick={updateOrderStatus} disabled={loading || !selectedOrder || !newStatusId || !selectedOrderEmail} className="mt-4">
-          Actualizar Estatus y Notificar
+        <Button onClick={updateOrderStatus} disabled={loading || !selectedOrder || !newStatusId} className="mt-4">
+          Actualizar Estatus y Notificar Suscriptores
         </Button>
       </Card>
 
