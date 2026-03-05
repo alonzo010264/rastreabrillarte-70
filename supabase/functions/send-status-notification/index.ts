@@ -150,8 +150,15 @@ const handler = async (req: Request): Promise<Response> => {
             
             <!-- Action Buttons -->
             <div style="text-align: center; margin: 30px 0;">
+              ${isFacturaCreada && facturaUrl ? `
+              <a href="${facturaUrl}" 
+                 style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px; margin-bottom: 15px;">
+                📄 VER FACTURA
+              </a>
+              <br><br>
+              ` : ''}
               <a href="https://brillarte.lat/rastrear" 
-                 style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px;">
+                 style="display: inline-block; ${isFacturaCreada && facturaUrl ? 'background-color: #ffffff; color: #000000; border: 2px solid #000000;' : 'background-color: #000000; color: #ffffff;'} padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px;">
                 RASTREAR PEDIDO
               </a>
             </div>
