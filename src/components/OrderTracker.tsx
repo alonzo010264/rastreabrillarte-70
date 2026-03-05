@@ -59,6 +59,18 @@ const OrderTracker = () => {
     };
   }, [orderCode, orderFound]);
 
+  const formatSafeDate = (value: string | null | undefined, mode: 'date' | 'time' = 'date') => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+
+    try {
+      return mode === 'time' ? date.toLocaleTimeString() : date.toLocaleDateString();
+    } catch {
+      return '';
+    }
+  };
+
   const handleSearch = async () => {
     if (!orderCode.trim()) return;
     
@@ -85,29 +97,29 @@ const OrderTracker = () => {
           statusHistory: [
             {
               status: 'Recibido',
-              date: new Date(pedidoOnline.created_at).toLocaleDateString(),
-              time: new Date(pedidoOnline.created_at).toLocaleTimeString(),
+              date: formatSafeDate(pedidoOnline.created_at, 'date') || 'Pendiente',
+              time: formatSafeDate(pedidoOnline.created_at, 'time'),
               description: 'Pedido recibido',
               category: 'processing' as const
             },
             ...(pedidoOnline.estado === 'Pagado' ? [{
               status: 'Pagado',
-              date: new Date(pedidoOnline.updated_at || pedidoOnline.created_at).toLocaleDateString(),
-              time: new Date(pedidoOnline.updated_at || pedidoOnline.created_at).toLocaleTimeString(),
+              date: formatSafeDate(pedidoOnline.updated_at || pedidoOnline.created_at, 'date') || 'Pendiente',
+              time: formatSafeDate(pedidoOnline.updated_at || pedidoOnline.created_at, 'time'),
               description: 'Pago confirmado',
               category: 'processing' as const
             }] : []),
             ...(pedidoOnline.estado === 'Enviado' || pedidoOnline.tracking_envio ? [{
               status: 'Enviado',
-              date: pedidoOnline.fecha_envio ? new Date(pedidoOnline.fecha_envio).toLocaleDateString() : 'Pendiente',
-              time: pedidoOnline.fecha_envio ? new Date(pedidoOnline.fecha_envio).toLocaleTimeString() : '',
+              date: formatSafeDate(pedidoOnline.fecha_envio, 'date') || 'Pendiente',
+              time: formatSafeDate(pedidoOnline.fecha_envio, 'time'),
               description: `Enviado por ${pedidoOnline.empresas_envio?.nombre || 'courier'}${pedidoOnline.tracking_envio ? ` - Tracking: ${pedidoOnline.tracking_envio}` : ''}`,
               category: 'shipping' as const
             }] : []),
             ...(pedidoOnline.estado === 'Entregado' ? [{
               status: 'Entregado',
-              date: new Date().toLocaleDateString(),
-              time: '',
+              date: formatSafeDate(pedidoOnline.updated_at || pedidoOnline.created_at, 'date') || 'Pendiente',
+              time: formatSafeDate(pedidoOnline.updated_at || pedidoOnline.created_at, 'time'),
               description: 'Pedido entregado al cliente',
               category: 'shipping' as const
             }] : [])
@@ -157,8 +169,8 @@ const OrderTracker = () => {
         mostrarAyuda: (pedido as any).mostrar_ayuda ?? true,
         statusHistory: historial?.filter(h => h.Estatus).map(h => ({
           status: h.Estatus.nombre,
-          date: h.Fecha ? new Date(h.Fecha).toLocaleDateString() : '',
-          time: h.Fecha ? new Date(h.Fecha).toLocaleTimeString() : '',
+          date: formatSafeDate(h.Fecha, 'date'),
+          time: formatSafeDate(h.Fecha, 'time'),
           description: h.Descripcion || '',
           category: (h.Estatus.categoria as 'processing' | 'shipping' | 'returns' | 'special') || 'processing'
         })) || []
