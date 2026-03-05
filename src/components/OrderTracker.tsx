@@ -165,8 +165,9 @@ const OrderTracker = () => {
         weight: pedido.Peso || undefined,
         estimatedDelivery: pedido.Fecha_estimada_entrega || undefined,
         mostrarNotificaciones: (pedido as any).mostrar_notificaciones ?? true,
-        mostrarCambioDireccion: (pedido as any).mostrar_cambio_direccion ?? true,
+        mostrarCambioDireccion: (pedido as any).es_envio ? ((pedido as any).mostrar_cambio_direccion ?? true) : false,
         mostrarAyuda: (pedido as any).mostrar_ayuda ?? true,
+        facturaUrl: (pedido as any).factura_url || null,
         statusHistory: historial?.filter(h => h.Estatus).map(h => ({
           status: h.Estatus.nombre,
           date: formatSafeDate(h.Fecha, 'date'),
