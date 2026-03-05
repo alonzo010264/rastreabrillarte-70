@@ -284,13 +284,8 @@ const OrderManagement = () => {
   };
 
   const updateOrderStatus = async () => {
-    if (!selectedOrder || !newStatusId || !selectedOrderEmail) {
-      toast({ title: "Error", description: "Selecciona un pedido, un nuevo estatus e ingresa el correo del cliente", variant: "destructive" });
-      return;
-    }
-
-    if (!validateEmail(selectedOrderEmail)) {
-      toast({ title: "Error", description: "Por favor ingresa un correo válido de Gmail, Outlook, Yahoo o iCloud", variant: "destructive" });
+    if (!selectedOrder || !newStatusId) {
+      toast({ title: "Error", description: "Selecciona un pedido y un nuevo estatus", variant: "destructive" });
       return;
     }
 
@@ -313,29 +308,43 @@ const OrderManagement = () => {
         await supabase.from('Historial_Estatus').insert(historialData);
       }
 
-      // If status is "Factura Creada" and file selected, upload
       const selectedStatus = statuses.find(s => s.id === newStatusId);
       if (selectedStatus?.nombre === 'Factura Creada' && facturaFile) {
         await uploadFactura(selectedOrder['Código de pedido']);
       }
 
+      // Notify all subscribed emails for this order
       const status = statuses.find(s => s.id === newStatusId);
       if (status) {
-        await supabase.functions.invoke('send-status-notification', {
-          body: {
-            customerEmail: selectedOrderEmail,
-            customerName: selectedOrder.Cliente,
-            orderCode: selectedOrder['Código de pedido'],
-            statusName: status.nombre,
-            statusDescription: description || status.descripcion || 'Tu pedido ha sido actualizado.',
-            isNewOrder: false
+        const { data: subscribers } = await supabase
+          .from('suscripciones_pedidos')
+          .select('correo, nombre')
+          .eq('codigo_pedido', selectedOrder['Código de pedido'])
+          .eq('activo', true);
+
+        if (subscribers && subscribers.length > 0) {
+          for (const sub of subscribers) {
+            await supabase.functions.invoke('send-status-notification', {
+              body: {
+                customerEmail: sub.correo,
+                customerName: sub.nombre,
+                orderCode: selectedOrder['Código de pedido'],
+                statusName: status.nombre,
+                statusDescription: description || status.descripcion || 'Tu pedido ha sido actualizado.',
+                isNewOrder: false
+              }
+            });
           }
-        });
+          toast({ title: "¡Éxito!", description: `Estatus actualizado. ${subscribers.length} suscriptor(es) notificado(s)` });
+        } else {
+          toast({ title: "¡Éxito!", description: "Estatus actualizado. No hay suscriptores para notificar." });
+        }
       }
 
-      toast({ title: "¡Éxito!", description: "Estatus actualizado y correo enviado" });
       setSelectedOrder(null); setSelectedOrderEmail(""); setNewStatusId(null);
       setNewDate(""); setDescription(""); setFacturaFile(null);
+      setEditClientName(""); setEditPrice(""); setEditWeight("");
+      setEditTotal(""); setEditDeliveryDate(""); setEditNotes("");
       loadExistingOrders();
     } catch (error) {
       console.error('Error:', error);
