@@ -182,7 +182,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Pedidos en Línea Section */}
+      {/* Blog Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-primary/10 via-background to-secondary/10 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float" />
@@ -192,13 +192,13 @@ const Home = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 p-8 rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-500">
             <div className="flex-1 text-center md:text-left">
               <h2 className="text-3xl md:text-4xl font-light text-foreground mb-4 animate-blur-in">
-                ¿Quieres hacer pedidos en línea y que te lleguen <span className="gradient-text">directamente</span>?
+                Conoce Nuestro <span className="gradient-text">Blog</span>
               </h2>
               <p className="text-lg text-muted-foreground animate-blur-in animation-delay-200">
-                Descubre nuestro nuevo servicio de envíos internacionales
+                Consejos de estilo, tendencias y novedades de BRILLARTE
               </p>
             </div>
-            <Button size="lg" className="text-lg px-8 whitespace-nowrap transition-all duration-500 hover:scale-110 hover:shadow-xl hover:shadow-primary/25 animate-slide-up-fade animation-delay-400 btn-shine group" onClick={() => navigate("/brillarte-pedidos")}>
+            <Button size="lg" className="text-lg px-8 whitespace-nowrap transition-all duration-500 hover:scale-110 hover:shadow-xl hover:shadow-primary/25 animate-slide-up-fade animation-delay-400 btn-shine group" onClick={() => navigate("/blog")}>
               Ver Más
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
