@@ -48,6 +48,12 @@ const OrderManagement = () => {
   const [existingOrders, setExistingOrders] = useState<Pedido[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Pedido | null>(null);
   const [selectedOrderEmail, setSelectedOrderEmail] = useState("");
+  const [editClientName, setEditClientName] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editWeight, setEditWeight] = useState("");
+  const [editTotal, setEditTotal] = useState("");
+  const [editDeliveryDate, setEditDeliveryDate] = useState("");
+  const [editNotes, setEditNotes] = useState("");
   const [newStatusId, setNewStatusId] = useState<number | null>(null);
   const [newDate, setNewDate] = useState("");
   const [description, setDescription] = useState("");
@@ -58,6 +64,7 @@ const OrderManagement = () => {
   const [esEnvio, setEsEnvio] = useState(false);
   const [facturaFile, setFacturaFile] = useState<File | null>(null);
   const [uploadingFactura, setUploadingFactura] = useState(false);
+  const [savingInfo, setSavingInfo] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -277,13 +284,8 @@ const OrderManagement = () => {
   };
 
   const updateOrderStatus = async () => {
-    if (!selectedOrder || !newStatusId || !selectedOrderEmail) {
-      toast({ title: "Error", description: "Selecciona un pedido, un nuevo estatus e ingresa el correo del cliente", variant: "destructive" });
-      return;
-    }
-
-    if (!validateEmail(selectedOrderEmail)) {
-      toast({ title: "Error", description: "Por favor ingresa un correo válido de Gmail, Outlook, Yahoo o iCloud", variant: "destructive" });
+    if (!selectedOrder || !newStatusId) {
+      toast({ title: "Error", description: "Selecciona un pedido y un nuevo estatus", variant: "destructive" });
       return;
     }
 
@@ -306,29 +308,43 @@ const OrderManagement = () => {
         await supabase.from('Historial_Estatus').insert(historialData);
       }
 
-      // If status is "Factura Creada" and file selected, upload
       const selectedStatus = statuses.find(s => s.id === newStatusId);
       if (selectedStatus?.nombre === 'Factura Creada' && facturaFile) {
         await uploadFactura(selectedOrder['Código de pedido']);
       }
 
+      // Notify all subscribed emails for this order
       const status = statuses.find(s => s.id === newStatusId);
       if (status) {
-        await supabase.functions.invoke('send-status-notification', {
-          body: {
-            customerEmail: selectedOrderEmail,
-            customerName: selectedOrder.Cliente,
-            orderCode: selectedOrder['Código de pedido'],
-            statusName: status.nombre,
-            statusDescription: description || status.descripcion || 'Tu pedido ha sido actualizado.',
-            isNewOrder: false
+        const { data: subscribers } = await supabase
+          .from('suscripciones_pedidos')
+          .select('correo, nombre')
+          .eq('codigo_pedido', selectedOrder['Código de pedido'])
+          .eq('activo', true);
+
+        if (subscribers && subscribers.length > 0) {
+          for (const sub of subscribers) {
+            await supabase.functions.invoke('send-status-notification', {
+              body: {
+                customerEmail: sub.correo,
+                customerName: sub.nombre,
+                orderCode: selectedOrder['Código de pedido'],
+                statusName: status.nombre,
+                statusDescription: description || status.descripcion || 'Tu pedido ha sido actualizado.',
+                isNewOrder: false
+              }
+            });
           }
-        });
+          toast({ title: "¡Éxito!", description: `Estatus actualizado. ${subscribers.length} suscriptor(es) notificado(s)` });
+        } else {
+          toast({ title: "¡Éxito!", description: "Estatus actualizado. No hay suscriptores para notificar." });
+        }
       }
 
-      toast({ title: "¡Éxito!", description: "Estatus actualizado y correo enviado" });
       setSelectedOrder(null); setSelectedOrderEmail(""); setNewStatusId(null);
       setNewDate(""); setDescription(""); setFacturaFile(null);
+      setEditClientName(""); setEditPrice(""); setEditWeight("");
+      setEditTotal(""); setEditDeliveryDate(""); setEditNotes("");
       loadExistingOrders();
     } catch (error) {
       console.error('Error:', error);
@@ -438,6 +454,12 @@ const OrderManagement = () => {
               const order = existingOrders.find(o => o['Código de pedido'] === value);
               setSelectedOrder(order || null);
               setSelectedOrderEmail(order?.['Correo_cliente'] || "");
+              setEditClientName(order?.Cliente || "");
+              setEditPrice(order?.Precio?.toString() || "");
+              setEditWeight(order?.Peso?.toString() || "");
+              setEditTotal(order?.Total?.toString() || "");
+              setEditDeliveryDate(order?.['Fecha_estimada_entrega'] || "");
+              setEditNotes(order?.Notas || "");
               if (order) {
                 const { data } = await supabase
                   .from('Pedidos')
@@ -462,6 +484,80 @@ const OrderManagement = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Editable order info */}
+          {selectedOrder && (
+            <div className="md:col-span-2 p-4 bg-muted/30 rounded-lg border space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2">
+                <Edit size={14} />
+                Información del Pedido
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Cliente</Label>
+                  <Input value={editClientName} onChange={(e) => setEditClientName(e.target.value)} placeholder="Nombre del cliente" />
+                </div>
+                <div>
+                  <Label className="text-xs">Correo del Cliente</Label>
+                  <Input type="email" value={selectedOrderEmail} onChange={(e) => setSelectedOrderEmail(e.target.value)} placeholder="cliente@gmail.com" />
+                </div>
+                <div>
+                  <Label className="text-xs">Precio</Label>
+                  <Input type="number" step="0.01" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Peso (kg)</Label>
+                  <Input type="number" step="0.01" value={editWeight} onChange={(e) => setEditWeight(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Total</Label>
+                  <Input type="number" step="0.01" value={editTotal} onChange={(e) => setEditTotal(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Fecha Estimada Entrega</Label>
+                  <Input type="date" value={editDeliveryDate} onChange={(e) => setEditDeliveryDate(e.target.value)} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label className="text-xs">Notas</Label>
+                  <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="Notas del pedido..." rows={2} />
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={savingInfo}
+                onClick={async () => {
+                  if (!selectedOrder) return;
+                  setSavingInfo(true);
+                  try {
+                    const updateData: any = {};
+                    if (editClientName) updateData.Cliente = editClientName;
+                    if (selectedOrderEmail) updateData.Correo_cliente = selectedOrderEmail;
+                    if (editPrice) updateData.Precio = parseFloat(editPrice);
+                    if (editWeight) updateData.Peso = parseFloat(editWeight);
+                    if (editTotal) updateData.Total = parseFloat(editTotal);
+                    if (editDeliveryDate) updateData.Fecha_estimada_entrega = editDeliveryDate;
+                    updateData.Notas = editNotes || null;
+
+                    const { error } = await supabase
+                      .from('Pedidos')
+                      .update(updateData)
+                      .eq('Código de pedido', selectedOrder['Código de pedido']);
+                    if (error) throw error;
+                    toast({ title: "✓", description: "Información del pedido actualizada" });
+                    loadExistingOrders();
+                  } catch (err) {
+                    console.error(err);
+                    toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" });
+                  } finally {
+                    setSavingInfo(false);
+                  }
+                }}
+              >
+                {savingInfo ? "Guardando..." : "Guardar Información"}
+              </Button>
+            </div>
+          )}
           
           <div>
             <Label>Nuevo Estatus</Label>
@@ -473,12 +569,6 @@ const OrderManagement = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div>
-            <Label>Correo del Cliente *</Label>
-            <Input type="email" placeholder="cliente@gmail.com" value={selectedOrderEmail} onChange={(e) => setSelectedOrderEmail(e.target.value)} />
-            <p className="text-xs text-muted-foreground mt-1">Requerido para notificar el cambio de estatus</p>
           </div>
           
           <div>
@@ -552,8 +642,8 @@ const OrderManagement = () => {
           </div>
         )}
 
-        <Button onClick={updateOrderStatus} disabled={loading || !selectedOrder || !newStatusId || !selectedOrderEmail} className="mt-4">
-          Actualizar Estatus y Notificar
+        <Button onClick={updateOrderStatus} disabled={loading || !selectedOrder || !newStatusId} className="mt-4">
+          Actualizar Estatus y Notificar Suscriptores
         </Button>
       </Card>
 
