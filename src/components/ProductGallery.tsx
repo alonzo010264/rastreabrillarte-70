@@ -11,6 +11,14 @@ import anilloFloresAzul from "@/assets/productos/anillo-flores-azul.jpg";
 import pulserasCorazones from "@/assets/productos/pulseras-corazones.jpg";
 import pulserasLoveYou from "@/assets/productos/pulseras-love-you.jpg";
 import floresCrochet from "@/assets/productos/flores-crochet.jfif";
+import pulserasCristal from "@/assets/productos/pulseras-cristal-colores.png";
+import pulserasBrillantes from "@/assets/productos/pulseras-brillantes-elegantes.png";
+import pulseraGirasol from "@/assets/productos/pulsera-girasol-dorada.png";
+import pulseraMacrame from "@/assets/productos/pulsera-macrame-girasoles.png";
+import pulserasTrebol from "@/assets/productos/pulseras-trebol-tejidas.png";
+import pulserasPareja from "@/assets/productos/pulseras-pareja-amistad.png";
+import pulserasIniciales from "@/assets/productos/pulseras-iniciales-personalizadas.png";
+import pulserasCorazonesColores from "@/assets/productos/pulseras-corazones-colores.png";
 const ProductGallery = () => {
   const {
     ref: titleRef,
