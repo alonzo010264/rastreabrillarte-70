@@ -11,51 +11,20 @@ import anilloFloresAzul from "@/assets/productos/anillo-flores-azul.jpg";
 import pulserasCorazones from "@/assets/productos/pulseras-corazones.jpg";
 import pulserasLoveYou from "@/assets/productos/pulseras-love-you.jpg";
 import floresCrochet from "@/assets/productos/flores-crochet.jfif";
+import pulserasCristal from "@/assets/productos/pulseras-cristal-colores.png";
+import pulserasBrillantes from "@/assets/productos/pulseras-brillantes-elegantes.png";
+import pulseraGirasol from "@/assets/productos/pulsera-girasol-dorada.png";
+import pulseraMacrame from "@/assets/productos/pulsera-macrame-girasoles.png";
+import pulserasTrebol from "@/assets/productos/pulseras-trebol-tejidas.png";
+import pulserasPareja from "@/assets/productos/pulseras-pareja-amistad.png";
+import pulserasIniciales from "@/assets/productos/pulseras-iniciales-personalizadas.png";
+import pulserasCorazonesColores from "@/assets/productos/pulseras-corazones-colores.png";
 const ProductGallery = () => {
   const {
     ref: titleRef,
     isVisible: titleVisible
   } = useScrollAnimation(0.2);
-  const {
-    ref: grid1Ref,
-    isVisible: grid1Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid2Ref,
-    isVisible: grid2Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid3Ref,
-    isVisible: grid3Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid4Ref,
-    isVisible: grid4Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid5Ref,
-    isVisible: grid5Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid6Ref,
-    isVisible: grid6Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid7Ref,
-    isVisible: grid7Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid8Ref,
-    isVisible: grid8Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid9Ref,
-    isVisible: grid9Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid10Ref,
-    isVisible: grid10Visible
-  } = useScrollAnimation(0.1);
+
   const products = [{
     id: 1,
     name: "Pulsera Margarita",
@@ -106,60 +75,58 @@ const ProductGallery = () => {
     name: "Flores Crochet Bouquet",
     image: floresCrochet,
     description: "Bouquet de flores tejidas a crochet artesanal"
+  }, {
+    id: 11,
+    name: "Pulseras Cristal Multicolor",
+    image: pulserasCristal,
+    description: "Set de pulseras de cristal con flores y yin yang"
+  }, {
+    id: 12,
+    name: "Pulseras Brillantes Elegantes",
+    image: pulserasBrillantes,
+    description: "Pulseras de esferas brillantes en rojo, plata y negro"
+  }, {
+    id: 13,
+    name: "Pulsera Girasol Dorada",
+    image: pulseraGirasol,
+    description: "Pulsera de cristales dorados con detalle de girasol"
+  }, {
+    id: 14,
+    name: "Pulsera Macramé Girasoles",
+    image: pulseraMacrame,
+    description: "Pulsera tejida en macramé con girasoles y perlas"
+  }, {
+    id: 15,
+    name: "Pulseras Trébol Tejidas",
+    image: pulserasTrebol,
+    description: "Pulseras tejidas con dije de trébol en azul y verde"
+  }, {
+    id: 16,
+    name: "Pulseras de Pareja o Amistad",
+    image: pulserasPareja,
+    description: "Pulseras rojas con corazón magnético e iniciales personalizadas"
+  }, {
+    id: 17,
+    name: "Pulseras Iniciales Personalizadas",
+    image: pulserasIniciales,
+    description: "Pulseras tejidas con inicial personalizada en rosa y blanco"
+  }, {
+    id: 18,
+    name: "Pulseras Corazones Arcoíris",
+    image: pulserasCorazonesColores,
+    description: "Colección de pulseras tejidas con corazones en todos los colores"
   }];
-  const gridRefs = [{
-    ref: grid1Ref,
-    isVisible: grid1Visible,
-    animation: 'opacity-0 -translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid2Ref,
-    isVisible: grid2Visible,
-    animation: 'opacity-0 translate-y-10',
-    animationActive: 'opacity-100 translate-y-0'
-  }, {
-    ref: grid3Ref,
-    isVisible: grid3Visible,
-    animation: 'opacity-0 translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid4Ref,
-    isVisible: grid4Visible,
-    animation: 'opacity-0 translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid5Ref,
-    isVisible: grid5Visible,
-    animation: 'opacity-0 -translate-y-10',
-    animationActive: 'opacity-100 translate-y-0'
-  }, {
-    ref: grid6Ref,
-    isVisible: grid6Visible,
-    animation: 'opacity-0 -translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid7Ref,
-    isVisible: grid7Visible,
-    animation: 'opacity-0 translate-y-10',
-    animationActive: 'opacity-100 translate-y-0'
-  }, {
-    ref: grid8Ref,
-    isVisible: grid8Visible,
-    animation: 'opacity-0 -translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid9Ref,
-    isVisible: grid9Visible,
-    animation: 'opacity-0 translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid10Ref,
-    isVisible: grid10Visible,
-    animation: 'opacity-0 -translate-y-10',
-    animationActive: 'opacity-100 translate-y-0'
-  }];
-  const hoverRotations = ['group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-2', '', 'group-hover:rotate-2', 'group-hover:-rotate-3', '', 'group-hover:rotate-3'];
-  const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-muted/40', 'from-foreground/10', 'from-muted-foreground/20', 'from-border/30', 'from-muted/30', 'from-foreground/5', 'from-muted/50'];
+
+  const animations = [
+    'opacity-0 -translate-x-10', 'opacity-0 translate-y-10', 'opacity-0 translate-x-10',
+    'opacity-0 translate-x-10', 'opacity-0 -translate-y-10', 'opacity-0 -translate-x-10',
+    'opacity-0 translate-y-10', 'opacity-0 -translate-x-10', 'opacity-0 translate-x-10',
+    'opacity-0 -translate-y-10', 'opacity-0 -translate-x-10', 'opacity-0 translate-y-10',
+    'opacity-0 translate-x-10', 'opacity-0 -translate-y-10', 'opacity-0 -translate-x-10',
+    'opacity-0 translate-y-10', 'opacity-0 translate-x-10', 'opacity-0 -translate-y-10',
+  ];
+  const hoverRotations = ['group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-2', '', 'group-hover:rotate-2', 'group-hover:-rotate-3', '', 'group-hover:rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:rotate-2', '', 'group-hover:-rotate-2', 'group-hover:rotate-3'];
+  const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-muted/40', 'from-foreground/10', 'from-muted-foreground/20', 'from-border/30', 'from-muted/30', 'from-foreground/5', 'from-muted/50', 'from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-muted/40', 'from-foreground/10', 'from-muted-foreground/20', 'from-border/30', 'from-muted/30'];
   return <section className="py-20 px-4 bg-background relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
@@ -181,18 +148,18 @@ const ProductGallery = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {products.map((product, index) => <div key={product.id} ref={gridRefs[index].ref} className={`transition-all duration-1000 ${index > 0 ? `delay-${index % 3 * 200}` : ''} ${gridRefs[index].isVisible ? gridRefs[index].animationActive : gridRefs[index].animation}`} style={{
-          transitionDelay: `${index % 3 * 150}ms`
+          {products.map((product, index) => <div key={product.id} className={`transition-all duration-1000 animate-fade-in`} style={{
+          transitionDelay: `${index % 3 * 150}ms`,
+          animationDelay: `${index * 100}ms`
         }}>
               <Card className="group overflow-hidden hover-lift cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all duration-500">
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden aspect-square">
-                    <div className={`absolute inset-0 bg-gradient-to-br ${gradientColors[index]} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10`} />
-                    <img src={product.image} alt={product.name} width="400" height="400" loading="lazy" className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-125 ${hoverRotations[index]}`} />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${gradientColors[index % gradientColors.length]} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10`} />
+                    <img src={product.image} alt={product.name} width="400" height="400" loading="lazy" className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-125 ${hoverRotations[index % hoverRotations.length]}`} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
                     <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
                       <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                        
                         {product.name}
                       </h3>
                       <p className="text-sm opacity-90">{product.description}</p>
