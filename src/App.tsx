@@ -93,6 +93,8 @@ const Referidos = lazyWithRetry(() => import("./pages/Referidos"));
 const AdminReferidos = lazyWithRetry(() => import("./pages/AdminReferidos"));
 const Blog = lazyWithRetry(() => import("./pages/Blog"));
 const AdminBlog = lazyWithRetry(() => import("./pages/AdminBlog"));
+const EmprendeBrillarte = lazyWithRetry(() => import("./pages/EmprendeBrillarte"));
+const EmprendeBrillarteAplicar = lazyWithRetry(() => import("./pages/EmprendeBrillarteAplicar"));
 
 // Componentes de protección
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
