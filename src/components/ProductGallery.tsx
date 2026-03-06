@@ -148,18 +148,18 @@ const ProductGallery = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {products.map((product, index) => <div key={product.id} ref={gridRefs[index].ref} className={`transition-all duration-1000 ${index > 0 ? `delay-${index % 3 * 200}` : ''} ${gridRefs[index].isVisible ? gridRefs[index].animationActive : gridRefs[index].animation}`} style={{
-          transitionDelay: `${index % 3 * 150}ms`
+          {products.map((product, index) => <div key={product.id} className={`transition-all duration-1000 animate-fade-in`} style={{
+          transitionDelay: `${index % 3 * 150}ms`,
+          animationDelay: `${index * 100}ms`
         }}>
               <Card className="group overflow-hidden hover-lift cursor-pointer border-2 border-transparent hover:border-primary/20 transition-all duration-500">
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden aspect-square">
-                    <div className={`absolute inset-0 bg-gradient-to-br ${gradientColors[index]} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10`} />
-                    <img src={product.image} alt={product.name} width="400" height="400" loading="lazy" className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-125 ${hoverRotations[index]}`} />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${gradientColors[index % gradientColors.length]} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10`} />
+                    <img src={product.image} alt={product.name} width="400" height="400" loading="lazy" className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-125 ${hoverRotations[index % hoverRotations.length]}`} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
                     <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
                       <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                        
                         {product.name}
                       </h3>
                       <p className="text-sm opacity-90">{product.description}</p>
