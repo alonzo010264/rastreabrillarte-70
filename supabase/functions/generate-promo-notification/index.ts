@@ -41,7 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
 Título: ${titulo}
 Descripción: ${descripcion}
 
-El mensaje debe ser emocionante, usar emojis relevantes y motivar a participar. Debe ser directo y llamativo como notificación push.`
+El mensaje debe ser profesional y motivar a participar. NO uses emojis. Debe ser directo y llamativo como notificacion push.`
           }
         ],
         max_tokens: 100,
@@ -55,7 +55,7 @@ El mensaje debe ser emocionante, usar emojis relevantes y motivar a participar. 
 
     const aiData = await aiResponse.json();
     const mensajeGenerado = aiData.choices[0]?.message?.content || 
-      `🎉 ¡Nueva promoción de Brillarte! ${titulo} - ¡Participa ahora!`;
+      `Nueva promocion de Brillarte: ${titulo} - Participa ahora`;
 
     return new Response(
       JSON.stringify({ 

@@ -50,7 +50,7 @@ serve(async (req: Request) => {
     const emailResponse = await resend.emails.send({
       from: "BRILLARTE <no-reply@oficial.brillarte.lat>",
       to: [profile.correo],
-      subject: "💬 BRILLARTE quiere hablar contigo",
+      subject: "BRILLARTE quiere hablar contigo",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fff;">
           <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
@@ -59,7 +59,7 @@ serve(async (req: Request) => {
           </div>
           
           <div style="padding: 30px 20px;">
-            <h2 style="color: #1a1a2e; margin-bottom: 15px;">¡Hola ${nombre}! 👋</h2>
+            <h2 style="color: #1a1a2e; margin-bottom: 15px;">Hola ${nombre},</h2>
             <p style="color: #444; font-size: 16px; line-height: 1.6;">
               La cuenta oficial de <strong>BRILLARTE</strong> ha iniciado una conversación contigo. 
               Puede ser sobre promociones, premios, tu pedido u otra información importante.

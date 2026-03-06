@@ -155,10 +155,10 @@ const handler = async (req: Request): Promise<Response> => {
                 </h3>
                 <div style="text-align: center;">
                   <p style="color: #ffffff; margin: 0 0 8px 0; font-size: 14px;">
-                    📞 <strong>WhatsApp:</strong> 849-425-2220
+                    WhatsApp: 849-425-2220
                   </p>
                   <p style="color: #ffffff; margin: 0; font-size: 14px;">
-                    ✉️ <strong>Correo:</strong> brillarte.oficial.ventas@gmail.com
+                    Correo: brillarte.oficial.ventas@gmail.com
                   </p>
                 </div>
               </div>

@@ -55,11 +55,11 @@ serve(async (req) => {
             <p style="margin:5px 0 0;font-size:14px;opacity:0.8;">Nueva Promoción Disponible</p>
           </div>
           <div style="padding:30px;">
-            <h2 style="color:#000;margin-top:0;">🎁 ${titulo}</h2>
+            <h2 style="color:#000;margin-top:0;">${titulo}</h2>
             ${imagenHtml}
             <p style="color:#333;line-height:1.6;">${descripcion}</p>
             <div style="background:#f5f5f5;padding:15px;border-left:4px solid #000;margin:20px 0;border-radius:4px;">
-              <p style="margin:0;"><strong>📅 Válida hasta:</strong> ${fechaFormateada}</p>
+              <p style="margin:0;"><strong>Valida hasta:</strong> ${fechaFormateada}</p>
             </div>
             <div style="text-align:center;margin:30px 0;">
               <a href="https://brillarte.lovable.app/promociones" style="background:#000;color:#fff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">
@@ -86,7 +86,7 @@ serve(async (req) => {
         resend.emails.send({
           from: "BRILLARTE Promociones <promociones@oficial.brillarte.lat>",
           to: [sub.correo],
-          subject: `🎁 Nueva Promoción: ${titulo}`,
+          subject: `Nueva Promocion: ${titulo}`,
           html: htmlTemplate,
         }).then(() => { sentCount++; })
           .catch((err: Error) => console.error(`Error sending to ${sub.correo}:`, err))

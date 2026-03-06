@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             <h2 style="color: #000000; margin: 0 0 20px 0; font-size: 24px; font-weight: bold; text-align: center;">
               ${isFacturaCreada
-                ? '📄 Tu Factura ha sido Creada'
+                ? 'Tu Factura ha sido Creada'
                 : isNewOrder 
                   ? 'Acabamos de Crear tu Pedido' 
                   : statusName === 'Entregado' 
@@ -153,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
               ${isFacturaCreada && facturaUrl ? `
               <a href="${facturaUrl}" 
                  style="display: inline-block; background-color: #000000; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px; margin-bottom: 15px;">
-                📄 VER FACTURA
+                VER FACTURA
               </a>
               <br><br>
               ` : ''}

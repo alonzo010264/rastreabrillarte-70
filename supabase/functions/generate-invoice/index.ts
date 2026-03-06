@@ -236,10 +236,10 @@ const handler = async (req: Request): Promise<Response> => {
 
   <div class="contact-info">
     <div class="section-title">Información de Contacto - BRILLARTE</div>
-    <p style="margin: 10px 0;">📧 Email: oficial@brillarte.lat</p>
-    <p style="margin: 10px 0;">🌐 Web: www.brillarte.lat</p>
-    <p style="margin: 10px 0;">📍 Dirección: [Agregar dirección de Brillarte]</p>
-    <p style="margin: 10px 0;">📞 WhatsApp: [Agregar número de contacto]</p>
+    <p style="margin: 10px 0;">Email: oficial@brillarte.lat</p>
+    <p style="margin: 10px 0;">Web: www.brillarte.lat</p>
+    <p style="margin: 10px 0;">Direccion: Santiago de los Caballeros, Republica Dominicana</p>
+    <p style="margin: 10px 0;">WhatsApp: 849-425-2220</p>
   </div>
 
   <div class="footer">
