@@ -632,13 +632,18 @@ export const ChatbotLive = memo(() => {
     
     // Route to appropriate specialist
     if (caseLower.includes("compra") || caseLower.includes("producto") || caseLower.includes("precio") || caseLower.includes("catalogo") || caseLower.includes("disponible")) {
-      return aiAgents.find(a => a.nombre === "Shary") || aiAgents[0];
+      return aiAgents.find(a => a.nombre === "Shary") || aiAgents.find(a => a.nombre === "Alondra") || aiAgents[0];
     } else if (caseLower.includes("promocion") || caseLower.includes("descuento") || caseLower.includes("oferta") || caseLower.includes("cupon")) {
-      return aiAgents.find(a => a.nombre === "Marisol") || aiAgents[0];
+      return aiAgents.find(a => a.nombre === "Marisol") || aiAgents.find(a => a.nombre === "Bryan") || aiAgents[0];
     } else if (caseLower.includes("reembolso") || caseLower.includes("problema") || caseLower.includes("queja") || caseLower.includes("devolucion") || caseLower.includes("danado") || caseLower.includes("roto")) {
-      return aiAgents.find(a => a.nombre === "Victor" || a.nombre === "Julian") || aiAgents[0];
+      return aiAgents.find(a => a.nombre === "Victor" || a.nombre === "Julian") || aiAgents.find(a => a.nombre === "Liam") || aiAgents[0];
     } else {
-      return aiAgents.find(a => a.nombre === "Maria") || aiAgents[0];
+      // Random from general agents: Maria, Luis, Alondra, Bryan
+      const generalAgents = aiAgents.filter(a => ["Maria", "Luis", "Alondra", "Bryan"].includes(a.nombre));
+      if (generalAgents.length > 0) {
+        return generalAgents[Math.floor(Math.random() * generalAgents.length)];
+      }
+      return aiAgents[Math.floor(Math.random() * aiAgents.length)];
     }
   };
 
