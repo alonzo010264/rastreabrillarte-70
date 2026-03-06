@@ -986,7 +986,7 @@ export const ChatbotLive = memo(() => {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-sm font-medium">Asistente Virtual</p>
+                <p className="text-sm font-medium">Atención al Cliente</p>
                 <p className="text-xs opacity-80">BRILLARTE</p>
               </div>
             </>
