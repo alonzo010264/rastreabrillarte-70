@@ -207,7 +207,7 @@ export const ChatbotLive = memo(() => {
     if (!session || !email) return;
     
     try {
-      const agentName = virtualAgent?.nombre || currentAgent?.nombre || "Asistente BRILLARTE";
+      const agentName = virtualAgent?.nombre || currentAgent?.nombre || "Brillarte";
       
       await supabase.functions.invoke("send-chat-summary", {
         body: {
@@ -240,7 +240,7 @@ export const ChatbotLive = memo(() => {
         .maybeSingle();
 
       if (sessionData && !sessionData.inactividad_notificada) {
-        const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
+        const agentName = virtualAgent?.nombre || "Brillarte";
         
         await supabase.from("chat_messages").insert({
           session_id: session.id,
@@ -273,7 +273,7 @@ export const ChatbotLive = memo(() => {
                 .update({ estado: "abandonado" })
                 .eq("id", session.id);
 
-              const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
+              const agentName = virtualAgent?.nombre || "Brillarte";
               
               await supabase.from("chat_messages").insert({
                 session_id: session.id,
@@ -398,7 +398,7 @@ export const ChatbotLive = memo(() => {
       await supabase.from("chat_messages").insert({
         session_id: sessionData.id,
         sender_type: "ia",
-        sender_nombre: "Asistente BRILLARTE",
+        sender_nombre: "Brillarte",
         contenido: greeting,
         tipo: "texto",
       });
@@ -460,7 +460,7 @@ export const ChatbotLive = memo(() => {
           clientName: name,
           problema,
           detalles,
-          agentName: virtualAgent?.nombre || "Asistente BRILLARTE",
+          agentName: virtualAgent?.nombre || "Brillarte",
           agentRole: virtualAgent?.tipo_agente || "asistente",
           sessionId: session?.id,
           tipoUrgencia,
@@ -529,7 +529,7 @@ export const ChatbotLive = memo(() => {
         setAiTypingDelay(true);
         await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(60)));
         
-        const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
+        const agentName = virtualAgent?.nombre || "Brillarte";
         await supabase.from("chat_messages").insert({
           session_id: session.id,
           sender_type: "ia",
@@ -717,7 +717,7 @@ export const ChatbotLive = memo(() => {
       await supabase.from("chat_messages").insert({
         session_id: session.id,
         sender_type: "ia",
-        sender_nombre: "Asistente BRILLARTE",
+        sender_nombre: "Brillarte",
         contenido: "Claro, te conecto con un especialista. Describeme brevemente tu caso para asignarte al agente adecuado.",
         tipo: "texto",
       });
@@ -767,7 +767,7 @@ export const ChatbotLive = memo(() => {
     setAiTypingDelay(true);
 
     try {
-      const agentName = virtualAgent?.nombre || "Asistente BRILLARTE";
+      const agentName = virtualAgent?.nombre || "Brillarte";
       const agentRole = virtualAgent?.tipo_agente || "asistente";
       
       const { data, error } = await supabase.functions.invoke("chatbot-assistant", {
@@ -820,7 +820,7 @@ export const ChatbotLive = memo(() => {
       await supabase.from("chat_messages").insert({
         session_id: session.id,
         sender_type: "ia",
-        sender_nombre: virtualAgent?.nombre || "Asistente BRILLARTE",
+        sender_nombre: virtualAgent?.nombre || "Brillarte",
         contenido: "Tuve un problema tecnico. Por favor contactanos por WhatsApp al 849-425-2220.",
         tipo: "texto",
       });
@@ -974,7 +974,7 @@ export const ChatbotLive = memo(() => {
               </Avatar>
               <div>
                 <p className="text-sm font-medium">{virtualAgent.nombre}</p>
-                <p className="text-xs opacity-80">{virtualAgent.tipo_agente || 'Asistente BRILLARTE'}</p>
+                <p className="text-xs opacity-80">{virtualAgent.tipo_agente || 'Brillarte'}</p>
               </div>
             </>
           ) : (
