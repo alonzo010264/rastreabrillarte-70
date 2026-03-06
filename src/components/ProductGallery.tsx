@@ -24,46 +24,7 @@ const ProductGallery = () => {
     ref: titleRef,
     isVisible: titleVisible
   } = useScrollAnimation(0.2);
-  const {
-    ref: grid1Ref,
-    isVisible: grid1Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid2Ref,
-    isVisible: grid2Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid3Ref,
-    isVisible: grid3Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid4Ref,
-    isVisible: grid4Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid5Ref,
-    isVisible: grid5Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid6Ref,
-    isVisible: grid6Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid7Ref,
-    isVisible: grid7Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid8Ref,
-    isVisible: grid8Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid9Ref,
-    isVisible: grid9Visible
-  } = useScrollAnimation(0.1);
-  const {
-    ref: grid10Ref,
-    isVisible: grid10Visible
-  } = useScrollAnimation(0.1);
+
   const products = [{
     id: 1,
     name: "Pulsera Margarita",
@@ -114,60 +75,58 @@ const ProductGallery = () => {
     name: "Flores Crochet Bouquet",
     image: floresCrochet,
     description: "Bouquet de flores tejidas a crochet artesanal"
+  }, {
+    id: 11,
+    name: "Pulseras Cristal Multicolor",
+    image: pulserasCristal,
+    description: "Set de pulseras de cristal con flores y yin yang"
+  }, {
+    id: 12,
+    name: "Pulseras Brillantes Elegantes",
+    image: pulserasBrillantes,
+    description: "Pulseras de esferas brillantes en rojo, plata y negro"
+  }, {
+    id: 13,
+    name: "Pulsera Girasol Dorada",
+    image: pulseraGirasol,
+    description: "Pulsera de cristales dorados con detalle de girasol"
+  }, {
+    id: 14,
+    name: "Pulsera Macramé Girasoles",
+    image: pulseraMacrame,
+    description: "Pulsera tejida en macramé con girasoles y perlas"
+  }, {
+    id: 15,
+    name: "Pulseras Trébol Tejidas",
+    image: pulserasTrebol,
+    description: "Pulseras tejidas con dije de trébol en azul y verde"
+  }, {
+    id: 16,
+    name: "Pulseras de Pareja o Amistad",
+    image: pulserasPareja,
+    description: "Pulseras rojas con corazón magnético e iniciales personalizadas"
+  }, {
+    id: 17,
+    name: "Pulseras Iniciales Personalizadas",
+    image: pulserasIniciales,
+    description: "Pulseras tejidas con inicial personalizada en rosa y blanco"
+  }, {
+    id: 18,
+    name: "Pulseras Corazones Arcoíris",
+    image: pulserasCorazonesColores,
+    description: "Colección de pulseras tejidas con corazones en todos los colores"
   }];
-  const gridRefs = [{
-    ref: grid1Ref,
-    isVisible: grid1Visible,
-    animation: 'opacity-0 -translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid2Ref,
-    isVisible: grid2Visible,
-    animation: 'opacity-0 translate-y-10',
-    animationActive: 'opacity-100 translate-y-0'
-  }, {
-    ref: grid3Ref,
-    isVisible: grid3Visible,
-    animation: 'opacity-0 translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid4Ref,
-    isVisible: grid4Visible,
-    animation: 'opacity-0 translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid5Ref,
-    isVisible: grid5Visible,
-    animation: 'opacity-0 -translate-y-10',
-    animationActive: 'opacity-100 translate-y-0'
-  }, {
-    ref: grid6Ref,
-    isVisible: grid6Visible,
-    animation: 'opacity-0 -translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid7Ref,
-    isVisible: grid7Visible,
-    animation: 'opacity-0 translate-y-10',
-    animationActive: 'opacity-100 translate-y-0'
-  }, {
-    ref: grid8Ref,
-    isVisible: grid8Visible,
-    animation: 'opacity-0 -translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid9Ref,
-    isVisible: grid9Visible,
-    animation: 'opacity-0 translate-x-10',
-    animationActive: 'opacity-100 translate-x-0'
-  }, {
-    ref: grid10Ref,
-    isVisible: grid10Visible,
-    animation: 'opacity-0 -translate-y-10',
-    animationActive: 'opacity-100 translate-y-0'
-  }];
-  const hoverRotations = ['group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-2', '', 'group-hover:rotate-2', 'group-hover:-rotate-3', '', 'group-hover:rotate-3'];
-  const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-muted/40', 'from-foreground/10', 'from-muted-foreground/20', 'from-border/30', 'from-muted/30', 'from-foreground/5', 'from-muted/50'];
+
+  const animations = [
+    'opacity-0 -translate-x-10', 'opacity-0 translate-y-10', 'opacity-0 translate-x-10',
+    'opacity-0 translate-x-10', 'opacity-0 -translate-y-10', 'opacity-0 -translate-x-10',
+    'opacity-0 translate-y-10', 'opacity-0 -translate-x-10', 'opacity-0 translate-x-10',
+    'opacity-0 -translate-y-10', 'opacity-0 -translate-x-10', 'opacity-0 translate-y-10',
+    'opacity-0 translate-x-10', 'opacity-0 -translate-y-10', 'opacity-0 -translate-x-10',
+    'opacity-0 translate-y-10', 'opacity-0 translate-x-10', 'opacity-0 -translate-y-10',
+  ];
+  const hoverRotations = ['group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-2', '', 'group-hover:rotate-2', 'group-hover:-rotate-3', '', 'group-hover:rotate-3', 'group-hover:-rotate-2', 'group-hover:rotate-3', '', 'group-hover:-rotate-3', 'group-hover:rotate-2', '', 'group-hover:-rotate-2', 'group-hover:rotate-3'];
+  const gradientColors = ['from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-muted/40', 'from-foreground/10', 'from-muted-foreground/20', 'from-border/30', 'from-muted/30', 'from-foreground/5', 'from-muted/50', 'from-primary/20', 'from-secondary/20', 'from-accent/20', 'from-muted/40', 'from-foreground/10', 'from-muted-foreground/20', 'from-border/30', 'from-muted/30'];
   return <section className="py-20 px-4 bg-background relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
