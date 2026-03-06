@@ -31,7 +31,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           <div style="padding:40px 30px;background-color:#ffffff;">
             <p style="color:#000;font-size:16px;margin:0 0 20px;">Hola ${nombre},</p>
-            <h2 style="color:#000;font-size:22px;text-align:center;margin:0 0 20px;">🔔 Notificaciones Activadas</h2>
+            <h2 style="color:#000;font-size:22px;text-align:center;margin:0 0 20px;">Notificaciones Activadas</h2>
             <p style="color:#000;font-size:16px;line-height:1.6;text-align:center;">
               Te has suscrito exitosamente a las notificaciones de tu pedido:
             </p>

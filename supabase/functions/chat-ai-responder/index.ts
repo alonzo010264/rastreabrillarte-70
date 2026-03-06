@@ -80,14 +80,14 @@ serve(async (req) => {
     let aiResponse: string;
 
     if (isRefundRequest) {
-      aiResponse = `¡Hola ${senderName}! 👋\n\nEntiendo que necesitas ayuda con un reembolso. Para poder atenderte de la mejor manera con este tipo de solicitudes, te pedimos que nos contactes directamente a través de nuestro Instagram oficial: @brillarte.do.oficial\n\nAllí nuestro equipo podrá revisar tu caso de manera personalizada y brindarte una solución. 💖\n\n¡Gracias por tu comprensión!`;
+      aiResponse = `Hola ${senderName},\n\nEntiendo que necesitas ayuda con un reembolso. Para poder atenderte de la mejor manera con este tipo de solicitudes, te pedimos que nos contactes directamente a traves de nuestro Instagram oficial: @brillarte.do.oficial\n\nAlli nuestro equipo podra revisar tu caso de manera personalizada y brindarte una solucion.\n\nGracias por tu comprension.`;
     } else if (lovableApiKey) {
       // Usar IA para generar respuesta
       const systemPrompt = `Eres el asistente virtual de BRILLARTE, una tienda de accesorios hechos a mano (aretes, pulseras, flores de crochet). 
 
 Directrices:
-- Sé amable, cálida y profesional
-- Usa emojis con moderación (1-2 por mensaje)
+- Se amable, calida y profesional
+- NO uses emojis bajo ninguna circunstancia
 - Si preguntan sobre productos, menciona que pueden ver el catálogo en la sección de Productos
 - Si preguntan sobre pedidos, pueden rastrearlos en la sección "Rastrear Pedidos"
 - Si preguntan sobre precios o disponibilidad, invítalos a revisar la tienda online
@@ -123,14 +123,14 @@ Información útil:
         }
 
         const data = await response.json();
-        aiResponse = data.choices?.[0]?.message?.content || `¡Hola ${senderName}! Gracias por escribirnos. ¿En qué podemos ayudarte? 💖`;
+        aiResponse = data.choices?.[0]?.message?.content || `Hola ${senderName}, gracias por escribirnos. En que podemos ayudarte?`;
       } catch (aiError) {
         console.error('Error calling AI:', aiError);
-        aiResponse = `¡Hola ${senderName}! 👋 Gracias por escribirnos a BRILLARTE. ¿En qué podemos ayudarte hoy? Puedes preguntarnos sobre nuestros productos, pedidos o cualquier duda que tengas. 💖`;
+        aiResponse = `Hola ${senderName}, gracias por escribirnos a BRILLARTE. En que podemos ayudarte hoy? Puedes preguntarnos sobre nuestros productos, pedidos o cualquier duda que tengas.`;
       }
     } else {
       // Respuesta predeterminada si no hay API key
-      aiResponse = `¡Hola ${senderName}! 👋 Gracias por escribirnos a BRILLARTE. ¿En qué podemos ayudarte hoy? Si tienes preguntas sobre productos, pedidos o cualquier otra cosa, estamos aquí para ti. 💖`;
+      aiResponse = `Hola ${senderName}, gracias por escribirnos a BRILLARTE. En que podemos ayudarte hoy? Si tienes preguntas sobre productos, pedidos o cualquier otra cosa, estamos aqui para ti.`;
     }
 
     // Agregar pequeño delay para simular escritura humana

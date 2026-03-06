@@ -40,11 +40,11 @@ const handler = async (req: Request): Promise<Response> => {
             <style>
               body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .header { background: #000000; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
               .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
               .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-              .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
-              .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #000000; }
+              .button { display: inline-block; background: #000000; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
             </style>
           </head>
           <body>
@@ -69,9 +69,9 @@ const handler = async (req: Request): Promise<Response> => {
 
                 <p>Puedes escribirnos también a:</p>
                 <ul>
-                  <li>📧 Email: pedidos@oficial.brillarte.lat</li>
-                  <li>📱 Instagram: @brillarte.do.oficial</li>
-                  <li>📞 WhatsApp: (849) 425-2220</li>
+                  <li>Email: pedidos@oficial.brillarte.lat</li>
+                  <li>Instagram: @brillarte.do.oficial</li>
+                  <li>WhatsApp: (849) 425-2220</li>
                 </ul>
 
                 <p>Gracias por tu paciencia,</p>
