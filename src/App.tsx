@@ -93,6 +93,8 @@ const Referidos = lazyWithRetry(() => import("./pages/Referidos"));
 const AdminReferidos = lazyWithRetry(() => import("./pages/AdminReferidos"));
 const Blog = lazyWithRetry(() => import("./pages/Blog"));
 const AdminBlog = lazyWithRetry(() => import("./pages/AdminBlog"));
+const EmprendeBrillarte = lazyWithRetry(() => import("./pages/EmprendeBrillarte"));
+const EmprendeBrillarteAplicar = lazyWithRetry(() => import("./pages/EmprendeBrillarteAplicar"));
 
 // Componentes de protección
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
@@ -162,6 +164,8 @@ const App = () => (
             <Route path="/verificacion" element={<VerificacionPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/referidos" element={<Referidos />} />
+            <Route path="/emprende-brillarte" element={<EmprendeBrillarte />} />
+            <Route path="/emprende-brillarte/aplicar" element={<EmprendeBrillarteAplicar />} />
 
             {/* Rutas de agente - requiere rol agent */}
             <Route path="/agente/login" element={<AgentLogin />} />
