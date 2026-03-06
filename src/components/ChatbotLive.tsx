@@ -438,7 +438,13 @@ export const ChatbotLive = memo(() => {
     }, 2000);
   };
 
-  const getRandomTypingDelay = (messageLength: number = 50) => {
+  const getRandomTypingDelay = (messageLength: number = 50, isAgent: boolean = false) => {
+    if (isAgent || virtualAgent) {
+      // Human-like delay: 8-25 seconds for agents
+      const baseDelay = 8000 + Math.floor(Math.random() * 7000);
+      const perCharDelay = Math.min(messageLength * 40, 10000);
+      return baseDelay + perCharDelay;
+    }
     const baseDelay = 1500;
     const perCharDelay = Math.min(messageLength * 25, 2500);
     return baseDelay + Math.floor(Math.random() * 1000) + perCharDelay;
@@ -554,8 +560,8 @@ export const ChatbotLive = memo(() => {
     
     setAiTypingDelay(true);
     
-    // Fast delay between 1-4 seconds for quick join
-    const joinDelay = 1000 + Math.floor(Math.random() * 3000);
+    // Realistic delay: 15-45 seconds before agent joins (simulating human)
+    const joinDelay = 15000 + Math.floor(Math.random() * 30000);
     await new Promise(resolve => setTimeout(resolve, joinDelay));
     
     // Set agent BEFORE showing join message for immediate avatar change
@@ -575,12 +581,12 @@ export const ChatbotLive = memo(() => {
       session_id: session.id,
       sender_type: "sistema",
       sender_nombre: "Sistema",
-      contenido: `${agent.nombre} se ha unido al chat`,
+      contenido: `Se unio el agente ${agent.nombre}`,
       tipo: "sistema",
     });
 
-    // Quick delay before first greeting
-    await new Promise(resolve => setTimeout(resolve, 800 + Math.floor(Math.random() * 1200)));
+    // Realistic delay before first greeting (5-12 seconds)
+    await new Promise(resolve => setTimeout(resolve, 5000 + Math.floor(Math.random() * 7000)));
 
     const roleDisplay = agent.tipo_agente || "Asistente de soporte";
     const greetings = [
@@ -626,13 +632,18 @@ export const ChatbotLive = memo(() => {
     
     // Route to appropriate specialist
     if (caseLower.includes("compra") || caseLower.includes("producto") || caseLower.includes("precio") || caseLower.includes("catalogo") || caseLower.includes("disponible")) {
-      return aiAgents.find(a => a.nombre === "Shary") || aiAgents[0];
+      return aiAgents.find(a => a.nombre === "Shary") || aiAgents.find(a => a.nombre === "Alondra") || aiAgents[0];
     } else if (caseLower.includes("promocion") || caseLower.includes("descuento") || caseLower.includes("oferta") || caseLower.includes("cupon")) {
-      return aiAgents.find(a => a.nombre === "Marisol") || aiAgents[0];
+      return aiAgents.find(a => a.nombre === "Marisol") || aiAgents.find(a => a.nombre === "Bryan") || aiAgents[0];
     } else if (caseLower.includes("reembolso") || caseLower.includes("problema") || caseLower.includes("queja") || caseLower.includes("devolucion") || caseLower.includes("danado") || caseLower.includes("roto")) {
-      return aiAgents.find(a => a.nombre === "Victor" || a.nombre === "Julian") || aiAgents[0];
+      return aiAgents.find(a => a.nombre === "Victor" || a.nombre === "Julian") || aiAgents.find(a => a.nombre === "Liam") || aiAgents[0];
     } else {
-      return aiAgents.find(a => a.nombre === "Maria") || aiAgents[0];
+      // Random from general agents: Maria, Luis, Alondra, Bryan
+      const generalAgents = aiAgents.filter(a => ["Maria", "Luis", "Alondra", "Bryan"].includes(a.nombre));
+      if (generalAgents.length > 0) {
+        return generalAgents[Math.floor(Math.random() * generalAgents.length)];
+      }
+      return aiAgents[Math.floor(Math.random() * aiAgents.length)];
     }
   };
 
@@ -866,7 +877,7 @@ export const ChatbotLive = memo(() => {
 
     if (message.sender_type === "ia") {
       // Check if message is from a virtual agent
-      const agentNames = ["Maria", "Shary", "Marisol", "Victor", "Julian"];
+      const agentNames = ["Maria", "Shary", "Marisol", "Victor", "Julian", "Luis", "Alondra", "Liam", "Bryan"];
       const isVirtualAgent = agentNames.some(n => message.sender_nombre === n);
       
       if (isVirtualAgent || (virtualAgent && message.sender_nombre === virtualAgent.nombre)) {
@@ -890,10 +901,11 @@ export const ChatbotLive = memo(() => {
     }
 
     if (message.sender_type === "cliente") {
+      const initial = name?.charAt(0)?.toUpperCase() || email?.charAt(0)?.toUpperCase() || "C";
       return (
-        <Avatar className="h-8 w-8 bg-muted">
-          <AvatarFallback className="text-xs">
-            {name?.charAt(0)?.toUpperCase() || email?.charAt(0)?.toUpperCase() || <User className="h-4 w-4" />}
+        <Avatar className="h-8 w-8">
+          <AvatarFallback className="bg-black text-white text-sm font-bold">
+            {initial}
           </AvatarFallback>
         </Avatar>
       );
@@ -908,7 +920,7 @@ export const ChatbotLive = memo(() => {
     }
     // Show actual agent name if available, otherwise show "Asistente Virtual"
     if (message.sender_type === "ia") {
-      const agentNames = ["Maria", "Shary", "Marisol", "Victor", "Julian"];
+      const agentNames = ["Maria", "Shary", "Marisol", "Victor", "Julian", "Luis", "Alondra", "Liam", "Bryan"];
       if (message.sender_nombre && agentNames.includes(message.sender_nombre)) {
         return message.sender_nombre;
       }
