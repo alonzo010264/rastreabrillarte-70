@@ -581,7 +581,7 @@ export const ChatbotLive = memo(() => {
       session_id: session.id,
       sender_type: "sistema",
       sender_nombre: "Sistema",
-      contenido: `${agent.nombre} se ha unido al chat`,
+      contenido: `Se unio el agente ${agent.nombre}`,
       tipo: "sistema",
     });
 
