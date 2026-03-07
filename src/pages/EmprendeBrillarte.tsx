@@ -22,11 +22,6 @@ const EmprendeBrillarte = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
-  const stats = [
-    { num: "50+", label: "Aliados Activos" },
-    { num: "200+", label: "Productos Disponibles" },
-    { num: "100%", label: "Soporte Personalizado" },
-  ];
 
   const cards = [
     {
@@ -96,21 +91,6 @@ const EmprendeBrillarte = () => {
         </div>
 
         <motion.div style={{ y: heroY, opacity: heroOpacity }} className="container mx-auto max-w-4xl text-center relative z-10">
-          <motion.img
-            src={brillarteLogo}
-            alt="BRILLARTE"
-            className="w-28 h-28 mx-auto mb-8 rounded-full shadow-2xl"
-            initial={{ opacity: 0, scale: 0, rotate: -180 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          />
-
-          <motion.p
-            className="text-sm tracking-[0.4em] uppercase opacity-40 mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 0.4, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
             Programa de alianzas
           </motion.p>
 
