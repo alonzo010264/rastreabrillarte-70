@@ -48,7 +48,7 @@ const EmprendeBrillarte = () => {
       <Navigation />
 
       {/* Hero con parallax rápido */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-4 bg-foreground text-background overflow-hidden">
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-4 bg-foreground text-background overflow-hidden pt-24 md:pt-28">
         <div className="absolute inset-0 pointer-events-none">
           {[...Array(8)].map((_, i) => (
             <motion.div
