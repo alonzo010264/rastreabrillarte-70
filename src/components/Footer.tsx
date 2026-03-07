@@ -60,6 +60,7 @@ const Footer = () => {
                 { to: "/eventos", label: "Eventos", external: false },
                 { to: "/referidos", label: "Programa de Referidos", external: false },
                 { to: "/emprende-brillarte", label: "Emprende Brillarte", external: false },
+                { to: "/regalos", label: "Regalos Brillarte", external: false },
                 { to: "/rastrear", label: "Rastrear Pedidos", external: false },
                 { to: "/politicas-privacidad", label: "Politicas de Privacidad", external: false },
                 { to: "/politicas-envio", label: "Politicas de Envio", external: false },
