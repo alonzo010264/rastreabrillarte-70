@@ -295,7 +295,7 @@ const Home = () => {
           transitionDelay: '400ms'
         }}>
             <Button size="lg" variant="secondary" className="text-lg px-8 hover:scale-105 hover:-translate-y-1 transition-all duration-500 shadow-lg hover:shadow-xl btn-shine" asChild>
-              <Link to="/solicitar-retiro">Solicitar Retiro</Link>
+              <Link to="/regalos">Regalos</Link>
             </Button>
             <Button size="lg" variant="outline" className="text-lg px-8 border-2 border-primary-foreground/50 text-primary-foreground hover:bg-primary-foreground hover:text-primary hover:scale-105 hover:-translate-y-1 transition-all duration-500" asChild>
               <Link to="/contacto">Contactar</Link>

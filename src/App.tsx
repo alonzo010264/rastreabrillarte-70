@@ -39,7 +39,7 @@ const OrderRequest = lazyWithRetry(() => import("./pages/OrderRequest"));
 const OrderManagement = lazyWithRetry(() => import("./components/OrderManagement"));
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
 const CustomerDashboard = lazyWithRetry(() => import("./pages/CustomerDashboard"));
-const PickupRequest = lazyWithRetry(() => import("./pages/PickupRequest"));
+const BrillarteRegalos = lazyWithRetry(() => import("./pages/BrillarteRegalos"));
 const CancelNotifications = lazyWithRetry(() => import("./pages/CancelNotifications"));
 const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
 const ShippingPolicy = lazyWithRetry(() => import("./pages/ShippingPolicy"));
@@ -130,7 +130,7 @@ const App = () => (
             <Route path="/faq" element={<FAQ />} />
             <Route path="/contacto" element={<Contact />} />
             <Route path="/pedir" element={<OrderRequest />} />
-            <Route path="/solicitar-retiro" element={<PickupRequest />} />
+            <Route path="/regalos" element={<BrillarteRegalos />} />
             <Route path="/cancel-notifications" element={<CancelNotifications />} />
             <Route path="/politicas-privacidad" element={<PrivacyPolicy />} />
             <Route path="/politicas-envio" element={<ShippingPolicy />} />
