@@ -33,7 +33,7 @@ const AttentionHours = () => {
         <div className="text-sm text-muted-foreground space-y-2">
           <p className="flex items-center">
             <Truck className="text-foreground mr-2" size={14} />
-            <span><strong className="text-foreground">Envíos desde $500 pesos dominicanos</strong>Envíos desde $200 pesos dominicanos</span>
+            <span><strong className="text-foreground">Envíos desde $200 pesos dominicanos</strong> (precio puede variar)</span>
           </p>
           <p className="flex items-center">
             <MapPin className="text-foreground mr-2" size={14} />
