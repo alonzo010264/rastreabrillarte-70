@@ -3,8 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Users, TrendingUp, Handshake, Star, ChevronDown, Zap, Shield, Clock } from "lucide-react";
-import brillarteLogo from "@/assets/brillarte-logo-new-optimized.webp";
+import { ArrowRight, Users, TrendingUp, Handshake, Star, Zap, Shield, Clock } from "lucide-react";
 import { useRef, useState } from "react";
 
 const fadeUp = {
@@ -18,27 +17,14 @@ const fadeUp = {
 const EmprendeBrillarte = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 400]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
-
   const cards = [
-    {
-      icon: TrendingUp,
-      title: "Ganancias Reales",
-      desc: "Compra a precios de mayoreo y establece tu margen de ganancia. Tú decides cuánto quieres ganar."
-    },
-    {
-      icon: Handshake,
-      title: "Alianza con BRILLARTE",
-      desc: "No estás solo/a. Contarás con el respaldo de nuestra marca, promociones exclusivas y combos especiales."
-    },
-    {
-      icon: Users,
-      title: "Para Todo Tipo de Persona",
-      desc: "No necesitas experiencia previa. Si tienes ganas de emprender y crecer, este programa es para ti."
-    }
+    { icon: TrendingUp, title: "Ganancias Reales", desc: "Compra a precios de mayoreo y establece tu margen de ganancia. Tú decides cuánto quieres ganar." },
+    { icon: Handshake, title: "Alianza con BRILLARTE", desc: "No estás solo/a. Contarás con el respaldo de nuestra marca, promociones exclusivas y combos especiales." },
+    { icon: Users, title: "Para Todo Tipo de Persona", desc: "No necesitas experiencia previa. Si tienes ganas de emprender y crecer, este programa es para ti." }
   ];
 
   const steps = [
@@ -61,36 +47,27 @@ const EmprendeBrillarte = () => {
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       <Navigation />
 
-      {/* Hero con parallax */}
+      {/* Hero con parallax rápido */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-4 bg-foreground text-background overflow-hidden">
-        {/* Animated floating circles */}
         <div className="absolute inset-0 pointer-events-none">
           {[...Array(8)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute border border-background/10 rounded-full"
-              style={{
-                width: 60 + i * 80,
-                height: 60 + i * 80,
-                top: `${10 + (i * 11) % 80}%`,
-                left: `${5 + (i * 17) % 85}%`,
-              }}
-              animate={{
-                scale: [1, 1.15, 1],
-                opacity: [0.03, 0.12, 0.03],
-                rotate: [0, 180],
-              }}
-              transition={{
-                duration: 8 + i * 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.7,
-              }}
+              style={{ width: 60 + i * 80, height: 60 + i * 80, top: `${10 + (i * 11) % 80}%`, left: `${5 + (i * 17) % 85}%` }}
+              animate={{ scale: [1, 1.15, 1], opacity: [0.03, 0.12, 0.03], rotate: [0, 180] }}
+              transition={{ duration: 8 + i * 2, repeat: Infinity, ease: "easeInOut", delay: i * 0.7 }}
             />
           ))}
         </div>
 
         <motion.div style={{ y: heroY, opacity: heroOpacity }} className="container mx-auto max-w-4xl text-center relative z-10">
+          <motion.p
+            className="text-sm tracking-[0.4em] uppercase opacity-40 mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 0.4, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             Programa de alianzas
           </motion.p>
 
@@ -98,7 +75,7 @@ const EmprendeBrillarte = () => {
             className="text-5xl md:text-8xl font-extralight tracking-tight mb-4"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 1, ease: "easeOut" }}
+            transition={{ delay: 0.3, duration: 1, ease: "easeOut" }}
           >
             BRILLARTE <span className="font-bold">EMPRENDE</span>
           </motion.h1>
@@ -107,7 +84,7 @@ const EmprendeBrillarte = () => {
             className="text-xl md:text-2xl font-light opacity-70 mb-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 0.7, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.5 }}
           >
             Tu oportunidad de crecer con nosotros
           </motion.p>
@@ -116,7 +93,7 @@ const EmprendeBrillarte = () => {
             className="text-base opacity-40 max-w-2xl mx-auto mb-12 leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.4 }}
-            transition={{ delay: 0.8 }}
+            transition={{ delay: 0.7 }}
           >
             En BRILLARTE creemos en las personas que quieren salir adelante.
             Compra nuestros productos al por mayor, revende con ganancias reales
@@ -126,7 +103,7 @@ const EmprendeBrillarte = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
+            transition={{ delay: 0.9 }}
           >
             <Button
               size="lg"
@@ -140,37 +117,11 @@ const EmprendeBrillarte = () => {
             </Button>
           </motion.div>
 
-          {/* Stats ticker */}
           <motion.div
-            className="mt-16 flex justify-center gap-12 flex-wrap"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.8 }}
-          >
-            {stats.map((s, i) => (
-              <motion.div
-                key={i}
-                className="text-center"
-                whileHover={{ scale: 1.1 }}
-              >
-                <motion.p
-                  className="text-3xl md:text-4xl font-bold"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.4 + i * 0.2 }}
-                >
-                  {s.num}
-                </motion.p>
-                <p className="text-sm opacity-50 mt-1">{s.label}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <motion.div
-            className="mt-12"
+            className="mt-16"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.3 }}
-            transition={{ delay: 1.8 }}
+            transition={{ delay: 1.2 }}
           >
             <motion.div
               animate={{ y: [0, 10, 0] }}
@@ -319,9 +270,7 @@ const EmprendeBrillarte = () => {
                 custom={i * 0.3}
                 whileHover={{ scale: 1.02, x: 5 }}
               >
-                <motion.div
-                  className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
-                >
+                <motion.div className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                   <Star className="w-5 h-5" />
                 </motion.div>
                 <span className="text-lg">{benefit}</span>
