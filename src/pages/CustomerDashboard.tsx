@@ -256,11 +256,11 @@ const CustomerDashboard = () => {
         {/* Botones de acción rápida */}
         <div className="grid md:grid-cols-4 gap-3 mb-8">
           <Button 
-            onClick={() => navigate('/solicitar-retiro')}
-            className="bg-black text-white hover:bg-gray-800"
+            onClick={() => navigate('/regalos')}
+            className="bg-foreground text-background hover:bg-foreground/90"
           >
-            <Truck className="mr-2" size={18} />
-            Solicitar Retiro
+            <Gift className="mr-2" size={18} />
+            Regalos
           </Button>
           <Button 
             onClick={() => navigate('/contacto')}
