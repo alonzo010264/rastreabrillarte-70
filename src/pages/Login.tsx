@@ -161,9 +161,14 @@ const Login = () => {
       navigate('/');
     } catch (error: any) {
       console.error('Error en login:', error);
+      const msg = error?.message || "";
+      let descripcion = "Datos incorrectos. Verifica tu correo y contraseña.";
+      if (msg.includes("Email not confirmed")) {
+        descripcion = "Tu correo aún no ha sido confirmado. Revisa tu bandeja de entrada.";
+      }
       toast({
-        title: "Error",
-        description: "Correo o contraseña incorrectos",
+        title: "Datos incorrectos",
+        description: descripcion,
         variant: "destructive"
       });
     } finally {
