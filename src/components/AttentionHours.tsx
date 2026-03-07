@@ -33,7 +33,7 @@ const AttentionHours = () => {
         <div className="text-sm text-muted-foreground space-y-2">
           <p className="flex items-center">
             <Truck className="text-foreground mr-2" size={14} />
-            <span><strong className="text-foreground">Envíos desde $500 pesos dominicanos</strong> - El costo puede variar según la dirección</span>
+            <span><strong className="text-foreground">Envíos desde $500 pesos dominicanos</strong>Envíos desde $200 pesos dominicanos</span>
           </p>
           <p className="flex items-center">
             <MapPin className="text-foreground mr-2" size={14} />
@@ -78,8 +78,8 @@ const AttentionHours = () => {
           <strong className="text-foreground">Nunca compartas</strong> tu código de pedido con otras personas por tu seguridad.
         </p>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default AttentionHours;
