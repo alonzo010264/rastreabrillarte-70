@@ -26,6 +26,36 @@ serve(async (req) => {
     const agentName = virtualAgentName || 'Asistente BRILLARTE';
     const role = agentRole || 'asistente';
 
+    // Fetch active products from the database for dynamic catalog
+    let dbProducts: any[] = [];
+    try {
+      const { data: productos } = await supabase
+        .from('productos')
+        .select('id, nombre, descripcion, precio, categoria, imagenes, disponible, stock, colores')
+        .eq('activo', true)
+        .order('destacado', { ascending: false });
+      if (productos) dbProducts = productos;
+    } catch (e) {
+      console.error('Error fetching products:', e);
+    }
+
+    // Build dynamic product catalog from DB
+    let dynamicCatalog = '';
+    if (dbProducts.length > 0) {
+      dynamicCatalog = '\n=== PRODUCTOS EN TIENDA (BASE DE DATOS EN TIEMPO REAL) ===\n';
+      dynamicCatalog += 'Estos son los productos activos en la tienda online con sus precios reales:\n\n';
+      dbProducts.forEach((p, i) => {
+        const available = p.disponible !== false && p.stock > 0;
+        const imgUrl = p.imagenes?.[0] || '';
+        dynamicCatalog += `${i + 1}. ${p.nombre} - ${p.descripcion || 'Sin descripción'}\n`;
+        dynamicCatalog += `   Precio: RD$${p.precio} | Categoría: ${p.categoria || 'General'} | ${available ? 'Disponible' : 'No disponible'}\n`;
+        if (p.colores?.length > 0) dynamicCatalog += `   Colores: ${p.colores.join(', ')}\n`;
+        if (imgUrl) dynamicCatalog += `   [DB_IMG:${imgUrl}]\n`;
+        dynamicCatalog += '\n';
+      });
+      dynamicCatalog += 'Cuando recomiendes un producto de esta lista, usa la etiqueta [DB_IMG:url] con la URL de la primera imagen del producto para que el cliente la vea.\n';
+    }
+
     // Buscar informacion del pedido si se proporciona codigo
     let orderInfo = "";
     if (orderCode) {
@@ -226,6 +256,7 @@ Si alguien pregunta por estos, di que actualmente no los tenemos y sugiere alter
 === POLITICAS ACTUALIZADAS DE BRILLARTE ===
 
 POLITICA DE ENVIO:
+- Enviamos con VIMENPAQ y DOMEX. Ambas son empresas de envio confiables.
 - Retiro en punto de entrega: Santiago, Cerro Alto. Codigo de pedido + documento de identidad obligatorio.
 - Entrega a domicilio: disponible en zonas seleccionadas, costo segun ubicacion.
 - Tiempo: 1-3 dias habiles (stock), 5-7 dias habiles (personalizados).
@@ -266,6 +297,8 @@ REGLAS ESTRICTAS:
 ${isUrgentCase ? `CASO URGENTE: Muestra empatia genuina. Recoge toda la info y asegura que se resolvera en 24-48 horas.` : ''}
 ${askingIfHuman ? `IMPORTANTE: Te preguntaron si eres humano. Confirma que SI eres ${agentName}, una persona real que trabaja en BRILLARTE.` : ''}
 ${askingProducts ? `IMPORTANTE: El cliente pregunta por productos. Ayudalo a elegir preguntando que estilo busca y mostrando imagenes relevantes con [IMG:clave].` : ''}
+
+${dynamicCatalog}
 
 CLIENTE: ${email}
 ${userProfile ? `Nombre: ${userProfile.nombre_completo}` : ''}
@@ -315,13 +348,22 @@ ${userOrdersInfo}`;
       productImages.push(match[1]);
     }
 
-    // Clean the text (remove IMG tags for the text content)
-    const cleanText = assistantMessage.replace(/\[IMG:[\w-]+\]/g, '').trim();
+    // Extract DB product images (dynamic from database)
+    const dbImageRegex = /\[DB_IMG:(https?:\/\/[^\]]+|[^\]]+)\]/g;
+    const dbProductImages: string[] = [];
+    let dbMatch;
+    while ((dbMatch = dbImageRegex.exec(assistantMessage)) !== null) {
+      dbProductImages.push(dbMatch[1]);
+    }
+
+    // Clean the text (remove IMG and DB_IMG tags for the text content)
+    const cleanText = assistantMessage.replace(/\[IMG:[\w-]+\]/g, '').replace(/\[DB_IMG:[^\]]+\]/g, '').trim();
 
     return new Response(
       JSON.stringify({ 
         response: cleanText,
         productImages,
+        dbProductImages,
         isUrgentCase
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
