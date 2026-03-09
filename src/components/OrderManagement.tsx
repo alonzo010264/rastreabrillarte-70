@@ -330,7 +330,7 @@ const OrderManagement = () => {
               .from('Pedidos')
               .select('factura_url')
               .eq('Código de pedido', selectedOrder['Código de pedido'])
-              .single();
+              .maybeSingle();
             facturaUrl = pedidoData?.factura_url || null;
           }
 

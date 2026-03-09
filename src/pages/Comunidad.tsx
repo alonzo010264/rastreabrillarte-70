@@ -121,72 +121,83 @@ const Comunidad = () => {
       if (postsData) {
         const postsWithDetails = await Promise.all(
           postsData.map(async (post) => {
-            // Get profile data including identificador
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('nombre_completo, avatar_url, verificado, correo, identificador')
-              .eq('user_id', post.user_id)
-              .maybeSingle();
-
-            // Si es cuenta oficial, usar datos de BRILLARTE con logo importado
-            const isOfficial = isOfficialBrillarteAccount(profileData?.correo || '');
-            let finalProfile;
-            if (isOfficial) {
-              finalProfile = { 
-                nombre_completo: 'BRILLARTE', 
-                avatar_url: brillarteLogo, 
-                verificado: true, 
-                correo: profileData?.correo || BRILLARTE_OFFICIAL_EMAIL,
-                identificador: 'brillarte.do',
-                isOfficial: true
-              };
-            } else if (profileData) {
-              finalProfile = { 
-                ...profileData, 
-                isOfficial: false 
-              };
-            } else {
-              finalProfile = { 
-                nombre_completo: 'Usuario', 
-                avatar_url: null, 
-                verificado: false, 
-                correo: '', 
-                identificador: '',
-                isOfficial: false 
-              };
-            }
-
-            // Get likes count
-            const { count: likesCount } = await supabase
-              .from('likes_comunidad')
-              .select('*', { count: 'exact', head: true })
-              .eq('post_id', post.id);
-
-            // Check if user liked (only if user is logged in)
-            let userLike = null;
-            if (user) {
-              const { data } = await supabase
-                .from('likes_comunidad')
-                .select('id')
-                .eq('post_id', post.id)
-                .eq('user_id', user.id)
+            try {
+              // Get profile data including identificador
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('nombre_completo, avatar_url, verificado, correo, identificador')
+                .eq('user_id', post.user_id)
                 .maybeSingle();
-              userLike = data;
+
+              // Si es cuenta oficial, usar datos de BRILLARTE con logo importado
+              const isOfficial = isOfficialBrillarteAccount(profileData?.correo || '');
+              let finalProfile;
+              if (isOfficial) {
+                finalProfile = { 
+                  nombre_completo: 'BRILLARTE', 
+                  avatar_url: brillarteLogo, 
+                  verificado: true, 
+                  correo: profileData?.correo || BRILLARTE_OFFICIAL_EMAIL,
+                  identificador: 'brillarte.do',
+                  isOfficial: true
+                };
+              } else if (profileData) {
+                finalProfile = { 
+                  ...profileData, 
+                  isOfficial: false 
+                };
+              } else {
+                finalProfile = { 
+                  nombre_completo: 'Usuario', 
+                  avatar_url: null, 
+                  verificado: false, 
+                  correo: '', 
+                  identificador: '',
+                  isOfficial: false 
+                };
+              }
+
+              // Get likes count
+              const { count: likesCount } = await supabase
+                .from('likes_comunidad')
+                .select('*', { count: 'exact', head: true })
+                .eq('post_id', post.id);
+
+              // Check if user liked (only if user is logged in)
+              let userLike = null;
+              if (user) {
+                const { data } = await supabase
+                  .from('likes_comunidad')
+                  .select('id')
+                  .eq('post_id', post.id)
+                  .eq('user_id', user.id)
+                  .maybeSingle();
+                userLike = data;
+              }
+
+              // Get responses count
+              const { count: respuestasCount } = await supabase
+                .from('respuestas_comunidad')
+                .select('*', { count: 'exact', head: true })
+                .eq('post_id', post.id);
+
+              return {
+                ...post,
+                profiles: finalProfile,
+                likes_count: likesCount || 0,
+                user_liked: !!userLike,
+                respuestas_count: respuestasCount || 0
+              };
+            } catch (postError) {
+              console.warn('Error loading post details:', postError);
+              return {
+                ...post,
+                profiles: { nombre_completo: 'Usuario', avatar_url: null, verificado: false, correo: '', identificador: '', isOfficial: false },
+                likes_count: 0,
+                user_liked: false,
+                respuestas_count: 0
+              };
             }
-
-            // Get responses count
-            const { count: respuestasCount } = await supabase
-              .from('respuestas_comunidad')
-              .select('*', { count: 'exact', head: true })
-              .eq('post_id', post.id);
-
-            return {
-              ...post,
-              profiles: finalProfile,
-              likes_count: likesCount || 0,
-              user_liked: !!userLike,
-              respuestas_count: respuestasCount || 0
-            };
           })
         );
 
