@@ -348,8 +348,16 @@ ${userOrdersInfo}`;
       productImages.push(match[1]);
     }
 
-    // Clean the text (remove IMG tags for the text content)
-    const cleanText = assistantMessage.replace(/\[IMG:[\w-]+\]/g, '').trim();
+    // Extract DB product images (dynamic from database)
+    const dbImageRegex = /\[DB_IMG:(https?:\/\/[^\]]+|[^\]]+)\]/g;
+    const dbProductImages: string[] = [];
+    let dbMatch;
+    while ((dbMatch = dbImageRegex.exec(assistantMessage)) !== null) {
+      dbProductImages.push(dbMatch[1]);
+    }
+
+    // Clean the text (remove IMG and DB_IMG tags for the text content)
+    const cleanText = assistantMessage.replace(/\[IMG:[\w-]+\]/g, '').replace(/\[DB_IMG:[^\]]+\]/g, '').trim();
 
     return new Response(
       JSON.stringify({ 
