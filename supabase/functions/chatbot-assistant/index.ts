@@ -26,6 +26,36 @@ serve(async (req) => {
     const agentName = virtualAgentName || 'Asistente BRILLARTE';
     const role = agentRole || 'asistente';
 
+    // Fetch active products from the database for dynamic catalog
+    let dbProducts: any[] = [];
+    try {
+      const { data: productos } = await supabase
+        .from('productos')
+        .select('id, nombre, descripcion, precio, categoria, imagenes, disponible, stock, colores')
+        .eq('activo', true)
+        .order('destacado', { ascending: false });
+      if (productos) dbProducts = productos;
+    } catch (e) {
+      console.error('Error fetching products:', e);
+    }
+
+    // Build dynamic product catalog from DB
+    let dynamicCatalog = '';
+    if (dbProducts.length > 0) {
+      dynamicCatalog = '\n=== PRODUCTOS EN TIENDA (BASE DE DATOS EN TIEMPO REAL) ===\n';
+      dynamicCatalog += 'Estos son los productos activos en la tienda online con sus precios reales:\n\n';
+      dbProducts.forEach((p, i) => {
+        const available = p.disponible !== false && p.stock > 0;
+        const imgUrl = p.imagenes?.[0] || '';
+        dynamicCatalog += `${i + 1}. ${p.nombre} - ${p.descripcion || 'Sin descripción'}\n`;
+        dynamicCatalog += `   Precio: RD$${p.precio} | Categoría: ${p.categoria || 'General'} | ${available ? 'Disponible' : 'No disponible'}\n`;
+        if (p.colores?.length > 0) dynamicCatalog += `   Colores: ${p.colores.join(', ')}\n`;
+        if (imgUrl) dynamicCatalog += `   [DB_IMG:${imgUrl}]\n`;
+        dynamicCatalog += '\n';
+      });
+      dynamicCatalog += 'Cuando recomiendes un producto de esta lista, usa la etiqueta [DB_IMG:url] con la URL de la primera imagen del producto para que el cliente la vea.\n';
+    }
+
     // Buscar informacion del pedido si se proporciona codigo
     let orderInfo = "";
     if (orderCode) {
