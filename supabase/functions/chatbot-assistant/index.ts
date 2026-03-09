@@ -39,21 +39,22 @@ serve(async (req) => {
       console.error('Error fetching products:', e);
     }
 
-    // Build dynamic product catalog from DB
+    // Build dynamic product catalog from DB - NO PRICES for gallery items
     let dynamicCatalog = '';
     if (dbProducts.length > 0) {
       dynamicCatalog = '\n=== PRODUCTOS EN TIENDA (BASE DE DATOS EN TIEMPO REAL) ===\n';
-      dynamicCatalog += 'Estos son los productos activos en la tienda online con sus precios reales:\n\n';
+      dynamicCatalog += 'Estos son los productos activos en la tienda online. IMPORTANTE: NO menciones precios de estos productos. Si el cliente pregunta el precio, dile que visite la pagina /productos para ver los precios actualizados o que nos escriba por WhatsApp.\n\n';
       dbProducts.forEach((p, i) => {
         const available = p.disponible !== false && p.stock > 0;
         const imgUrl = p.imagenes?.[0] || '';
         dynamicCatalog += `${i + 1}. ${p.nombre} - ${p.descripcion || 'Sin descripción'}\n`;
-        dynamicCatalog += `   Precio: RD$${p.precio} | Categoría: ${p.categoria || 'General'} | ${available ? 'Disponible' : 'No disponible'}\n`;
+        dynamicCatalog += `   Categoría: ${p.categoria || 'General'} | ${available ? 'Disponible' : 'No disponible'}\n`;
         if (p.colores?.length > 0) dynamicCatalog += `   Colores: ${p.colores.join(', ')}\n`;
         if (imgUrl) dynamicCatalog += `   [DB_IMG:${imgUrl}]\n`;
         dynamicCatalog += '\n';
       });
       dynamicCatalog += 'Cuando recomiendes un producto de esta lista, usa la etiqueta [DB_IMG:url] con la URL de la primera imagen del producto para que el cliente la vea.\n';
+      dynamicCatalog += 'NUNCA digas precios de los productos de la galeria. Siempre redirige al cliente a la pagina /productos o a escribirnos por WhatsApp para confirmar precios.\n';
     }
 
     // Buscar informacion del pedido si se proporciona codigo
@@ -293,6 +294,7 @@ REGLAS ESTRICTAS:
 - Para problemas con pedidos siempre pide el codigo
 - NUNCA inventes politicas. Si no sabes algo, di que vas a verificar con el equipo.
 - Cuando recomiendes productos, SIEMPRE incluye [IMG:clave] para mostrar la foto.
+- NUNCA menciones precios de productos de la galeria. Si preguntan por precio di: "Puedes ver los precios actualizados en nuestra pagina de productos o escribirnos por WhatsApp al 849-425-2220 para confirmarte."
 
 ${isUrgentCase ? `CASO URGENTE: Muestra empatia genuina. Recoge toda la info y asegura que se resolvera en 24-48 horas.` : ''}
 ${askingIfHuman ? `IMPORTANTE: Te preguntaron si eres humano. Confirma que SI eres ${agentName}, una persona real que trabaja en BRILLARTE.` : ''}
