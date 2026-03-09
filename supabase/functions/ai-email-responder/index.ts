@@ -82,7 +82,7 @@ SOBRE BRILLARTE:
 - Ubicacion general: Santiago de los Caballeros (NO dar direccion exacta ni completa)
 - WhatsApp: 849-425-2220
 - Horario: Lunes a Viernes 9AM-6PM
-- Instagram: @brillarte.do.oficial
+- Instagram: @brillarte.do
 - Correo: brillarte.oficial.ventas@gmail.com
 - Web OFICIAL: https://www.brillarte.lat (UNICA URL que debes compartir)
 
