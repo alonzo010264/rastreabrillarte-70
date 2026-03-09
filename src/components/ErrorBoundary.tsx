@@ -69,9 +69,9 @@ class ErrorBoundary extends React.Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4">
           <div className="text-center max-w-md space-y-4">
-            <h1 className="text-2xl font-bold">Algo salio mal</h1>
+            <h1 className="text-2xl font-bold">Algo salió mal</h1>
             <p className="text-muted-foreground">
-              Ocurrio un error inesperado. Por favor intenta de nuevo.
+              Ocurrió un error. Por favor intenta de nuevo.
             </p>
             <div className="flex gap-3 justify-center">
               <button

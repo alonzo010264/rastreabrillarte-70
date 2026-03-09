@@ -330,7 +330,7 @@ const OrderManagement = () => {
               .from('Pedidos')
               .select('factura_url')
               .eq('Código de pedido', selectedOrder['Código de pedido'])
-              .single();
+              .maybeSingle();
             facturaUrl = pedidoData?.factura_url || null;
           }
 
@@ -358,9 +358,9 @@ const OrderManagement = () => {
       setEditClientName(""); setEditPrice(""); setEditWeight("");
       setEditTotal(""); setEditDeliveryDate(""); setEditNotes("");
       loadExistingOrders();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
-      toast({ title: "Error", description: "No se pudo actualizar el estatus", variant: "destructive" });
+      toast({ title: "Error", description: "No se pudo actualizar el estatus. Intenta de nuevo.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
