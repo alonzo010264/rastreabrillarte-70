@@ -24,6 +24,8 @@ const Home = () => {
     ref: ctaRef,
     isVisible: ctaVisible
   } = useScrollAnimation(0.3);
+  const { count: countPeople, ref: refPeople } = useCountUp(40, 2500);
+  const { count: countOrders, ref: refOrders } = useCountUp(20, 2000);
   return <div className="min-h-screen bg-background">
       <Navigation />
       
