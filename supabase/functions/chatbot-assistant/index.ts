@@ -256,6 +256,7 @@ Si alguien pregunta por estos, di que actualmente no los tenemos y sugiere alter
 === POLITICAS ACTUALIZADAS DE BRILLARTE ===
 
 POLITICA DE ENVIO:
+- Enviamos con VIMENPAQ y DOMEX. Ambas son empresas de envio confiables.
 - Retiro en punto de entrega: Santiago, Cerro Alto. Codigo de pedido + documento de identidad obligatorio.
 - Entrega a domicilio: disponible en zonas seleccionadas, costo segun ubicacion.
 - Tiempo: 1-3 dias habiles (stock), 5-7 dias habiles (personalizados).
