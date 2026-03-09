@@ -698,6 +698,8 @@ export type Database = {
       }
       Contactos: {
         Row: {
+          agente_asignado: string | null
+          agente_email: string | null
           codigo_pedido: string | null
           correo: string
           descripcion_problema: string
@@ -705,8 +707,12 @@ export type Database = {
           fecha_creacion: string | null
           id: string
           nombre_cliente: string
+          procesado_at: string | null
+          respuesta_agente: string | null
         }
         Insert: {
+          agente_asignado?: string | null
+          agente_email?: string | null
           codigo_pedido?: string | null
           correo: string
           descripcion_problema: string
@@ -714,8 +720,12 @@ export type Database = {
           fecha_creacion?: string | null
           id?: string
           nombre_cliente: string
+          procesado_at?: string | null
+          respuesta_agente?: string | null
         }
         Update: {
+          agente_asignado?: string | null
+          agente_email?: string | null
           codigo_pedido?: string | null
           correo?: string
           descripcion_problema?: string
@@ -723,6 +733,8 @@ export type Database = {
           fecha_creacion?: string | null
           id?: string
           nombre_cliente?: string
+          procesado_at?: string | null
+          respuesta_agente?: string | null
         }
         Relationships: []
       }
