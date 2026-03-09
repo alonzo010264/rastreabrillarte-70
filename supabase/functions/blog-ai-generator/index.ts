@@ -33,7 +33,7 @@ Genera contenido de blog en español con tono profesional pero cercano.
 SIEMPRE responde con un JSON válido con estas claves: titulo, descripcion, contenido, categoria.
 - titulo: título atractivo del blog (máx 80 caracteres)
 - descripcion: resumen corto (máx 150 caracteres)  
-- contenido: artículo completo (3-5 párrafos, bien redactado, con emojis moderados)
+- contenido: articulo completo (3-5 parrafos, bien redactado, sin emojis, tono profesional)
 - categoria: una de estas: Novedades, Colecciones, Consejos, Eventos, Ofertas, Anuncios
 NO incluyas markdown ni backticks. Solo JSON puro.`
           },
