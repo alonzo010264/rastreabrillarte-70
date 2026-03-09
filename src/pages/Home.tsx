@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { useScrollAnimation, useParallax } from "@/hooks/useScrollAnimation";
+import { useCountUp } from "@/hooks/useCountUp";
 import brillarteLogo from "@/assets/brillarte-logo-new-optimized.webp";
 import teamWork from "@/assets/team-work-optimized.webp";
 const Home = () => {
@@ -23,6 +24,8 @@ const Home = () => {
     ref: ctaRef,
     isVisible: ctaVisible
   } = useScrollAnimation(0.3);
+  const { count: countPeople, ref: refPeople } = useCountUp(40, 2500);
+  const { count: countOrders, ref: refOrders } = useCountUp(20, 2000);
   return <div className="min-h-screen bg-background">
       <Navigation />
       
@@ -103,27 +106,27 @@ const Home = () => {
         <div className="container mx-auto max-w-4xl relative z-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             {/* Personas satisfechas */}
-            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+            <div ref={refPeople} className="flex flex-col items-center text-center p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                 <Heart className="w-8 h-8 text-primary" fill="currentColor" />
               </div>
-              <p className="text-4xl md:text-5xl font-bold gradient-text-animated mb-2">+40</p>
-              <p className="text-muted-foreground text-lg">Personas Satisfechas</p>
+              <p className="text-4xl md:text-5xl font-bold gradient-text-animated mb-2">+{countPeople}</p>
+              <p className="text-muted-foreground text-lg font-medium">Personas Satisfechas</p>
               <div className="flex gap-1 mt-3">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-primary fill-primary" />
+                  <Star key={i} className="w-5 h-5 text-primary fill-primary animate-scale-in" style={{ animationDelay: `${i * 150}ms` }} />
                 ))}
               </div>
             </div>
 
             {/* Pedidos por semana */}
-            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+            <div ref={refOrders} className="flex flex-col items-center text-center p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                 <Zap className="w-8 h-8 text-primary" />
               </div>
-              <p className="text-4xl md:text-5xl font-bold gradient-text-animated mb-2">+20</p>
-              <p className="text-muted-foreground text-lg">Pedidos por Semana</p>
-              <div className="flex gap-1 mt-3">
+              <p className="text-4xl md:text-5xl font-bold gradient-text-animated mb-2">+{countOrders}</p>
+              <p className="text-muted-foreground text-lg font-medium">Pedidos por Semana</p>
+              <div className="flex gap-1 mt-3 items-center">
                 <Clock className="w-5 h-5 text-primary" />
                 <span className="text-sm text-muted-foreground">Entrega rápida</span>
               </div>

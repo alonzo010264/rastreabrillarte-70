@@ -203,7 +203,36 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                   : "bg-background border shadow-sm"
               }`}
             >
-              <p>{msg.content}</p>
+              {msg.role === "assistant" ? (
+                <div className="space-y-2">
+                  {msg.content.split('\n').map((line, lineIdx) => {
+                    // Detect image URLs
+                    const imgMatch = line.match(/(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|webp|gif|svg))/i);
+                    if (imgMatch) {
+                      const textBefore = line.substring(0, line.indexOf(imgMatch[0])).trim();
+                      const textAfter = line.substring(line.indexOf(imgMatch[0]) + imgMatch[0].length).trim();
+                      return (
+                        <div key={lineIdx}>
+                          {textBefore && <p>{textBefore}</p>}
+                          <img
+                            src={imgMatch[0]}
+                            alt="Producto BRILLARTE"
+                            className="rounded-lg max-w-full max-h-48 object-cover mt-1 cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => window.open(imgMatch[0], '_blank')}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          {textAfter && <p>{textAfter}</p>}
+                        </div>
+                      );
+                    }
+                    return line.trim() ? <p key={lineIdx}>{line}</p> : null;
+                  })}
+                </div>
+              ) : (
+                <p>{msg.content}</p>
+              )}
               {msg.action === 'TICKET_CREADO' && msg.ticketId && (
                 <Badge variant="outline" className="mt-2 text-xs">
                   <Ticket className="h-3 w-3 mr-1" />
