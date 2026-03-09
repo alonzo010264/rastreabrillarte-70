@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Mail, Phone, MapPin, Clock, Instagram, Facebook, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Instagram, Facebook, Send, MessageSquare, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,8 @@ const Contact = () => {
     message: ""
   });
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [assignedAgent, setAssignedAgent] = useState("");
   const [agentChatOpen, setAgentChatOpen] = useState(false);
   const { toast } = useToast();
 
@@ -27,7 +29,6 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      // Validar que todos los campos estén llenos
       if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
         toast({
           title: "Error",
@@ -38,63 +39,35 @@ const Contact = () => {
         return;
       }
 
-      // Guardar en la base de datos
-      const { error } = await supabase.
-      from('Contactos').
-      insert([
-      {
-        nombre_cliente: formData.name.trim(),
-        correo: formData.email.trim(),
-        descripcion_problema: formData.message.trim(),
-        estado: 'Pendiente'
-      }]
-      );
+      const { data, error } = await supabase.functions.invoke('contact-auto-reply', {
+        body: {
+          nombre: formData.name.trim(),
+          correo: formData.email.trim(),
+          mensaje: formData.message.trim(),
+        }
+      });
 
       if (error) {
-        console.error('Error saving contact:', error);
+        console.error('Error:', error);
         toast({
           title: "Error",
-          description: "Hubo un problema al enviar tu mensaje. Inténtalo de nuevo.",
+          description: "Hubo un problema al enviar tu consulta. Inténtalo de nuevo.",
           variant: "destructive"
         });
       } else {
-        // Intentar enviar correo de confirmación al cliente
-        try {
-          const { data: emailResp, error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
-            body: {
-              nombre_cliente: formData.name.trim(),
-              correo: formData.email.trim()
-            }
-          });
-
-          if (emailError) {
-            console.error('Error enviando correo de confirmación:', emailError);
-            toast({
-              title: "Mensaje enviado",
-              description: "Recibimos tu mensaje. No pudimos enviar el correo de confirmación, pero te contactaremos pronto."
-            });
-          } else {
-            console.log('Correo de confirmación enviado:', emailResp);
-            toast({
-              title: "¡Mensaje enviado!",
-              description: "Hemos recibido tu mensaje y te enviamos un correo de confirmación."
-            });
-          }
-        } catch (emailCatch) {
-          console.error('Excepción enviando correo de confirmación:', emailCatch);
-          toast({
-            title: "Mensaje enviado",
-            description: "Guardamos tu mensaje, pero no pudimos enviar el correo de confirmación."
-          });
-        } finally {
-          setFormData({ name: '', email: '', message: '' });
-        }
+        setAssignedAgent(data?.agente || "un agente");
+        setSubmitted(true);
+        toast({
+          title: "¡Consulta enviada!",
+          description: "Revisa tu correo, te enviamos una confirmación.",
+        });
+        setFormData({ name: '', email: '', message: '' });
       }
     } catch (error) {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Hubo un problema al enviar tu mensaje. Inténtalo de nuevo.",
+        description: "Hubo un problema al enviar tu consulta.",
         variant: "destructive"
       });
     } finally {
@@ -112,68 +85,95 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <PageHeader title="Contacto" subtitle="Estamos aquí para ayudarte" />
+      <PageHeader title="Contacto" subtitle="Respondemos todas tus dudas a través de Gmail" />
       
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">
-
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div className="animate-fade-in animation-delay-200">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Send className="w-5 h-5" />
-                    Envíanos un mensaje
-                  </CardTitle>
-                  <CardDescription>
-                    Completa el formulario y te responderemos lo antes posible
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Nombre completo</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        placeholder="Tu nombre completo"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required />
-
+              {submitted ? (
+                <Card>
+                  <CardContent className="pt-8 pb-8 text-center space-y-4">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                      <CheckCircle className="w-8 h-8 text-primary" />
                     </div>
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="tu@email.com"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required />
-
-                    </div>
-                    <div>
-                      <Label htmlFor="message">Mensaje</Label>
-                      <Textarea
-                        id="message"
-                        name="message"
-                        placeholder="Cuéntanos en qué podemos ayudarte..."
-                        rows={5}
-                        value={formData.message}
-                        onChange={handleInputChange}
-                        required />
-
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Enviando..." : "Enviar Mensaje"}
+                    <h3 className="text-xl font-semibold">¡Consulta recibida!</h3>
+                    <p className="text-muted-foreground">
+                      Te enviamos una confirmación a tu correo. Nuestro agente <strong>{assignedAgent}</strong> te responderá en breve directamente a tu Gmail.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Revisa tu bandeja de entrada (y spam por si acaso).
+                    </p>
+                    <Button variant="outline" onClick={() => setSubmitted(false)}>
+                      Enviar otra consulta
                     </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Mail className="w-5 h-5" />
+                      ¿Tienes alguna duda?
+                    </CardTitle>
+                    <CardDescription>
+                      Escríbenos tu consulta y uno de nuestros agentes te responderá directamente a tu correo
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Nombre completo</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          type="text"
+                          placeholder="Tu nombre completo"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Tu Gmail o correo electrónico</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="tu@gmail.com"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="message">¿Qué quieres saber?</Label>
+                        <Textarea
+                          id="message"
+                          name="message"
+                          placeholder="Cuéntanos tu duda sobre productos, envíos, pedidos..."
+                          rows={5}
+                          value={formData.message}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={loading}>
+                        {loading ? "Enviando..." : (
+                          <span className="flex items-center gap-2">
+                            <Send className="w-4 h-4" />
+                            Enviar Consulta
+                          </span>
+                        )}
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Recibirás la respuesta directamente en tu correo electrónico
+                      </p>
+                    </form>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Contact Information */}
@@ -194,7 +194,6 @@ const Contact = () => {
                         <p className="text-muted-foreground text-sm">brillarte.oficial.ventas@gmail.com</p>
                       </div>
                     </div>
-                    
                     <div className="flex items-start gap-3">
                       <Phone className="w-5 h-5 text-primary mt-1" />
                       <div>
@@ -203,8 +202,7 @@ const Contact = () => {
                         <p className="text-muted-foreground text-xs">Disponible en horarios de atención</p>
                       </div>
                     </div>
-                    
-                     <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3">
                       <MapPin className="w-5 h-5 text-primary mt-1" />
                       <div>
                         <p className="font-medium">Ubicación</p>
@@ -213,13 +211,12 @@ const Contact = () => {
                       </div>
                     </div>
                   </div>
-                  
                   <div className="pt-4 border-t">
                     <Button
                       className="w-full"
                       variant="default"
-                      onClick={() => setAgentChatOpen(true)}>
-
+                      onClick={() => setAgentChatOpen(true)}
+                    >
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Hablar con Nosotros
                     </Button>
@@ -261,8 +258,10 @@ const Contact = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-4">
-                    <Button variant="outline" size="icon">
-                      <Instagram className="w-4 h-4" />
+                    <Button variant="outline" size="icon" asChild>
+                      <a href="https://instagram.com/brillarte.do" target="_blank" rel="noopener noreferrer">
+                        <Instagram className="w-4 h-4" />
+                      </a>
                     </Button>
                     <Button variant="outline" size="icon">
                       <Facebook className="w-4 h-4" />
@@ -275,13 +274,11 @@ const Contact = () => {
 
           <div className="mt-16 text-center animate-fade-in animation-delay-400">
             <div className="bg-muted/50 rounded-lg p-8 border border-border">
-              
               <h3 className="text-2xl font-light text-foreground mb-4">
                 ¿Tienes un pedido en proceso?
               </h3>
               <p className="text-muted-foreground mb-6">
                 Utiliza nuestro sistema de rastreo de pedidos para ver el estado actual de tu compra
-                o para solicitar cambios en tu pedido.
               </p>
               <Button variant="outline" asChild>
                 <a href="/rastrear">Rastrear mi Pedido</a>
@@ -293,8 +290,8 @@ const Contact = () => {
 
       {agentChatOpen && <AgentChat onClose={() => setAgentChatOpen(false)} />}
       <Footer />
-    </div>);
-
+    </div>
+  );
 };
 
 export default Contact;
