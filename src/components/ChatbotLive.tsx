@@ -188,6 +188,7 @@ export const ChatbotLive = memo(() => {
       
       if (authSession?.user) {
         setIsAuthenticated(true);
+        setUserId(authSession.user.id);
         setEmail(authSession.user.email || '');
         // Defer profile fetch
         setTimeout(() => {
