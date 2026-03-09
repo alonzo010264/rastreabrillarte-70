@@ -363,6 +363,7 @@ ${userOrdersInfo}`;
       JSON.stringify({ 
         response: cleanText,
         productImages,
+        dbProductImages,
         isUrgentCase
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
