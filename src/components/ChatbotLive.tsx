@@ -848,6 +848,35 @@ export const ChatbotLive = memo(() => {
         const metadata: any = {};
         if (data.productImages?.length > 0) metadata.productImages = data.productImages;
         if (data.dbProductImages?.length > 0) metadata.dbProductImages = data.dbProductImages;
+        if (data.trackedOrder) metadata.trackedOrder = data.trackedOrder;
+
+        // Handle cart actions - add products to cart
+        if (data.cartActions?.length > 0 && userId) {
+          for (const productId of data.cartActions) {
+            try {
+              const { data: existing } = await supabase
+                .from('carrito')
+                .select('id, cantidad')
+                .eq('user_id', userId)
+                .eq('producto_id', productId)
+                .maybeSingle();
+              
+              if (existing) {
+                await supabase
+                  .from('carrito')
+                  .update({ cantidad: existing.cantidad + 1 })
+                  .eq('id', existing.id);
+              } else {
+                await supabase
+                  .from('carrito')
+                  .insert({ user_id: userId, producto_id: productId, cantidad: 1 });
+              }
+              metadata.cartAdded = true;
+            } catch (cartError) {
+              console.error('Error adding to cart:', cartError);
+            }
+          }
+        }
 
         await supabase.from("chat_messages").insert({
           session_id: session.id,
