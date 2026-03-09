@@ -207,11 +207,6 @@ const Comunidad = () => {
       setLoading(false);
     } catch (error: any) {
       console.error('Error loading posts:', error);
-      toast({
-        title: 'Error',
-        description: 'No se pudieron cargar las publicaciones',
-        variant: 'destructive'
-      });
       setLoading(false);
     }
   }, [user, toast]);

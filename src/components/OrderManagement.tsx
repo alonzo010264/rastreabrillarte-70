@@ -358,9 +358,9 @@ const OrderManagement = () => {
       setEditClientName(""); setEditPrice(""); setEditWeight("");
       setEditTotal(""); setEditDeliveryDate(""); setEditNotes("");
       loadExistingOrders();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
-      toast({ title: "Error", description: "No se pudo actualizar el estatus", variant: "destructive" });
+      toast({ title: "Error", description: "No se pudo actualizar el estatus. Intenta de nuevo.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
