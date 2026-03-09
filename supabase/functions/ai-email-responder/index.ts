@@ -182,7 +182,7 @@ REGLAS PARA EL CORREO:
         <tr><td style="background-color:#f3f4f6;padding:20px 28px;border-top:1px solid #e5e7eb;">
           <p style="color:#6b7280;font-size:12px;margin:0 0 6px;text-align:center;">BRILLARTE - Accesorios Artesanales</p>
           <p style="color:#9ca3af;font-size:11px;margin:0;text-align:center;">Santiago de los Caballeros | WhatsApp: 849-425-2220</p>
-          <p style="color:#9ca3af;font-size:11px;margin:4px 0 0;text-align:center;">Instagram: @brillarte.do.oficial | www.brillarte.lat</p>
+          <p style="color:#9ca3af;font-size:11px;margin:4px 0 0;text-align:center;">Instagram: @brillarte.do | www.brillarte.lat</p>
         </td></tr>
       </table>
     </td></tr>
