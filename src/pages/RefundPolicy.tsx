@@ -114,13 +114,15 @@ const RefundPolicy = () => {
                       <li>Falta de piezas o componentes</li>
                     </ul>
                   </div>
-                  <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                   <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">NO cubierto</h4>
                     <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
                       <li>Danos por mal uso</li>
                       <li>Desgaste normal</li>
-                      <li>Productos personalizados (cambio de opinion)</li>
+                      <li>Productos personalizados (NO tienen devolucion)</li>
                       <li>Productos sin empaque original</li>
+                      <li><strong>Sin factura no hay reclamacion</strong> (extraviada o danada)</li>
+                      <li>Reclamaciones fuera del plazo de 48 horas</li>
                     </ul>
                   </div>
                 </div>
