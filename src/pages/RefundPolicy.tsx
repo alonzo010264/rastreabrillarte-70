@@ -86,7 +86,7 @@ const RefundPolicy = () => {
             Conoce nuestras politicas de reembolso y devoluciones.
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            Ultima actualizacion: 26 de enero de 2026
+            Ultima actualizacion: 9 de marzo de 2026
           </p>
         </div>
 
@@ -114,13 +114,15 @@ const RefundPolicy = () => {
                       <li>Falta de piezas o componentes</li>
                     </ul>
                   </div>
-                  <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                   <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">NO cubierto</h4>
                     <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
                       <li>Danos por mal uso</li>
                       <li>Desgaste normal</li>
-                      <li>Productos personalizados (cambio de opinion)</li>
+                      <li>Productos personalizados (NO tienen devolucion)</li>
                       <li>Productos sin empaque original</li>
+                      <li><strong>Sin factura no hay reclamacion</strong> (extraviada o danada)</li>
+                      <li>Reclamaciones fuera del plazo de 48 horas</li>
                     </ul>
                   </div>
                 </div>
@@ -139,20 +141,28 @@ const RefundPolicy = () => {
                 
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="p-4 bg-muted/50 rounded-lg text-center">
-                    <div className="text-3xl font-bold text-primary mb-1">24h</div>
-                    <div className="text-sm font-medium">Para reportar daños</div>
-                    <p className="text-xs text-muted-foreground mt-1">Desde la recepcion</p>
+                    <div className="text-3xl font-bold text-primary mb-1">48h</div>
+                    <div className="text-sm font-medium">Para cualquier reclamacion</div>
+                    <p className="text-xs text-muted-foreground mt-1">Maximo 2 dias desde la recepcion</p>
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg text-center">
-                    <div className="text-3xl font-bold text-primary mb-1">7</div>
-                    <div className="text-sm font-medium">Dias para devolucion</div>
-                    <p className="text-xs text-muted-foreground mt-1">Productos no personalizados</p>
+                    <div className="text-3xl font-bold text-primary mb-1">48h</div>
+                    <div className="text-sm font-medium">Para devolucion</div>
+                    <p className="text-xs text-muted-foreground mt-1">Productos no personalizados unicamente</p>
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg text-center">
                     <div className="text-3xl font-bold text-primary mb-1">3-5</div>
                     <div className="text-sm font-medium">Dias para reembolso</div>
                     <p className="text-xs text-muted-foreground mt-1">Una vez aprobado</p>
                   </div>
+                </div>
+
+                <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm font-medium text-destructive">⚠️ Importante:</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Tienes un maximo de <strong>48 horas (2 dias)</strong> desde que recibes tu pedido para realizar cualquier reclamacion. 
+                    Pasado este tiempo, no se aceptaran reclamos. Por eso te exhortamos a revisar tus productos y verificar todo correctamente al momento de recibirlos.
+                  </p>
                 </div>
               </div>
             </div>
@@ -257,12 +267,25 @@ const RefundPolicy = () => {
                   <div className="p-4 border border-yellow-200 dark:border-yellow-800 rounded-lg bg-primary-foreground">
                     <h4 className="font-medium mb-2 flex items-center gap-2 text-primary">
                       <XCircle className="w-4 h-4" />
-                      Productos Personalizados
+                      Productos Personalizados - Sin Devolucion
                     </h4>
                     <p className="text-sm text-primary">
                       Los productos hechos a medida o con personalizacion (nombres, colores especificos, 
-                      disenos unicos) NO son elegibles para devolucion por cambio de opinion. 
-                      Solo aplica cambio si hay defecto de fabrica.
+                      disenos unicos) <strong>NO tienen devolucion bajo ninguna circunstancia</strong>, ya que son 
+                      articulos creados especificamente para ti y posiblemente otro cliente no los deseara. 
+                      Solo aplica cambio si hay defecto comprobable de fabrica.
+                    </p>
+                  </div>
+
+                  <div className="p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-950/20">
+                    <h4 className="font-medium mb-2 flex items-center gap-2 text-red-800 dark:text-red-200">
+                      <XCircle className="w-4 h-4" />
+                      Factura Obligatoria
+                    </h4>
+                    <p className="text-sm text-red-700 dark:text-red-300">
+                      <strong>Sin factura no hay reclamacion.</strong> Si la factura se perdio, se dano o no la tienes disponible, 
+                      no podemos procesar ningun tipo de reclamacion, devolucion o reembolso. 
+                      Te recomendamos guardar tu factura en un lugar seguro.
                     </p>
                   </div>
 
