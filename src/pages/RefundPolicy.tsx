@@ -86,7 +86,7 @@ const RefundPolicy = () => {
             Conoce nuestras politicas de reembolso y devoluciones.
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            Ultima actualizacion: 26 de enero de 2026
+            Ultima actualizacion: 9 de marzo de 2026
           </p>
         </div>
 
