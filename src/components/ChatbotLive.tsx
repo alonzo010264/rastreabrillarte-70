@@ -837,13 +837,17 @@ export const ChatbotLive = memo(() => {
       await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(responseLength)));
 
       if (!error && data?.response) {
+        const metadata: any = {};
+        if (data.productImages?.length > 0) metadata.productImages = data.productImages;
+        if (data.dbProductImages?.length > 0) metadata.dbProductImages = data.dbProductImages;
+
         await supabase.from("chat_messages").insert({
           session_id: session.id,
           sender_type: "ia",
           sender_nombre: agentName,
           contenido: data.response,
           tipo: "texto",
-          metadata: data.productImages?.length > 0 ? { productImages: data.productImages } : null,
+          metadata: Object.keys(metadata).length > 0 ? metadata : null,
         });
 
         // If AI detected urgent case, notify admin
