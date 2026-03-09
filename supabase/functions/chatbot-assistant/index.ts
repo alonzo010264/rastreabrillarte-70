@@ -57,36 +57,125 @@ serve(async (req) => {
       dynamicCatalog += 'NUNCA digas precios de los productos de la galeria. Siempre redirige al cliente a la pagina /productos o a escribirnos por WhatsApp para confirmar precios.\n';
     }
 
+    // Detect if user is asking to track a specific order code
+    const trackOrderCode = (() => {
+      const lastMsg = messages[messages.length - 1]?.content || '';
+      // Match patterns like "rastrear BRI-XXXX", "estado de BRI-XXXX", "mi pedido BRI-XXXX", or just a code like "BRI-1234"
+      const codeMatch = lastMsg.match(/\b(BRI-?\d{3,8})\b/i) || lastMsg.match(/\b([A-Z]{2,5}-?\d{3,8})\b/);
+      return codeMatch ? codeMatch[1].toUpperCase() : null;
+    })();
+
+    // Detect cart action requests
+    const lastMsgContent = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    const wantsCartAction = lastMsgContent.includes('agrega') && (lastMsgContent.includes('carrito') || lastMsgContent.includes('carro')) ||
+                            lastMsgContent.includes('agregar al carrito') ||
+                            lastMsgContent.includes('ponlo en mi carrito') ||
+                            lastMsgContent.includes('anadelo al carrito') ||
+                            lastMsgContent.includes('mete al carrito') ||
+                            lastMsgContent.includes('comprar') && lastMsgContent.includes('carrito');
+
     // Buscar informacion del pedido si se proporciona codigo
     let orderInfo = "";
-    if (orderCode) {
+    let trackedOrderData: any = null;
+    const codeToTrack = trackOrderCode || orderCode;
+    
+    if (codeToTrack) {
+      // Search in pedidos_online first
       const { data: pedidoOnline } = await supabase
         .from('pedidos_online')
         .select('*, empresas_envio(nombre)')
-        .eq('codigo_pedido', orderCode)
+        .eq('codigo_pedido', codeToTrack)
         .single();
 
       if (pedidoOnline) {
+        trackedOrderData = {
+          tipo: 'online',
+          codigo: codeToTrack,
+          estado: pedidoOnline.estado,
+          estado_detallado: pedidoOnline.estado_detallado,
+          total: pedidoOnline.total,
+          direccion: pedidoOnline.direccion_envio,
+          tracking: pedidoOnline.tracking_envio,
+          empresa_envio: pedidoOnline.empresas_envio?.nombre,
+          fecha: pedidoOnline.created_at,
+          fecha_envio: pedidoOnline.fecha_envio,
+        };
         orderInfo = `
-PEDIDO ${orderCode}:
-- Estado: ${pedidoOnline.estado}
+PEDIDO ${codeToTrack}:
+- Estado: ${pedidoOnline.estado}${pedidoOnline.estado_detallado ? ` (${pedidoOnline.estado_detallado})` : ''}
 - Total: RD$${pedidoOnline.total}
 - Direccion: ${pedidoOnline.direccion_envio}
 ${pedidoOnline.tracking_envio ? `- Tracking: ${pedidoOnline.tracking_envio}` : ''}
-${pedidoOnline.empresas_envio ? `- Enviado por: ${pedidoOnline.empresas_envio.nombre}` : ''}`;
+${pedidoOnline.empresas_envio ? `- Enviado por: ${pedidoOnline.empresas_envio.nombre}` : ''}
+- Fecha: ${new Date(pedidoOnline.created_at).toLocaleDateString('es-DO')}`;
       } else {
-        const { data: pedidoReg } = await supabase
-          .from('pedidos_registro')
-          .select('*')
-          .eq('codigo_pedido', orderCode)
+        // Search in Pedidos table (legacy)
+        const { data: pedidoLegacy } = await supabase
+          .from('Pedidos')
+          .select('*, Estatus:Estatus_id(nombre, categoria)')
+          .eq('Código de pedido', codeToTrack)
           .single();
-
-        if (pedidoReg) {
+        
+        if (pedidoLegacy) {
+          // Get last status from history
+          const { data: historial } = await supabase
+            .from('Historial_Estatus')
+            .select('*, Estatus:Estatus_id(nombre)')
+            .eq('Código de pedido', codeToTrack)
+            .order('Fecha', { ascending: false })
+            .limit(3);
+          
+          const ultimoEstatus = historial?.[0]?.Estatus?.nombre || pedidoLegacy.Estatus?.nombre || pedidoLegacy.estado || 'Pendiente';
+          
+          trackedOrderData = {
+            tipo: 'legacy',
+            codigo: codeToTrack,
+            estado: ultimoEstatus,
+            cliente: pedidoLegacy.Cliente,
+            total: pedidoLegacy.Total,
+            precio: pedidoLegacy.Precio,
+            fecha: pedidoLegacy.Fecha_creacion,
+            fecha_estimada: pedidoLegacy.Fecha_estimada_entrega,
+            es_envio: pedidoLegacy.es_envio,
+            historial: historial?.map((h: any) => ({
+              estado: h.Estatus?.nombre,
+              fecha: h.Fecha,
+              descripcion: h.Descripcion
+            })) || []
+          };
           orderInfo = `
-PEDIDO ${orderCode}:
+PEDIDO ${codeToTrack}:
+- Cliente: ${pedidoLegacy.Cliente}
+- Ultimo Estado: ${ultimoEstatus}
+- Total: RD$${pedidoLegacy.Total || pedidoLegacy.Precio || 'N/A'}
+${pedidoLegacy.es_envio ? '- Tipo: Envio' : '- Tipo: Retiro en punto'}
+${pedidoLegacy.Fecha_estimada_entrega ? `- Entrega estimada: ${pedidoLegacy.Fecha_estimada_entrega}` : ''}
+${historial && historial.length > 0 ? `- Historial reciente:\n${historial.map((h: any) => `  * ${h.Estatus?.nombre}: ${new Date(h.Fecha).toLocaleDateString('es-DO')}`).join('\n')}` : ''}`;
+        } else {
+          // Search in pedidos_registro
+          const { data: pedidoReg } = await supabase
+            .from('pedidos_registro')
+            .select('*')
+            .eq('codigo_pedido', codeToTrack)
+            .single();
+
+          if (pedidoReg) {
+            trackedOrderData = {
+              tipo: 'registro',
+              codigo: codeToTrack,
+              estado: pedidoReg.estado_pedido,
+              cliente: pedidoReg.nombre_cliente,
+              credito: pedidoReg.credito,
+            };
+            orderInfo = `
+PEDIDO ${codeToTrack}:
 - Cliente: ${pedidoReg.nombre_cliente}
 - Estado: ${pedidoReg.estado_pedido}
 - Credito: RD$${pedidoReg.credito || 0}`;
+          } else {
+            orderInfo = `No se encontro ningun pedido con el codigo ${codeToTrack}.`;
+            trackedOrderData = { tipo: 'not_found', codigo: codeToTrack };
+          }
         }
       }
     }
