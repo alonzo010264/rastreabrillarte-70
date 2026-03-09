@@ -836,6 +836,7 @@ export const ChatbotLive = memo(() => {
             { role: "user", content: messageContent },
           ],
           email,
+          userId,
           virtualAgentName: agentName,
           agentRole: agentRole,
         },
