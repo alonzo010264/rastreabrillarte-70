@@ -20,7 +20,12 @@ import {
   Ticket,
   Paperclip,
   FileText,
-  Download
+  Download,
+  Package,
+  ShoppingCart,
+  CheckCircle,
+  Clock,
+  Truck
 } from "lucide-react";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 
@@ -134,6 +139,7 @@ export const ChatbotLive = memo(() => {
   const [aiTypingDelay, setAiTypingDelay] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [pendingTransfer, setPendingTransfer] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -156,6 +162,7 @@ export const ChatbotLive = memo(() => {
       
       if (authSession?.user) {
         setIsAuthenticated(true);
+        setUserId(authSession.user.id);
         setEmail(authSession.user.email || '');
         
         // Load profile in background
@@ -181,6 +188,7 @@ export const ChatbotLive = memo(() => {
       
       if (authSession?.user) {
         setIsAuthenticated(true);
+        setUserId(authSession.user.id);
         setEmail(authSession.user.email || '');
         // Defer profile fetch
         setTimeout(() => {
@@ -198,6 +206,7 @@ export const ChatbotLive = memo(() => {
         }, 0);
       } else {
         setIsAuthenticated(false);
+        setUserId(null);
         setEmail('');
         setName('');
         setHasStarted(false);
@@ -827,6 +836,7 @@ export const ChatbotLive = memo(() => {
             { role: "user", content: messageContent },
           ],
           email,
+          userId,
           virtualAgentName: agentName,
           agentRole: agentRole,
         },
@@ -840,6 +850,35 @@ export const ChatbotLive = memo(() => {
         const metadata: any = {};
         if (data.productImages?.length > 0) metadata.productImages = data.productImages;
         if (data.dbProductImages?.length > 0) metadata.dbProductImages = data.dbProductImages;
+        if (data.trackedOrder) metadata.trackedOrder = data.trackedOrder;
+
+        // Handle cart actions - add products to cart
+        if (data.cartActions?.length > 0 && userId) {
+          for (const productId of data.cartActions) {
+            try {
+              const { data: existing } = await supabase
+                .from('carrito')
+                .select('id, cantidad')
+                .eq('user_id', userId)
+                .eq('producto_id', productId)
+                .maybeSingle();
+              
+              if (existing) {
+                await supabase
+                  .from('carrito')
+                  .update({ cantidad: existing.cantidad + 1 })
+                  .eq('id', existing.id);
+              } else {
+                await supabase
+                  .from('carrito')
+                  .insert({ user_id: userId, producto_id: productId, cantidad: 1 });
+              }
+              metadata.cartAdded = true;
+            } catch (cartError) {
+              console.error('Error adding to cart:', cartError);
+            }
+          }
+        }
 
         await supabase.from("chat_messages").insert({
           session_id: session.id,
@@ -1252,6 +1291,51 @@ export const ChatbotLive = memo(() => {
                             ))}
                           </div>
                         )}
+                        {/* Tracked Order Card */}
+                        {message.metadata && (message.metadata as any)?.trackedOrder && (message.metadata as any).trackedOrder.tipo !== 'not_found' && (
+                          <div className="mt-2 rounded-lg border border-border bg-background/80 p-3 space-y-1.5">
+                            <div className="flex items-center gap-2 font-semibold text-sm">
+                              <Package className="h-4 w-4 text-primary" />
+                              Pedido {(message.metadata as any).trackedOrder.codigo}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              {(message.metadata as any).trackedOrder.estado?.toLowerCase().includes('entregado') ? (
+                                <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                              ) : (message.metadata as any).trackedOrder.estado?.toLowerCase().includes('enviado') ? (
+                                <Truck className="h-3.5 w-3.5 text-blue-500" />
+                              ) : (
+                                <Clock className="h-3.5 w-3.5 text-amber-500" />
+                              )}
+                              <span className="font-medium">{(message.metadata as any).trackedOrder.estado}</span>
+                            </div>
+                            {(message.metadata as any).trackedOrder.total && (
+                              <p className="text-xs text-muted-foreground">Total: RD${(message.metadata as any).trackedOrder.total}</p>
+                            )}
+                            {(message.metadata as any).trackedOrder.empresa_envio && (
+                              <p className="text-xs text-muted-foreground">Envio: {(message.metadata as any).trackedOrder.empresa_envio}</p>
+                            )}
+                            {(message.metadata as any).trackedOrder.historial?.length > 0 && (
+                              <div className="border-t border-border/50 pt-1.5 mt-1.5 space-y-1">
+                                <p className="text-[10px] font-medium text-muted-foreground">Historial:</p>
+                                {(message.metadata as any).trackedOrder.historial.slice(0, 3).map((h: any, i: number) => (
+                                  <div key={i} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                                    <span>{h.estado} - {new Date(h.fecha).toLocaleDateString('es-DO')}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Cart Added Confirmation */}
+                        {message.metadata && (message.metadata as any)?.cartAdded && (
+                          <div className="mt-2 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-2 text-xs">
+                            <ShoppingCart className="h-4 w-4 text-green-600" />
+                            <span className="text-green-700 dark:text-green-400 font-medium">Productos agregados a tu carrito</span>
+                          </div>
+                        )}
+
                         <p className="text-[10px] opacity-50 mt-1">
                           {new Date(message.created_at).toLocaleTimeString("es-DO", {
                             hour: "2-digit",

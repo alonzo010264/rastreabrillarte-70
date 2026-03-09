@@ -57,36 +57,125 @@ serve(async (req) => {
       dynamicCatalog += 'NUNCA digas precios de los productos de la galeria. Siempre redirige al cliente a la pagina /productos o a escribirnos por WhatsApp para confirmar precios.\n';
     }
 
+    // Detect if user is asking to track a specific order code
+    const trackOrderCode = (() => {
+      const lastMsg = messages[messages.length - 1]?.content || '';
+      // Match patterns like "rastrear BRI-XXXX", "estado de BRI-XXXX", "mi pedido BRI-XXXX", or just a code like "BRI-1234"
+      const codeMatch = lastMsg.match(/\b(BRI-?\d{3,8})\b/i) || lastMsg.match(/\b([A-Z]{2,5}-?\d{3,8})\b/);
+      return codeMatch ? codeMatch[1].toUpperCase() : null;
+    })();
+
+    // Detect cart action requests
+    const lastMsgContent = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    const wantsCartAction = lastMsgContent.includes('agrega') && (lastMsgContent.includes('carrito') || lastMsgContent.includes('carro')) ||
+                            lastMsgContent.includes('agregar al carrito') ||
+                            lastMsgContent.includes('ponlo en mi carrito') ||
+                            lastMsgContent.includes('anadelo al carrito') ||
+                            lastMsgContent.includes('mete al carrito') ||
+                            lastMsgContent.includes('comprar') && lastMsgContent.includes('carrito');
+
     // Buscar informacion del pedido si se proporciona codigo
     let orderInfo = "";
-    if (orderCode) {
+    let trackedOrderData: any = null;
+    const codeToTrack = trackOrderCode || orderCode;
+    
+    if (codeToTrack) {
+      // Search in pedidos_online first
       const { data: pedidoOnline } = await supabase
         .from('pedidos_online')
         .select('*, empresas_envio(nombre)')
-        .eq('codigo_pedido', orderCode)
+        .eq('codigo_pedido', codeToTrack)
         .single();
 
       if (pedidoOnline) {
+        trackedOrderData = {
+          tipo: 'online',
+          codigo: codeToTrack,
+          estado: pedidoOnline.estado,
+          estado_detallado: pedidoOnline.estado_detallado,
+          total: pedidoOnline.total,
+          direccion: pedidoOnline.direccion_envio,
+          tracking: pedidoOnline.tracking_envio,
+          empresa_envio: pedidoOnline.empresas_envio?.nombre,
+          fecha: pedidoOnline.created_at,
+          fecha_envio: pedidoOnline.fecha_envio,
+        };
         orderInfo = `
-PEDIDO ${orderCode}:
-- Estado: ${pedidoOnline.estado}
+PEDIDO ${codeToTrack}:
+- Estado: ${pedidoOnline.estado}${pedidoOnline.estado_detallado ? ` (${pedidoOnline.estado_detallado})` : ''}
 - Total: RD$${pedidoOnline.total}
 - Direccion: ${pedidoOnline.direccion_envio}
 ${pedidoOnline.tracking_envio ? `- Tracking: ${pedidoOnline.tracking_envio}` : ''}
-${pedidoOnline.empresas_envio ? `- Enviado por: ${pedidoOnline.empresas_envio.nombre}` : ''}`;
+${pedidoOnline.empresas_envio ? `- Enviado por: ${pedidoOnline.empresas_envio.nombre}` : ''}
+- Fecha: ${new Date(pedidoOnline.created_at).toLocaleDateString('es-DO')}`;
       } else {
-        const { data: pedidoReg } = await supabase
-          .from('pedidos_registro')
-          .select('*')
-          .eq('codigo_pedido', orderCode)
+        // Search in Pedidos table (legacy)
+        const { data: pedidoLegacy } = await supabase
+          .from('Pedidos')
+          .select('*, Estatus:Estatus_id(nombre, categoria)')
+          .eq('Código de pedido', codeToTrack)
           .single();
-
-        if (pedidoReg) {
+        
+        if (pedidoLegacy) {
+          // Get last status from history
+          const { data: historial } = await supabase
+            .from('Historial_Estatus')
+            .select('*, Estatus:Estatus_id(nombre)')
+            .eq('Código de pedido', codeToTrack)
+            .order('Fecha', { ascending: false })
+            .limit(3);
+          
+          const ultimoEstatus = historial?.[0]?.Estatus?.nombre || pedidoLegacy.Estatus?.nombre || pedidoLegacy.estado || 'Pendiente';
+          
+          trackedOrderData = {
+            tipo: 'legacy',
+            codigo: codeToTrack,
+            estado: ultimoEstatus,
+            cliente: pedidoLegacy.Cliente,
+            total: pedidoLegacy.Total,
+            precio: pedidoLegacy.Precio,
+            fecha: pedidoLegacy.Fecha_creacion,
+            fecha_estimada: pedidoLegacy.Fecha_estimada_entrega,
+            es_envio: pedidoLegacy.es_envio,
+            historial: historial?.map((h: any) => ({
+              estado: h.Estatus?.nombre,
+              fecha: h.Fecha,
+              descripcion: h.Descripcion
+            })) || []
+          };
           orderInfo = `
-PEDIDO ${orderCode}:
+PEDIDO ${codeToTrack}:
+- Cliente: ${pedidoLegacy.Cliente}
+- Ultimo Estado: ${ultimoEstatus}
+- Total: RD$${pedidoLegacy.Total || pedidoLegacy.Precio || 'N/A'}
+${pedidoLegacy.es_envio ? '- Tipo: Envio' : '- Tipo: Retiro en punto'}
+${pedidoLegacy.Fecha_estimada_entrega ? `- Entrega estimada: ${pedidoLegacy.Fecha_estimada_entrega}` : ''}
+${historial && historial.length > 0 ? `- Historial reciente:\n${historial.map((h: any) => `  * ${h.Estatus?.nombre}: ${new Date(h.Fecha).toLocaleDateString('es-DO')}`).join('\n')}` : ''}`;
+        } else {
+          // Search in pedidos_registro
+          const { data: pedidoReg } = await supabase
+            .from('pedidos_registro')
+            .select('*')
+            .eq('codigo_pedido', codeToTrack)
+            .single();
+
+          if (pedidoReg) {
+            trackedOrderData = {
+              tipo: 'registro',
+              codigo: codeToTrack,
+              estado: pedidoReg.estado_pedido,
+              cliente: pedidoReg.nombre_cliente,
+              credito: pedidoReg.credito,
+            };
+            orderInfo = `
+PEDIDO ${codeToTrack}:
 - Cliente: ${pedidoReg.nombre_cliente}
 - Estado: ${pedidoReg.estado_pedido}
 - Credito: RD$${pedidoReg.credito || 0}`;
+          } else {
+            orderInfo = `No se encontro ningun pedido con el codigo ${codeToTrack}.`;
+            trackedOrderData = { tipo: 'not_found', codigo: codeToTrack };
+          }
         }
       }
     }
@@ -286,6 +375,22 @@ TERMINOS Y CONDICIONES:
 
 === FIN DE POLITICAS ===
 
+=== RASTREO DE PEDIDOS ===
+- Puedes buscar el estado de pedidos si el cliente te da su codigo (ej: BRI-1234).
+- NUNCA reveles codigos de pedido, datos de otros clientes, ni informacion sin que el cliente te proporcione su codigo primero.
+- Si el cliente pregunta por el estado de un pedido SIN dar el codigo, PIDELE que te lo proporcione.
+- Si ya tienes la info del pedido (ver abajo), comunicale el ultimo estado de forma clara.
+- Puedes sugerirle al cliente visitar la pagina /rastrear-pedido para ver mas detalles.
+- NUNCA inventes estados ni informacion de pedidos.
+
+=== CARRITO DE COMPRAS ===
+- Si el cliente te pide agregar productos al carrito, PRIMERO pide confirmacion.
+- Responde con: "Quieres que agregue [producto] a tu carrito?" y espera su confirmacion.
+- Si dice "si", "dale", "hazlo", "confirmo" -> usa la etiqueta [CART_ADD:producto_id] para indicar que se debe agregar.
+- Si el cliente dice "buscame los mejores productos y agregalos al carrito", recomienda 2-3 productos y pregunta: "Quieres que agregue estos a tu carrito?"
+- NUNCA agregues al carrito sin permiso explicito del cliente.
+- Cuando el cliente confirme, usa [CART_ADD:producto_id] por cada producto que confirme.
+
 REGLAS ESTRICTAS:
 - Maximo 2-3 oraciones cortas por respuesta (excepto si muestras productos, puedes extender un poco)
 - PROHIBIDO usar emojis o simbolos decorativos
@@ -295,10 +400,12 @@ REGLAS ESTRICTAS:
 - NUNCA inventes politicas. Si no sabes algo, di que vas a verificar con el equipo.
 - Cuando recomiendes productos, SIEMPRE incluye [IMG:clave] para mostrar la foto.
 - NUNCA menciones precios de productos de la galeria. Si preguntan por precio di: "Puedes ver los precios actualizados en nuestra pagina de productos o escribirnos por WhatsApp al 849-425-2220 para confirmarte."
+- NUNCA reveles codigos de pedido, datos personales ni informacion de otros clientes.
 
 ${isUrgentCase ? `CASO URGENTE: Muestra empatia genuina. Recoge toda la info y asegura que se resolvera en 24-48 horas.` : ''}
 ${askingIfHuman ? `IMPORTANTE: Te preguntaron si eres humano. Confirma que SI eres ${agentName}, una persona real que trabaja en BRILLARTE.` : ''}
 ${askingProducts ? `IMPORTANTE: El cliente pregunta por productos. Ayudalo a elegir preguntando que estilo busca y mostrando imagenes relevantes con [IMG:clave].` : ''}
+${wantsCartAction ? `IMPORTANTE: El cliente quiere agregar al carrito. Recomienda productos y PIDE CONFIRMACION antes de usar [CART_ADD:id].` : ''}
 
 ${dynamicCatalog}
 
@@ -358,15 +465,25 @@ ${userOrdersInfo}`;
       dbProductImages.push(dbMatch[1]);
     }
 
-    // Clean the text (remove IMG and DB_IMG tags for the text content)
-    const cleanText = assistantMessage.replace(/\[IMG:[\w-]+\]/g, '').replace(/\[DB_IMG:[^\]]+\]/g, '').trim();
+    // Extract cart add actions
+    const cartAddRegex = /\[CART_ADD:([\w-]+)\]/g;
+    const cartActions: string[] = [];
+    let cartMatch;
+    while ((cartMatch = cartAddRegex.exec(assistantMessage)) !== null) {
+      cartActions.push(cartMatch[1]);
+    }
+
+    // Clean the text (remove IMG, DB_IMG, and CART_ADD tags for the text content)
+    const cleanText = assistantMessage.replace(/\[IMG:[\w-]+\]/g, '').replace(/\[DB_IMG:[^\]]+\]/g, '').replace(/\[CART_ADD:[\w-]+\]/g, '').trim();
 
     return new Response(
       JSON.stringify({ 
         response: cleanText,
         productImages,
         dbProductImages,
-        isUrgentCase
+        isUrgentCase,
+        trackedOrder: trackedOrderData || null,
+        cartActions: cartActions.length > 0 ? cartActions : null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
