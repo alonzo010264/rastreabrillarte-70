@@ -465,15 +465,25 @@ ${userOrdersInfo}`;
       dbProductImages.push(dbMatch[1]);
     }
 
-    // Clean the text (remove IMG and DB_IMG tags for the text content)
-    const cleanText = assistantMessage.replace(/\[IMG:[\w-]+\]/g, '').replace(/\[DB_IMG:[^\]]+\]/g, '').trim();
+    // Extract cart add actions
+    const cartAddRegex = /\[CART_ADD:([\w-]+)\]/g;
+    const cartActions: string[] = [];
+    let cartMatch;
+    while ((cartMatch = cartAddRegex.exec(assistantMessage)) !== null) {
+      cartActions.push(cartMatch[1]);
+    }
+
+    // Clean the text (remove IMG, DB_IMG, and CART_ADD tags for the text content)
+    const cleanText = assistantMessage.replace(/\[IMG:[\w-]+\]/g, '').replace(/\[DB_IMG:[^\]]+\]/g, '').replace(/\[CART_ADD:[\w-]+\]/g, '').trim();
 
     return new Response(
       JSON.stringify({ 
         response: cleanText,
         productImages,
         dbProductImages,
-        isUrgentCase
+        isUrgentCase,
+        trackedOrder: trackedOrderData || null,
+        cartActions: cartActions.length > 0 ? cartActions : null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
