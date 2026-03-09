@@ -12,6 +12,12 @@ const AGENT_PERSONALITIES: Record<string, string> = {
   'Amanda': 'Eres Amanda, agente de soporte de BRILLARTE. Eres alegre, eficiente y muy organizada. Respondes con claridad y siempre ofreces soluciones concretas.',
 };
 
+const AGENT_IMAGES: Record<string, string> = {
+  'Luis': 'https://www.brillarte.lat/assets/agente-luis.png',
+  'Katta': '',
+  'Amanda': '',
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -112,24 +118,42 @@ REGLAS ESTRICTAS:
         const respuesta = aiData.choices[0].message.content;
 
         // Enviar correo del agente
+        const agenteImagen = AGENT_IMAGES[agenteName] || '';
+        
         const agentHtml = `
-        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
           <div style="background:#000000;padding:20px;text-align:center;">
             <img src="https://www.brillarte.lat/assets/brillarte-logo-modern-br.jpg" alt="BRILLARTE" style="height:50px;border-radius:8px;" />
           </div>
           <div style="padding:28px 24px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-              <div style="width:36px;height:36px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;">${agenteName.charAt(0)}</div>
-              <div>
-                <p style="margin:0;font-weight:600;font-size:14px;color:#111;">${agenteName}</p>
-                <p style="margin:0;font-size:11px;color:#888;">Agente de Soporte - BRILLARTE</p>
-              </div>
-            </div>
-            <div style="background:#f9fafb;border-radius:8px;padding:14px;margin:0 0 16px;border-left:3px solid #000;">
+            <div style="background:#f9fafb;border-radius:8px;padding:14px;margin:0 0 20px;border-left:3px solid #000;">
               <p style="color:#666;font-size:11px;margin:0 0 4px;">Tu consulta:</p>
               <p style="color:#555;font-size:13px;margin:0;font-style:italic;">"${contacto.descripcion_problema.substring(0, 150)}${contacto.descripcion_problema.length > 150 ? '...' : ''}"</p>
             </div>
-            <p style="color:#333;font-size:14px;line-height:1.7;margin:0;white-space:pre-line;">${respuesta}</p>
+            <p style="color:#333;font-size:14px;line-height:1.8;margin:0 0 24px;white-space:pre-line;">${respuesta}</p>
+            
+            ${agenteImagen ? `
+            <!-- Firma del Agente con Imagen -->
+            <div style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:24px;">
+              <img src="${agenteImagen}" alt="${agenteName} - Agente BRILLARTE" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.08);" />
+            </div>
+            ` : `
+            <!-- Firma del Agente sin Imagen -->
+            <div style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:20px;">
+              <table cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="vertical-align:middle;padding-right:12px;">
+                    <div style="width:48px;height:48px;border-radius:50%;background:#1a365d;color:#fff;text-align:center;line-height:48px;font-weight:bold;font-size:18px;">${agenteName.charAt(0)}</div>
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <p style="margin:0;font-weight:600;font-size:15px;color:#1a365d;font-style:italic;">${agenteName}</p>
+                    <p style="margin:2px 0 0;font-size:12px;color:#666;">Agente de Atencion al Cliente</p>
+                    <p style="margin:2px 0 0;font-size:11px;color:#888;">Equipo de Soporte - BRILLARTE</p>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            `}
           </div>
           <div style="background:#f3f4f6;padding:14px;text-align:center;border-top:1px solid #e5e7eb;">
             <p style="color:#9ca3af;font-size:11px;margin:0;">BRILLARTE | Santiago de los Caballeros</p>
