@@ -1215,7 +1215,7 @@ export const ChatbotLive = memo(() => {
                           <p className="text-sm whitespace-pre-wrap">{message.contenido}</p>
                         )}
                         
-                        {/* Product images from AI recommendations */}
+                        {/* Product images from AI recommendations (static catalog) */}
                         {message.metadata && (message.metadata as any)?.productImages && (
                           <div className="flex flex-wrap gap-2 mt-2">
                             {((message.metadata as any).productImages as string[]).map((imgKey: string) => {
@@ -1234,6 +1234,22 @@ export const ChatbotLive = memo(() => {
                                 </div>
                               );
                             })}
+                          </div>
+                        )}
+                        
+                        {/* Product images from database (dynamic catalog) */}
+                        {message.metadata && (message.metadata as any)?.dbProductImages && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {((message.metadata as any).dbProductImages as string[]).map((imgUrl: string, idx: number) => (
+                              <div key={`db-${idx}`} className="rounded-lg overflow-hidden border border-border/50">
+                                <img 
+                                  src={imgUrl} 
+                                  alt="Producto"
+                                  className="w-32 h-32 object-cover"
+                                  loading="lazy"
+                                />
+                              </div>
+                            ))}
                           </div>
                         )}
                         <p className="text-[10px] opacity-50 mt-1">
