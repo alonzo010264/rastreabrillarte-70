@@ -24,6 +24,53 @@ import {
 } from "lucide-react";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 
+// Product image map for AI recommendations
+import margarita from "@/assets/productos/margarita.jpg";
+import aretesFlores from "@/assets/productos/aretes-flores.webp";
+import anilloFloresAzul from "@/assets/productos/anillo-flores-azul.jpg";
+import pulserasCorazones from "@/assets/productos/pulseras-corazones.jpg";
+import pulserasLoveYou from "@/assets/productos/pulseras-love-you.jpg";
+import pulserasCristal from "@/assets/productos/pulseras-cristal-colores.png";
+import pulserasBrillantes from "@/assets/productos/pulseras-brillantes-elegantes.png";
+import pulseraGirasol from "@/assets/productos/pulsera-girasol-dorada.png";
+import pulseraMacrame from "@/assets/productos/pulsera-macrame-girasoles.png";
+import pulserasTrebol from "@/assets/productos/pulseras-trebol-tejidas.png";
+import pulserasPareja from "@/assets/productos/pulseras-pareja-amistad.png";
+import pulserasIniciales from "@/assets/productos/pulseras-iniciales-personalizadas.png";
+import pulserasCorazonesColores from "@/assets/productos/pulseras-corazones-colores.png";
+
+const PRODUCT_IMAGE_MAP: Record<string, string> = {
+  'margarita': margarita,
+  'aretes-flores': aretesFlores,
+  'anillo-flores-azul': anilloFloresAzul,
+  'pulseras-corazones': pulserasCorazones,
+  'pulseras-love-you': pulserasLoveYou,
+  'pulseras-cristal': pulserasCristal,
+  'pulseras-brillantes': pulserasBrillantes,
+  'pulsera-girasol': pulseraGirasol,
+  'pulsera-macrame': pulseraMacrame,
+  'pulseras-trebol': pulserasTrebol,
+  'pulseras-pareja': pulserasPareja,
+  'pulseras-iniciales': pulserasIniciales,
+  'pulseras-corazones-colores': pulserasCorazonesColores,
+};
+
+const PRODUCT_NAME_MAP: Record<string, string> = {
+  'margarita': 'Pulsera Margarita',
+  'aretes-flores': 'Aretes de Flores',
+  'anillo-flores-azul': 'Anillo Flores Azul',
+  'pulseras-corazones': 'Pulseras Corazones',
+  'pulseras-love-you': 'Pulseras Love You',
+  'pulseras-cristal': 'Pulseras Cristal Multicolor',
+  'pulseras-brillantes': 'Pulseras Brillantes Elegantes',
+  'pulsera-girasol': 'Pulsera Girasol Dorada',
+  'pulsera-macrame': 'Pulsera Macramé Girasoles',
+  'pulseras-trebol': 'Pulseras Trébol Tejidas',
+  'pulseras-pareja': 'Pulseras de Pareja o Amistad',
+  'pulseras-iniciales': 'Pulseras Iniciales Personalizadas',
+  'pulseras-corazones-colores': 'Pulseras Corazones Arcoíris',
+};
+
 interface Message {
   id: string;
   sender_type: string;
