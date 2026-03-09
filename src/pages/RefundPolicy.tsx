@@ -267,12 +267,25 @@ const RefundPolicy = () => {
                   <div className="p-4 border border-yellow-200 dark:border-yellow-800 rounded-lg bg-primary-foreground">
                     <h4 className="font-medium mb-2 flex items-center gap-2 text-primary">
                       <XCircle className="w-4 h-4" />
-                      Productos Personalizados
+                      Productos Personalizados - Sin Devolucion
                     </h4>
                     <p className="text-sm text-primary">
                       Los productos hechos a medida o con personalizacion (nombres, colores especificos, 
-                      disenos unicos) NO son elegibles para devolucion por cambio de opinion. 
-                      Solo aplica cambio si hay defecto de fabrica.
+                      disenos unicos) <strong>NO tienen devolucion bajo ninguna circunstancia</strong>, ya que son 
+                      articulos creados especificamente para ti y posiblemente otro cliente no los deseara. 
+                      Solo aplica cambio si hay defecto comprobable de fabrica.
+                    </p>
+                  </div>
+
+                  <div className="p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-950/20">
+                    <h4 className="font-medium mb-2 flex items-center gap-2 text-red-800 dark:text-red-200">
+                      <XCircle className="w-4 h-4" />
+                      Factura Obligatoria
+                    </h4>
+                    <p className="text-sm text-red-700 dark:text-red-300">
+                      <strong>Sin factura no hay reclamacion.</strong> Si la factura se perdio, se dano o no la tienes disponible, 
+                      no podemos procesar ningun tipo de reclamacion, devolucion o reembolso. 
+                      Te recomendamos guardar tu factura en un lugar seguro.
                     </p>
                   </div>
 
