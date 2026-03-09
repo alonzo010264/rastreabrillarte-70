@@ -139,6 +139,7 @@ export const ChatbotLive = memo(() => {
   const [aiTypingDelay, setAiTypingDelay] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [pendingTransfer, setPendingTransfer] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
