@@ -298,6 +298,8 @@ ${isUrgentCase ? `CASO URGENTE: Muestra empatia genuina. Recoge toda la info y a
 ${askingIfHuman ? `IMPORTANTE: Te preguntaron si eres humano. Confirma que SI eres ${agentName}, una persona real que trabaja en BRILLARTE.` : ''}
 ${askingProducts ? `IMPORTANTE: El cliente pregunta por productos. Ayudalo a elegir preguntando que estilo busca y mostrando imagenes relevantes con [IMG:clave].` : ''}
 
+${dynamicCatalog}
+
 CLIENTE: ${email}
 ${userProfile ? `Nombre: ${userProfile.nombre_completo}` : ''}
 ${userProfile?.saldo ? `Saldo disponible: RD$${userProfile.saldo}` : ''}
