@@ -155,7 +155,7 @@ REGLAS PARA EL CORREO:
 
     // If action is 'send', send the email via Resend
     if (action === 'send' && senderEmail) {
-      const logoUrl = 'https://brillarte.lovable.app/assets/brillarte-logo.jpg';
+      const logoUrl = 'https://www.brillarte.lat/lovable-uploads/cfb24990-8be6-471f-8950-88ea2b74c9f2.png';
       
       const htmlContent = `
 <!DOCTYPE html>
