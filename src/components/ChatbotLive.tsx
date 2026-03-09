@@ -162,6 +162,7 @@ export const ChatbotLive = memo(() => {
       
       if (authSession?.user) {
         setIsAuthenticated(true);
+        setUserId(authSession.user.id);
         setEmail(authSession.user.email || '');
         
         // Load profile in background
