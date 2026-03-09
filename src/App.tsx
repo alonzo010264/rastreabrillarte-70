@@ -95,7 +95,7 @@ const Blog = lazyWithRetry(() => import("./pages/Blog"));
 const AdminBlog = lazyWithRetry(() => import("./pages/AdminBlog"));
 const EmprendeBrillarte = lazyWithRetry(() => import("./pages/EmprendeBrillarte"));
 const EmprendeBrillarteAplicar = lazyWithRetry(() => import("./pages/EmprendeBrillarteAplicar"));
-
+const AdminCorreosIA = lazyWithRetry(() => import("./pages/AdminCorreosIA"));
 // Componentes de protección
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
 
@@ -193,6 +193,7 @@ const App = () => (
             <Route path="/admin/noticias" element={<ProtectedRoute><AdminNoticias /></ProtectedRoute>} />
             <Route path="/admin/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
             <Route path="/admin/referidos" element={<ProtectedRoute><AdminReferidos /></ProtectedRoute>} />
+            <Route path="/admin/correos-ia" element={<ProtectedRoute><AdminCorreosIA /></ProtectedRoute>} />
             <Route path="/brillarte-pedidos" element={<ProtectedRoute><BrillartePedidos /></ProtectedRoute>} />
             <Route path="/manage" element={<ProtectedRoute><OrderManagement /></ProtectedRoute>} />
 

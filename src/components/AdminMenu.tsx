@@ -55,6 +55,7 @@ const adminDashboards = [
   { label: "BrillartePay", href: "/admin/brillarte-pay", icon: CreditCard },
   { label: "Políticas", href: "/admin/politicas", icon: FileText },
   { label: "Cupones", href: "/admin/cupones", icon: Tag },
+  { label: "Correos IA", href: "/admin/correos-ia", icon: Bot },
 ];
 
 export const AdminMenu = () => {
