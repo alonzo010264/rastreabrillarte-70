@@ -193,7 +193,7 @@ REGLAS PARA EL CORREO:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'BRILLARTE <brillarte@brillarte.lat>',
+          from: 'BRILLARTE <brillarte@oficial.brillarte.lat>',
           to: [senderEmail],
           subject: replySubject,
           html: htmlContent,
