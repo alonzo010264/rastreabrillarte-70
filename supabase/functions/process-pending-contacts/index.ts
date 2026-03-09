@@ -12,6 +12,12 @@ const AGENT_PERSONALITIES: Record<string, string> = {
   'Amanda': 'Eres Amanda, agente de soporte de BRILLARTE. Eres alegre, eficiente y muy organizada. Respondes con claridad y siempre ofreces soluciones concretas.',
 };
 
+const AGENT_IMAGES: Record<string, string> = {
+  'Luis': 'https://www.brillarte.lat/assets/agente-luis.png',
+  'Katta': '',
+  'Amanda': '',
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
