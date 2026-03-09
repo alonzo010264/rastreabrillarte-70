@@ -141,20 +141,28 @@ const RefundPolicy = () => {
                 
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="p-4 bg-muted/50 rounded-lg text-center">
-                    <div className="text-3xl font-bold text-primary mb-1">24h</div>
-                    <div className="text-sm font-medium">Para reportar daños</div>
-                    <p className="text-xs text-muted-foreground mt-1">Desde la recepcion</p>
+                    <div className="text-3xl font-bold text-primary mb-1">48h</div>
+                    <div className="text-sm font-medium">Para cualquier reclamacion</div>
+                    <p className="text-xs text-muted-foreground mt-1">Maximo 2 dias desde la recepcion</p>
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg text-center">
-                    <div className="text-3xl font-bold text-primary mb-1">7</div>
-                    <div className="text-sm font-medium">Dias para devolucion</div>
-                    <p className="text-xs text-muted-foreground mt-1">Productos no personalizados</p>
+                    <div className="text-3xl font-bold text-primary mb-1">48h</div>
+                    <div className="text-sm font-medium">Para devolucion</div>
+                    <p className="text-xs text-muted-foreground mt-1">Productos no personalizados unicamente</p>
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg text-center">
                     <div className="text-3xl font-bold text-primary mb-1">3-5</div>
                     <div className="text-sm font-medium">Dias para reembolso</div>
                     <p className="text-xs text-muted-foreground mt-1">Una vez aprobado</p>
                   </div>
+                </div>
+
+                <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm font-medium text-destructive">⚠️ Importante:</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Tienes un maximo de <strong>48 horas (2 dias)</strong> desde que recibes tu pedido para realizar cualquier reclamacion. 
+                    Pasado este tiempo, no se aceptaran reclamos. Por eso te exhortamos a revisar tus productos y verificar todo correctamente al momento de recibirlos.
+                  </p>
                 </div>
               </div>
             </div>
