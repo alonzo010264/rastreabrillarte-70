@@ -20,7 +20,12 @@ import {
   Ticket,
   Paperclip,
   FileText,
-  Download
+  Download,
+  Package,
+  ShoppingCart,
+  CheckCircle,
+  Clock,
+  Truck
 } from "lucide-react";
 import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 
