@@ -1210,6 +1210,28 @@ export const ChatbotLive = memo(() => {
                         {!message.archivo_url && (
                           <p className="text-sm whitespace-pre-wrap">{message.contenido}</p>
                         )}
+                        
+                        {/* Product images from AI recommendations */}
+                        {message.metadata && (message.metadata as any)?.productImages && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {((message.metadata as any).productImages as string[]).map((imgKey: string) => {
+                              const imgSrc = PRODUCT_IMAGE_MAP[imgKey];
+                              const imgName = PRODUCT_NAME_MAP[imgKey] || imgKey;
+                              if (!imgSrc) return null;
+                              return (
+                                <div key={imgKey} className="rounded-lg overflow-hidden border border-border/50">
+                                  <img 
+                                    src={imgSrc} 
+                                    alt={imgName}
+                                    className="w-32 h-32 object-cover"
+                                    loading="lazy"
+                                  />
+                                  <p className="text-[10px] px-1 py-0.5 bg-background/80 text-center font-medium truncate">{imgName}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                         <p className="text-[10px] opacity-50 mt-1">
                           {new Date(message.created_at).toLocaleTimeString("es-DO", {
                             hour: "2-digit",
