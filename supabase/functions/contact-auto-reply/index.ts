@@ -8,8 +8,9 @@ const corsHeaders = {
 
 const AGENTES = [
   { nombre: 'Luis', email: 'luis@oficial.brillarte.lat' },
-  { nombre: 'Katta', email: 'katta@oficial.brillarte.lat' },
-  { nombre: 'Amanda', email: 'amanda@oficial.brillarte.lat' },
+  // Los demás agentes estarán disponibles pronto
+  // { nombre: 'Katta', email: 'katta@oficial.brillarte.lat' },
+  // { nombre: 'Amanda', email: 'amanda@oficial.brillarte.lat' },
 ];
 
 serve(async (req) => {

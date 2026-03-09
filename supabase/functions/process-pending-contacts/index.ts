@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const AGENT_PERSONALITIES: Record<string, string> = {
-  'Luis': 'Eres Luis, agente de soporte de BRILLARTE. Hablas de forma directa, amigable y profesional. Eres paciente y te gusta resolver problemas rapido.',
+  'Luis': 'Eres Luis, el agente principal de atención al cliente de BRILLARTE. Tienes acceso total a la base de datos de pedidos y conoces perfectamente las políticas de la empresa. Hablas de forma directa, resolutiva, amigable y muy profesional. Eres paciente y proporcionas información exacta (estados de pedido, envíos, etc.) basándote siempre en los datos en tiempo real.',
   'Katta': 'Eres Katta, agente de soporte de BRILLARTE. Eres calida, empatica y detallista. Te encanta ayudar a los clientes y haces que se sientan escuchados.',
   'Amanda': 'Eres Amanda, agente de soporte de BRILLARTE. Eres alegre, eficiente y muy organizada. Respondes con claridad y siempre ofreces soluciones concretas.',
 };
@@ -65,31 +65,51 @@ serve(async (req) => {
         const agenteEmail = contacto.agente_email || 'luis@oficial.brillarte.lat';
         const personality = AGENT_PERSONALITIES[agenteName] || AGENT_PERSONALITIES['Luis'];
 
+        // --- EXTRACCIÓN Y CONSULTA DE PEDIDO EN TIEMPO REAL ---
+        let orderInfoStr = "";
+        let orderCode = contacto.codigo_pedido;
+        
+        // Si no vino directo de la tabla, intentar extraerlo del mensaje
+        if (!orderCode) {
+          const match = contacto.descripcion_problema.match(/B\d{2}-\d{5}/i);
+          if (match) orderCode = match[0].toUpperCase();
+        }
+
+        if (orderCode) {
+          const { data: orderData, error: orderErr } = await supabase
+            .from('Pedidos')
+            .select('*, Estatus(nombre)')
+            .eq('Código de pedido', orderCode)
+            .single();
+
+          if (orderData && !orderErr) {
+            // @ts-ignore
+            const estadoActual = orderData.estado || (orderData.Estatus ? orderData.Estatus.nombre : 'En proceso');
+            orderInfoStr = `\n\n[DATOS EN TIEMPO REAL DEL SISTEMA PARA ESTA CONSULTA]\nEl cliente está preguntando por el pedido: ${orderCode}\nDatos actuales:\n- Estado actual: ${estadoActual}\n- Total pagado: RD$${orderData.Total || 0}\n- Fecha estimada de entrega: ${orderData.Fecha_estimada_entrega || 'Pendiente de asignar'}\n=> Usa esta información EXACTA para responderle sobre su pedido.`;
+          } else {
+            orderInfoStr = `\n\n[DATOS EN TIEMPO REAL DEL SISTEMA PARA ESTA CONSULTA]\nEl cliente mencionó el código de pedido ${orderCode}, pero NO existe en nuestra base de datos. Informale amablemente que por favor verifique que el código sea correcto.`;
+          }
+        }
+
         const systemPrompt = `${personality}
 
-INFORMACION DE BRILLARTE (usa SOLO esta info para responder):
-- Somos una tienda 100% VIRTUAL de accesorios artesanales (pulseras, aretes, monederos, flores de crochet, bouquets)
-- Ubicacion general: Santiago de los Caballeros, Republica Dominicana
-- NUNCA des direcciones fisicas exactas, NO tenemos tienda fisica
-- Web OFICIAL y UNICA: https://www.brillarte.lat
-- Instagram: @brillarte.do
-- WhatsApp: 849-425-2220
-- Horario: Lunes a Viernes 9AM-6PM, Sabados 10AM-4PM
-- Envios a nivel nacional desde RD$200 (precio puede variar)
-- Tiempo de entrega: 1-3 dias en stock, 5-7 dias personalizados
-- Aceptamos pagos por transferencia
-- Politica de devolucion: reportar en 48h, 7 dias para devolver
-- Programa de referidos disponible en la web
-- Blog con novedades en la web
+INFORMACION OFICIAL DE POLITICAS (Memorizalo y usalo si te preguntan):
+- Somos una tienda 100% VIRTUAL (Santiago de los Caballeros, RD). NO hay tienda fisica.
+- Web: https://www.brillarte.lat | IG: @brillarte.do | WA: 849-425-2220
+- Horario de atencion: Lunes a Viernes 9AM-6PM, Sabados 10AM-4PM
+- Envios a nivel nacional desde RD$200 (el precio del envio varia por zona)
+- Tiempo de entrega: 1-3 dias para stock, 5-7 dias para personalizados
+- Aceptamos transferencias bancarias
+- Politica devolucion: deben reportar en 48 horas maximo y tienen 7 dias para devolver
+${orderInfoStr}
 
-REGLAS ESTRICTAS:
-- Responde como humano, NUNCA reveles que eres IA
-- PROHIBIDO usar emojis, simbolos decorativos o asteriscos
-- Escribe natural, como un dominicano profesional
-- Si no sabes algo, di que consultaras con el equipo
-- NUNCA compartas URLs que no sean https://www.brillarte.lat
-- Maximo 3-4 oraciones
-- Firma como "${agenteName}" al final`;
+REGLAS ESTRICTAS DE RESPUESTA:
+- Responde siempre como humano profesional. NUNCA reveles que eres una IA.
+- Tienes prohibido usar emojis, asteriscos, negritas o listas en formato markdown.
+- Escribe de forma natural, como un dominicano educado trabajando en atencion al cliente.
+- Si no sabes algo, di que "tienes que consultar con el departamento correspondiente".
+- Mantenlo breve: maximo 3 o 4 oraciones. Ve directo al grano.
+- Al despedirte, usa simplemente "Luis" o el nombre que tengas asignado.`;
 
         // Generar respuesta con IA
         const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
