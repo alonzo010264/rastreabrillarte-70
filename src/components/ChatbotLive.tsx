@@ -843,6 +843,7 @@ export const ChatbotLive = memo(() => {
           sender_nombre: agentName,
           contenido: data.response,
           tipo: "texto",
+          metadata: data.productImages?.length > 0 ? { productImages: data.productImages } : null,
         });
 
         // If AI detected urgent case, notify admin
