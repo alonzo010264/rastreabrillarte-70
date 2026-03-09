@@ -94,6 +94,44 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Stats / Social Proof */}
+      <section className="py-16 px-4 bg-muted/20 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-secondary/5 rounded-full blur-3xl" />
+        </div>
+        <div className="container mx-auto max-w-4xl relative z-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            {/* Personas satisfechas */}
+            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+                <Heart className="w-8 h-8 text-primary" fill="currentColor" />
+              </div>
+              <p className="text-4xl md:text-5xl font-bold gradient-text-animated mb-2">+40</p>
+              <p className="text-muted-foreground text-lg">Personas Satisfechas</p>
+              <div className="flex gap-1 mt-3">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-primary fill-primary" />
+                ))}
+              </div>
+            </div>
+
+            {/* Pedidos por semana */}
+            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-card/80 backdrop-blur-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+                <Zap className="w-8 h-8 text-primary" />
+              </div>
+              <p className="text-4xl md:text-5xl font-bold gradient-text-animated mb-2">+20</p>
+              <p className="text-muted-foreground text-lg">Pedidos por Semana</p>
+              <div className="flex gap-1 mt-3">
+                <Clock className="w-5 h-5 text-primary" />
+                <span className="text-sm text-muted-foreground">Entrega rápida</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Quiénes Somos */}
       <section className="py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
