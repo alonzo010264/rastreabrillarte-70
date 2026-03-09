@@ -60,7 +60,7 @@ serve(async (req) => {
         <img src="https://www.brillarte.lat/assets/brillarte-logo-modern-br.jpg" alt="BRILLARTE" style="height:50px;border-radius:8px;" />
       </div>
       <div style="padding:28px 24px;">
-        <h2 style="color:#111;font-size:18px;margin:0 0 12px;">Hola ${nombre || 'Cliente'} 👋</h2>
+        <h2 style="color:#111;font-size:18px;margin:0 0 12px;">Hola ${nombre || 'Cliente'},</h2>
         <p style="color:#444;font-size:14px;line-height:1.6;margin:0 0 16px;">
           Gracias por contactar a <strong>BRILLARTE</strong>. Hemos recibido tu consulta y en breve te pondremos con uno de nuestros agentes.
         </p>

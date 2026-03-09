@@ -102,7 +102,7 @@ REGLAS ESTRICTAS:
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Error desconocido',
-        response: 'Disculpa, tuve un problema técnico. ¿Podrías intentar de nuevo? 😅' 
+        response: 'Disculpa, tuve un problema tecnico. Podrias intentar de nuevo?' 
       }),
       { 
         status: 500,
