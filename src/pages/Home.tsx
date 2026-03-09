@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { useScrollAnimation, useParallax } from "@/hooks/useScrollAnimation";
+import { useCountUp } from "@/hooks/useCountUp";
 import brillarteLogo from "@/assets/brillarte-logo-new-optimized.webp";
 import teamWork from "@/assets/team-work-optimized.webp";
 const Home = () => {
