@@ -206,6 +206,7 @@ export const ChatbotLive = memo(() => {
         }, 0);
       } else {
         setIsAuthenticated(false);
+        setUserId(null);
         setEmail('');
         setName('');
         setHasStarted(false);
