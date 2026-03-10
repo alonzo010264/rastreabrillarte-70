@@ -142,8 +142,8 @@ export const ChatbotLive = memo(() => {
   const [userId, setUserId] = useState<string | null>(null);
   const [pendingTransfer, setPendingTransfer] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
-  const inactivityTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const inactivityTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const INACTIVITY_WARNING_TIME = 3 * 60 * 1000;

@@ -95,7 +95,7 @@ export const AgentChatPanel = ({ sessionId, agentProfile, onEndChat }: AgentChat
   const [clientOrders, setClientOrders] = useState<ClientOrder[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom
