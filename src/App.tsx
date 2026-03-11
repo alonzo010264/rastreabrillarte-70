@@ -100,7 +100,8 @@ const AdminCorreosIA = lazyWithRetry(() => import("./pages/AdminCorreosIA"));
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
 
 // Chatbot se carga de forma diferida
-const ChatbotWrapper = lazyWithRetry(() => import("./components/ChatbotWrapper").then(m => ({ default: m.ChatbotWrapper })));
+const Chatbot = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.Chatbot })));
+const ChatbotTrigger = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.ChatbotTrigger })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
