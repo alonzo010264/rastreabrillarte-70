@@ -13,10 +13,10 @@ serve(async (req) => {
 
   try {
     const { messages, email, orderCode } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY no configurada');
+    if (!OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY no configurada');
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -143,16 +143,16 @@ ${userInfo}${orderInfo}`;
       }
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gpt-4o-mini',
         messages: aiMessages,
-        max_tokens: 200,
+        max_tokens: 250,
         temperature: 0.6
       }),
     });

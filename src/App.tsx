@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -100,7 +100,13 @@ const AdminCorreosIA = lazyWithRetry(() => import("./pages/AdminCorreosIA"));
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
 
 // Chatbot se carga de forma diferida
-const ChatbotWrapper = lazyWithRetry(() => import("./components/ChatbotWrapper").then(m => ({ default: m.ChatbotWrapper })));
+const Chatbot = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.Chatbot })));
+const ChatbotTrigger = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.ChatbotTrigger })));
+
+const ChatbotSection = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  return isOpen ? <Chatbot onClose={() => setIsOpen(false)} /> : <ChatbotTrigger onClick={() => setIsOpen(true)} />;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -199,7 +205,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <ChatbotWrapper />
+          <ChatbotSection />
         </Suspense>
       </BrowserRouter>
     </TooltipProvider>
