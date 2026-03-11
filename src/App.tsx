@@ -103,6 +103,11 @@ const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute")
 const Chatbot = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.Chatbot })));
 const ChatbotTrigger = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.ChatbotTrigger })));
 
+const ChatbotSection = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  return isOpen ? <Chatbot onClose={() => setIsOpen(false)} /> : <ChatbotTrigger onClick={() => setIsOpen(true)} />;
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
