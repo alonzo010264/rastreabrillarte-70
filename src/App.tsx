@@ -200,7 +200,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <ChatbotWrapper />
+          <ChatbotApp />
         </Suspense>
       </BrowserRouter>
     </TooltipProvider>
