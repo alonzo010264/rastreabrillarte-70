@@ -68,7 +68,7 @@ const buildHumanFallbackResponse = (lastUserMessage: string, orderInfo: string):
   );
 
   if (matched) {
-    return stripEmojis(`Claro, te explico. ${matched.answer}`);
+    return stripEmojis(`Soy Noah, tu asistente virtual de BRILLARTE. ${matched.answer}`);
   }
 
   return stripEmojis(
