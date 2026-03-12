@@ -72,7 +72,7 @@ const buildHumanFallbackResponse = (lastUserMessage: string, orderInfo: string):
   }
 
   return stripEmojis(
-    'Claro, te ayudo con gusto. Puedo orientarte sobre pedidos, envios, reembolsos, productos y seguimiento desde la web de BRILLARTE; si prefieres atencion inmediata, escribenos al WhatsApp 849-425-2220.'
+    'Soy Noah, tu asistente virtual de BRILLARTE. Te ayudo con pedidos, envios, reembolsos, productos y seguimiento en base a la web; si prefieres atencion inmediata, escribenos al WhatsApp 849-425-2220.'
   );
 };
 
