@@ -17,6 +17,42 @@ interface ChatbotProps {
   onClose: () => void;
 }
 
+const extractFunctionErrorMessage = async (error: unknown): Promise<string | null> => {
+  const functionError = error as {
+    message?: string;
+    context?: { json?: () => Promise<any>; text?: () => Promise<string> };
+  };
+
+  const context = functionError?.context;
+
+  if (context?.json) {
+    try {
+      const payload = await context.json();
+      if (typeof payload?.response === "string" && payload.response.trim()) return payload.response;
+      if (typeof payload?.error === "string" && payload.error.trim()) return payload.error;
+    } catch {
+      // no-op
+    }
+  }
+
+  if (context?.text) {
+    try {
+      const rawText = await context.text();
+      const parsed = JSON.parse(rawText);
+      if (typeof parsed?.response === "string" && parsed.response.trim()) return parsed.response;
+      if (typeof parsed?.error === "string" && parsed.error.trim()) return parsed.error;
+    } catch {
+      // no-op
+    }
+  }
+
+  const rawMessage = functionError?.message?.trim();
+  if (!rawMessage) return null;
+  if (rawMessage.toLowerCase().includes("edge function returned")) return null;
+
+  return rawMessage;
+};
+
 export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [messages, setMessages] = useState<Message[]>([

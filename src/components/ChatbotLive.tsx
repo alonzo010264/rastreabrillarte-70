@@ -114,6 +114,43 @@ interface VirtualAgent {
   tipo_agente?: string;
 }
 
+const extractFunctionErrorMessage = async (error: unknown): Promise<string | null> => {
+  const functionError = error as {
+    message?: string;
+    context?: { json?: () => Promise<any>; text?: () => Promise<string> };
+  };
+
+  const context = functionError?.context;
+
+  if (context?.json) {
+    try {
+      const payload = await context.json();
+      if (typeof payload?.response === "string" && payload.response.trim()) return payload.response;
+      if (typeof payload?.error === "string" && payload.error.trim()) return payload.error;
+    } catch {
+      // no-op
+    }
+  }
+
+  if (context?.text) {
+    try {
+      const rawText = await context.text();
+      const parsed = JSON.parse(rawText);
+      if (typeof parsed?.response === "string" && parsed.response.trim()) return parsed.response;
+      if (typeof parsed?.error === "string" && parsed.error.trim()) return parsed.error;
+    } catch {
+      // no-op
+    }
+  }
+
+  const rawMessage = functionError?.message?.toLowerCase() || "";
+  if (rawMessage.includes("429") || rawMessage.includes("402")) {
+    return "Ahora mismo tengo alta demanda, pero sigo aqui para ayudarte. Dime si tu consulta es de pedido, envio, reembolso o productos.";
+  }
+
+  return null;
+};
+
 export const ChatbotLive = memo(() => {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
