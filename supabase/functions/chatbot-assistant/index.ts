@@ -60,7 +60,7 @@ const buildHumanFallbackResponse = (lastUserMessage: string, orderInfo: string):
   const normalized = normalizeText(lastUserMessage || '');
 
   if (orderInfo && /(pedido|codigo|rastreo|tracking|estado|donde va)/.test(normalized)) {
-    return stripEmojis(`Claro, te ayudo con tu pedido. ${orderInfo.replace(/^\n/, '')}. Si deseas, te sigo asistiendo por WhatsApp al 849-425-2220.`);
+...
   }
 
   const matched = websiteKnowledge.find((item) =>
