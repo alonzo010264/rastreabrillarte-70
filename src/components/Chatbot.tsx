@@ -22,7 +22,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hola, soy del equipo de BRILLARTE. En que puedo ayudarte? Puedes preguntarme sobre pedidos, politicas, productos o enviarme imagenes si necesitas ayuda con algo."
+      content: "Hola, soy Noah, asistente virtual de BRILLARTE. Te ayudo con pedidos, envios, politicas y consultas de la web. Si quieres, tambien puedes enviarme imagenes."
     }
   ]);
   const [input, setInput] = useState("");
@@ -157,7 +157,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
           <img src={brillarteLogo} alt="Brillarte" className="w-8 h-8 rounded-full" />
           <div>
             <h3 className="font-semibold text-sm">BRILLARTE</h3>
-            <p className="text-xs opacity-90">Atencion al Cliente</p>
+            <p className="text-xs opacity-90">Noah · Asistente Virtual</p>
           </div>
         </div>
         <Button
