@@ -3,8 +3,97 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.4";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+const stripEmojis = (text: string) =>
+  text
+    .replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]/gu, '')
+    .trim();
+
+const extractAssistantMessage = (payload: any): string => {
+  const content = payload?.choices?.[0]?.message?.content;
+  if (!content) return '';
+  return typeof content === 'string' ? content : JSON.stringify(content);
+};
+
+async function getAiResponse(aiMessages: any[], openAiKey: string | null, lovableApiKey: string | null): Promise<string> {
+  if (openAiKey) {
+    const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: aiMessages,
+        max_tokens: 250,
+        temperature: 0.6,
+      }),
+    });
+
+    if (openAiResponse.ok) {
+      const openAiData = await openAiResponse.json();
+      const openAiMessage = extractAssistantMessage(openAiData);
+      if (openAiMessage) return stripEmojis(openAiMessage);
+    } else {
+      const errorText = await openAiResponse.text();
+      let errorCode = '';
+      try {
+        const parsed = JSON.parse(errorText);
+        errorCode = parsed?.error?.code || '';
+      } catch {
+        // no-op
+      }
+
+      console.error('OpenAI error:', openAiResponse.status, errorText);
+
+      const canFallback = Boolean(lovableApiKey) && (
+        openAiResponse.status === 429 ||
+        openAiResponse.status === 402 ||
+        errorCode === 'insufficient_quota'
+      );
+
+      if (!canFallback) {
+        throw new Error(`OpenAI error: ${openAiResponse.status}`);
+      }
+    }
+  }
+
+  if (!lovableApiKey) {
+    throw new Error('No hay proveedor de IA disponible');
+  }
+
+  const lovableResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${lovableApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: aiMessages,
+      max_tokens: 250,
+      temperature: 0.6,
+    }),
+  });
+
+  if (!lovableResponse.ok) {
+    const errorText = await lovableResponse.text();
+    console.error('Lovable AI error:', lovableResponse.status, errorText);
+    throw new Error(`Lovable AI error: ${lovableResponse.status}`);
+  }
+
+  const lovableData = await lovableResponse.json();
+  const lovableMessage = extractAssistantMessage(lovableData);
+
+  if (!lovableMessage) {
+    throw new Error('La IA no devolvio contenido');
+  }
+
+  return stripEmojis(lovableMessage);
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
