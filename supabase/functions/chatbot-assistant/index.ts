@@ -540,13 +540,35 @@ ${userInfo}${orderInfo}`;
 // ==========================================
 
 async function getAiResponse(aiMessages: any[], openAiKey: string | null, lovableApiKey: string | null): Promise<string> {
-  // Try OpenAI first
+  // Try Lovable AI FIRST (preferred - uses advanced models)
+  if (lovableApiKey) {
+    try {
+      const lovableResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${lovableApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'google/gemini-2.5-flash', messages: aiMessages, max_tokens: 500, temperature: 0.75 }),
+      });
+
+      if (lovableResponse.ok) {
+        const data = await lovableResponse.json();
+        const msg = extractAssistantMessage(data);
+        if (msg) return stripEmojis(msg);
+      } else {
+        const errorText = await lovableResponse.text();
+        console.error('Lovable AI error:', lovableResponse.status, errorText);
+      }
+    } catch (e) {
+      console.error('Lovable AI failed:', e);
+    }
+  }
+
+  // Fallback to OpenAI with advanced model
   if (openAiKey) {
     try {
       const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${openAiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'gpt-4o-mini', messages: aiMessages, max_tokens: 300, temperature: 0.7 }),
+        body: JSON.stringify({ model: 'gpt-4o', messages: aiMessages, max_tokens: 500, temperature: 0.75 }),
       });
 
       if (openAiResponse.ok) {
@@ -556,39 +578,10 @@ async function getAiResponse(aiMessages: any[], openAiKey: string | null, lovabl
       } else {
         const errorText = await openAiResponse.text();
         console.error('OpenAI error:', openAiResponse.status, errorText);
-
-        let errorCode = '';
-        try { errorCode = JSON.parse(errorText)?.error?.code || ''; } catch { /* */ }
-
-        const canFallback = Boolean(lovableApiKey) && (
-          openAiResponse.status === 429 || openAiResponse.status === 402 || errorCode === 'insufficient_quota'
-        );
-        if (!canFallback) throw new Error(`OpenAI error: ${openAiResponse.status}`);
       }
     } catch (e) {
-      if (!lovableApiKey) throw e;
-      console.error('OpenAI failed, trying Lovable AI:', e);
+      console.error('OpenAI failed:', e);
     }
-  }
-
-  // Try Lovable AI
-  if (lovableApiKey) {
-    const lovableResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${lovableApiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'google/gemini-3-flash-preview', messages: aiMessages, max_tokens: 300, temperature: 0.7 }),
-    });
-
-    if (!lovableResponse.ok) {
-      const errorText = await lovableResponse.text();
-      console.error('Lovable AI error:', lovableResponse.status, errorText);
-      throw new Error(`Lovable AI error: ${lovableResponse.status}`);
-    }
-
-    const data = await lovableResponse.json();
-    const msg = extractAssistantMessage(data);
-    if (msg) return stripEmojis(msg);
-    throw new Error('La IA no devolvio contenido');
   }
 
   throw new Error('No hay proveedor de IA disponible');
