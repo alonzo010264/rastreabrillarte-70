@@ -157,7 +157,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
           <img src={brillarteLogo} alt="Brillarte" className="w-8 h-8 rounded-full" />
           <div>
             <h3 className="font-semibold text-sm">BRILLARTE</h3>
-            <p className="text-xs opacity-90">Atencion al Cliente</p>
+            <p className="text-xs opacity-90">Noah · Asistente Virtual</p>
           </div>
         </div>
         <Button
