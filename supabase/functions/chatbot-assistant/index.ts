@@ -233,41 +233,7 @@ ${userInfo}${orderInfo}`;
       }
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: aiMessages,
-        max_tokens: 250,
-        temperature: 0.6
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ response: "Estamos recibiendo muchas consultas. Intentalo en unos segundos." }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ response: "Servicio temporalmente no disponible. Contactanos por WhatsApp al 849-425-2220." }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      throw new Error(`AI Gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    let assistantMessage = data.choices[0].message.content;
-    
-    // Remove emojis
-    assistantMessage = assistantMessage.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]/gu, '').trim();
+    const assistantMessage = await getAiResponse(aiMessages, OPENAI_API_KEY, LOVABLE_API_KEY);
 
     return new Response(
       JSON.stringify({ response: assistantMessage }),
