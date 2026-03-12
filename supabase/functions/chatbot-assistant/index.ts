@@ -298,10 +298,11 @@ ${userInfo}${orderInfo}`;
       assistantMessage = await getAiResponse(aiMessages, OPENAI_API_KEY, LOVABLE_API_KEY);
     } catch (aiError) {
       console.error('AI providers unavailable:', aiError);
-      assistantMessage = orderInfo
-        ? `Ahora mismo tenemos alta demanda en el chat. ${orderInfo.replace(/^\n/, '')} Si necesitas mas ayuda inmediata, escribenos por WhatsApp al 849-425-2220.`
-        : 'Ahora mismo tenemos alta demanda en el chat. Escribenos por WhatsApp al 849-425-2220 para ayudarte de inmediato.';
-      assistantMessage = stripEmojis(assistantMessage);
+      assistantMessage = buildHumanFallbackResponse(lastMsg, orderInfo);
+    }
+
+    if (!assistantMessage) {
+      assistantMessage = buildHumanFallbackResponse(lastMsg, orderInfo);
     }
 
     return new Response(
