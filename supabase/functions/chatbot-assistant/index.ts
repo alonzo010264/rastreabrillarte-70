@@ -17,6 +17,65 @@ const extractAssistantMessage = (payload: any): string => {
   return typeof content === 'string' ? content : JSON.stringify(content);
 };
 
+const websiteKnowledge = [
+  {
+    keywords: ['envio', 'entrega', 'delivery', 'vimenpaq', 'domex'],
+    answer:
+      'Hacemos envios a toda Republica Dominicana via Vimenpaq y Domex, desde RD$200 sujeto a variaciones. Los pedidos en stock llegan en 1 a 3 dias habiles y los personalizados en 5 a 7 dias habiles.',
+  },
+  {
+    keywords: ['reembolso', 'devolucion', 'garantia', 'cambio'],
+    answer:
+      'El plazo de reclamacion es de 48 horas desde que recibes el pedido y debes conservar la factura original. Los personalizados no tienen devolucion y la garantia cubre defectos de fabrica, dano de envio o producto incorrecto.',
+  },
+  {
+    keywords: ['ubicacion', 'direccion', 'tienda fisica', 'donde estan'],
+    answer:
+      'Somos una tienda 100% virtual de Santiago de los Caballeros, no tenemos tienda fisica abierta al publico. Te atendemos por esta web y por WhatsApp al 849-425-2220.',
+  },
+  {
+    keywords: ['horario', 'atencion', 'abren', 'cierran'],
+    answer: 'Nuestro horario de atencion es de lunes a viernes de 9:00 AM a 6:00 PM.',
+  },
+  {
+    keywords: ['precio', 'catalogo', 'productos', 'comprar'],
+    answer:
+      'Para ver catalogo y precios actualizados, revisa la seccion /productos o escribenos por WhatsApp al 849-425-2220 y te guiamos de inmediato.',
+  },
+  {
+    keywords: ['instagram', 'correo', 'contacto', 'whatsapp', 'telefono'],
+    answer:
+      'Puedes contactarnos por WhatsApp al 849-425-2220, por Instagram @brillarte.do.oficial o por correo brillarte.oficial.ventas@gmail.com.',
+  },
+];
+
+const normalizeText = (text: string) =>
+  text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
+const buildHumanFallbackResponse = (lastUserMessage: string, orderInfo: string): string => {
+  const normalized = normalizeText(lastUserMessage || '');
+
+  if (orderInfo && /(pedido|codigo|rastreo|tracking|estado|donde va)/.test(normalized)) {
+    return stripEmojis(`Claro, te ayudo con tu pedido. ${orderInfo.replace(/^\n/, '')}. Si deseas, te sigo asistiendo por WhatsApp al 849-425-2220.`);
+  }
+
+  const matched = websiteKnowledge.find((item) =>
+    item.keywords.some((keyword) => normalized.includes(keyword))
+  );
+
+  if (matched) {
+    return stripEmojis(`Claro, te explico. ${matched.answer}`);
+  }
+
+  return stripEmojis(
+    'Claro, te ayudo con gusto. Puedo orientarte sobre pedidos, envios, reembolsos, productos y seguimiento desde la web de BRILLARTE; si prefieres atencion inmediata, escribenos al WhatsApp 849-425-2220.'
+  );
+};
+
 async function getAiResponse(aiMessages: any[], openAiKey: string | null, lovableApiKey: string | null): Promise<string> {
   if (openAiKey) {
     const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -72,7 +131,7 @@ async function getAiResponse(aiMessages: any[], openAiKey: string | null, lovabl
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
+      model: 'google/gemini-3-flash-preview',
       messages: aiMessages,
       max_tokens: 250,
       temperature: 0.6,
@@ -239,10 +298,11 @@ ${userInfo}${orderInfo}`;
       assistantMessage = await getAiResponse(aiMessages, OPENAI_API_KEY, LOVABLE_API_KEY);
     } catch (aiError) {
       console.error('AI providers unavailable:', aiError);
-      assistantMessage = orderInfo
-        ? `Ahora mismo tenemos alta demanda en el chat. ${orderInfo.replace(/^\n/, '')} Si necesitas mas ayuda inmediata, escribenos por WhatsApp al 849-425-2220.`
-        : 'Ahora mismo tenemos alta demanda en el chat. Escribenos por WhatsApp al 849-425-2220 para ayudarte de inmediato.';
-      assistantMessage = stripEmojis(assistantMessage);
+      assistantMessage = buildHumanFallbackResponse(lastMsg, orderInfo);
+    }
+
+    if (!assistantMessage) {
+      assistantMessage = buildHumanFallbackResponse(lastMsg, orderInfo);
     }
 
     return new Response(
