@@ -186,8 +186,17 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       });
       if (error) throw error;
       setMessages([...newMessages, { role: "assistant", content: data.response }]);
-    } catch {
-      setMessages([...newMessages, { role: "assistant", content: "Disculpa, tuve un problema. Intentalo de nuevo." }]);
+    } catch (error) {
+      const errorMessage = await extractFunctionErrorMessage(error);
+      setMessages([
+        ...newMessages,
+        {
+          role: "assistant",
+          content:
+            errorMessage ||
+            "Disculpa, en este momento tengo alta demanda. Escribeme tu consulta de envio, pedido o reembolso y te ayudo de inmediato.",
+        },
+      ]);
     } finally {
       setLoading(false);
     }

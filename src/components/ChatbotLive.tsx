@@ -860,7 +860,7 @@ export const ChatbotLive = memo(() => {
     setAiTypingDelay(true);
 
     try {
-      const agentName = virtualAgent?.nombre || "Brillarte";
+      const agentName = virtualAgent?.nombre || "Noah";
       const agentRole = virtualAgent?.tipo_agente || "asistente";
       
       const { data, error } = await supabase.functions.invoke("chatbot-assistant", {
@@ -879,18 +879,21 @@ export const ChatbotLive = memo(() => {
         },
       });
 
+      const functionErrorResponse = error ? await extractFunctionErrorMessage(error) : null;
+      const assistantResponse = data?.response || functionErrorResponse;
+
       // Add realistic typing delay
-      const responseLength = data?.response?.length || 50;
+      const responseLength = assistantResponse?.length || 50;
       await new Promise(resolve => setTimeout(resolve, getRandomTypingDelay(responseLength)));
 
-      if (!error && data?.response) {
+      if (assistantResponse) {
         const metadata: any = {};
-        if (data.productImages?.length > 0) metadata.productImages = data.productImages;
-        if (data.dbProductImages?.length > 0) metadata.dbProductImages = data.dbProductImages;
-        if (data.trackedOrder) metadata.trackedOrder = data.trackedOrder;
+        if (data?.productImages?.length > 0) metadata.productImages = data.productImages;
+        if (data?.dbProductImages?.length > 0) metadata.dbProductImages = data.dbProductImages;
+        if (data?.trackedOrder) metadata.trackedOrder = data.trackedOrder;
 
         // Handle cart actions - add products to cart
-        if (data.cartActions?.length > 0 && userId) {
+        if (data?.cartActions?.length > 0 && userId) {
           for (const productId of data.cartActions) {
             try {
               const { data: existing } = await supabase
@@ -921,16 +924,16 @@ export const ChatbotLive = memo(() => {
           session_id: session.id,
           sender_type: "ia",
           sender_nombre: agentName,
-          contenido: data.response,
+          contenido: assistantResponse,
           tipo: "texto",
           metadata: Object.keys(metadata).length > 0 ? metadata : null,
         });
 
         // If AI detected urgent case, notify admin
-        if (data.isUrgentCase) {
+        if (data?.isUrgentCase) {
           await notifyUrgentCase(
             messageContent,
-            data.response,
+            assistantResponse,
             "Caso escalado por IA"
           );
         }
@@ -948,8 +951,8 @@ export const ChatbotLive = memo(() => {
       await supabase.from("chat_messages").insert({
         session_id: session.id,
         sender_type: "ia",
-        sender_nombre: virtualAgent?.nombre || "Brillarte",
-        contenido: "Tuve un problema tecnico. Por favor contactanos por WhatsApp al 849-425-2220.",
+        sender_nombre: virtualAgent?.nombre || "Noah",
+        contenido: "Ahora mismo tengo alta demanda, pero sigo aqui para ayudarte con pedidos, envios y reembolsos. Tambien puedes escribirnos al WhatsApp 849-425-2220.",
         tipo: "texto",
       });
     } finally {
