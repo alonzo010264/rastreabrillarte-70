@@ -26,6 +26,8 @@ const Register = () => {
   const [countdown, setCountdown] = useState(0);
   const [referrerName, setReferrerName] = useState<string | null>(null);
   const [hasRefFromUrl, setHasRefFromUrl] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
     correo: "",
