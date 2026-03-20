@@ -1,32 +1,31 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-// Componente de carga
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
   </div>
 );
 
-// Helper: lazy load with automatic retry on chunk load failure (common on mobile)
 function lazyWithRetry(importFn: () => Promise<any>, retries = 3): ReturnType<typeof lazy> {
   return lazy(() => {
     const attempt = (triesLeft: number): Promise<any> =>
       importFn().catch((err: any) => {
         if (triesLeft <= 0) throw err;
-        // Wait briefly then retry (helps with flaky mobile connections)
         return new Promise(resolve => setTimeout(resolve, 500)).then(() => attempt(triesLeft - 1));
       });
     return attempt(retries);
   });
 }
 
-// Lazy load de páginas principales
+// Lazy load pages
 const Home = lazyWithRetry(() => import("./pages/Home"));
 const OrderTracking = lazyWithRetry(() => import("./pages/OrderTracking"));
 const AboutUs = lazyWithRetry(() => import("./pages/AboutUs"));
@@ -96,10 +95,8 @@ const AdminBlog = lazyWithRetry(() => import("./pages/AdminBlog"));
 const EmprendeBrillarte = lazyWithRetry(() => import("./pages/EmprendeBrillarte"));
 const EmprendeBrillarteAplicar = lazyWithRetry(() => import("./pages/EmprendeBrillarteAplicar"));
 const AdminCorreosIA = lazyWithRetry(() => import("./pages/AdminCorreosIA"));
-// Componentes de protección
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
 
-// Chatbot se carga de forma diferida
 const Chatbot = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.Chatbot })));
 const ChatbotTrigger = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.ChatbotTrigger })));
 
@@ -107,6 +104,100 @@ const ChatbotSection = () => {
   const [isOpen, setIsOpen] = useState(false);
   return isOpen ? <Chatbot onClose={() => setIsOpen(false)} /> : <ChatbotTrigger onClick={() => setIsOpen(true)} />;
 };
+
+const pageVariants = {
+  initial: { opacity: 0, y: 12, filter: "blur(4px)" },
+  animate: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+  exit: { opacity: 0, y: -8, filter: "blur(2px)", transition: { duration: 0.2 } },
+};
+
+function PageWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
+      {children}
+    </motion.div>
+  );
+}
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
+        <Route path="/auth" element={<PageWrapper><Auth /></PageWrapper>} />
+        <Route path="/nosotros" element={<PageWrapper><AboutUs /></PageWrapper>} />
+        <Route path="/productos" element={<PageWrapper><Products /></PageWrapper>} />
+        <Route path="/rastrear" element={<PageWrapper><OrderTracking /></PageWrapper>} />
+        <Route path="/faq" element={<PageWrapper><FAQ /></PageWrapper>} />
+        <Route path="/contacto" element={<PageWrapper><Contact /></PageWrapper>} />
+        <Route path="/pedir" element={<PageWrapper><OrderRequest /></PageWrapper>} />
+        <Route path="/regalos" element={<PageWrapper><BrillarteRegalos /></PageWrapper>} />
+        <Route path="/cancel-notifications" element={<PageWrapper><CancelNotifications /></PageWrapper>} />
+        <Route path="/politicas-privacidad" element={<PageWrapper><PrivacyPolicy /></PageWrapper>} />
+        <Route path="/politicas-envio" element={<PageWrapper><ShippingPolicy /></PageWrapper>} />
+        <Route path="/politicas-reembolso" element={<PageWrapper><RefundPolicy /></PageWrapper>} />
+        <Route path="/terminos-condiciones" element={<PageWrapper><TermsConditions /></PageWrapper>} />
+        <Route path="/registro" element={<PageWrapper><Register /></PageWrapper>} />
+        <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+        <Route path="/registro-confirmado" element={<PageWrapper><RegistroConfirmado /></PageWrapper>} />
+        <Route path="/mi-cuenta" element={<PageWrapper><CustomerDashboard /></PageWrapper>} />
+        <Route path="/perfil" element={<PageWrapper><Perfil /></PageWrapper>} />
+        <Route path="/promociones" element={<PageWrapper><Promociones /></PageWrapper>} />
+        <Route path="/favoritos" element={<PageWrapper><Favoritos /></PageWrapper>} />
+        <Route path="/perfil/:userId" element={<PageWrapper><PerfilPublico /></PageWrapper>} />
+        <Route path="/perfil-publico/:userId" element={<PageWrapper><PerfilPublico /></PageWrapper>} />
+        <Route path="/tarjetas-regalo" element={<PageWrapper><TarjetasRegalo /></PageWrapper>} />
+        <Route path="/comunidad" element={<PageWrapper><Comunidad /></PageWrapper>} />
+        <Route path="/mensajes" element={<PageWrapper><Mensajes /></PageWrapper>} />
+        <Route path="/solicitar-verificacion" element={<PageWrapper><SolicitudVerificacion /></PageWrapper>} />
+        <Route path="/cuenta-suspendida" element={<PageWrapper><BannedAccount /></PageWrapper>} />
+        <Route path="/apelar-baneo" element={<PageWrapper><ApelacionBaneo /></PageWrapper>} />
+        <Route path="/guia-codigos-pago" element={<PageWrapper><GuiaCodigosPago /></PageWrapper>} />
+        <Route path="/rastrear-pedido/:codigoPedido" element={<PageWrapper><RastrearPedidoOnline /></PageWrapper>} />
+        <Route path="/cuenta" element={<PageWrapper><Account /></PageWrapper>} />
+        <Route path="/rastrear-ticket" element={<PageWrapper><RastrearTicket /></PageWrapper>} />
+        <Route path="/suscribir-pedido" element={<PageWrapper><SuscribirPedido /></PageWrapper>} />
+        <Route path="/eventos" element={<PageWrapper><Eventos /></PageWrapper>} />
+        <Route path="/novedades" element={<PageWrapper><Novedades /></PageWrapper>} />
+        <Route path="/blog" element={<PageWrapper><Blog /></PageWrapper>} />
+        <Route path="/mi-pedido/:codigoPedido" element={<PageWrapper><MiPedidoDetalle /></PageWrapper>} />
+        <Route path="/verificacion" element={<PageWrapper><VerificacionPage /></PageWrapper>} />
+        <Route path="/reset-password" element={<PageWrapper><ResetPassword /></PageWrapper>} />
+        <Route path="/referidos" element={<PageWrapper><Referidos /></PageWrapper>} />
+        <Route path="/emprende-brillarte" element={<PageWrapper><EmprendeBrillarte /></PageWrapper>} />
+        <Route path="/emprende-brillarte/aplicar" element={<PageWrapper><EmprendeBrillarteAplicar /></PageWrapper>} />
+        <Route path="/agente/login" element={<PageWrapper><AgentLogin /></PageWrapper>} />
+        <Route path="/agente/dashboard" element={<PageWrapper><ProtectedRoute requiredRole="agent"><AgentDashboard /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin-dashboard" element={<PageWrapper><ProtectedRoute><AdminDashboard /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/productos" element={<PageWrapper><ProtectedRoute><AdminProductos /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/promociones" element={<PageWrapper><ProtectedRoute><AdminPromociones /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/tarjetas" element={<PageWrapper><ProtectedRoute><AdminTarjetas /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/roles" element={<PageWrapper><ProtectedRoute><AdminRoles /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/emails" element={<PageWrapper><ProtectedRoute><AdminEmails /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/cuentas" element={<PageWrapper><ProtectedRoute><AdminCuentas /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/cuenta/:userId" element={<PageWrapper><ProtectedRoute><AdminCuentaDetalle /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/tickets" element={<PageWrapper><ProtectedRoute><AdminTickets /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/verificaciones" element={<PageWrapper><ProtectedRoute><AdminVerificaciones /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/contabilidad" element={<PageWrapper><ProtectedRoute><AdminContabilidad /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/carritos-abandonados" element={<PageWrapper><ProtectedRoute><AdminCarritosAbandonados /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/envios" element={<PageWrapper><ProtectedRoute><AdminEnvios /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/solicitudes-ia" element={<PageWrapper><ProtectedRoute><AdminSolicitudesIA /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/codigos-pago" element={<PageWrapper><ProtectedRoute><AdminCodigosPago /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/brillarte-pay" element={<PageWrapper><ProtectedRoute><AdminBrillartePay /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/politicas" element={<PageWrapper><ProtectedRoute><AdminPoliticas /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/cupones" element={<PageWrapper><ProtectedRoute><AdminCupones /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/noticias" element={<PageWrapper><ProtectedRoute><AdminNoticias /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/blog" element={<PageWrapper><ProtectedRoute><AdminBlog /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/referidos" element={<PageWrapper><ProtectedRoute><AdminReferidos /></ProtectedRoute></PageWrapper>} />
+        <Route path="/admin/correos-ia" element={<PageWrapper><ProtectedRoute><AdminCorreosIA /></ProtectedRoute></PageWrapper>} />
+        <Route path="/brillarte-pedidos" element={<PageWrapper><ProtectedRoute><BrillartePedidos /></ProtectedRoute></PageWrapper>} />
+        <Route path="/manage" element={<PageWrapper><ProtectedRoute><OrderManagement /></ProtectedRoute></PageWrapper>} />
+        <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -125,88 +216,12 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            {/* Rutas públicas */}
-            <Route path="/" element={<Home />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/nosotros" element={<AboutUs />} />
-            <Route path="/productos" element={<Products />} />
-            <Route path="/rastrear" element={<OrderTracking />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/contacto" element={<Contact />} />
-            <Route path="/pedir" element={<OrderRequest />} />
-            <Route path="/regalos" element={<BrillarteRegalos />} />
-            <Route path="/cancel-notifications" element={<CancelNotifications />} />
-            <Route path="/politicas-privacidad" element={<PrivacyPolicy />} />
-            <Route path="/politicas-envio" element={<ShippingPolicy />} />
-            <Route path="/politicas-reembolso" element={<RefundPolicy />} />
-            <Route path="/terminos-condiciones" element={<TermsConditions />} />
-            <Route path="/registro" element={<Register />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/registro-confirmado" element={<RegistroConfirmado />} />
-            <Route path="/mi-cuenta" element={<CustomerDashboard />} />
-            <Route path="/perfil" element={<Perfil />} />
-            <Route path="/promociones" element={<Promociones />} />
-            <Route path="/favoritos" element={<Favoritos />} />
-            <Route path="/perfil/:userId" element={<PerfilPublico />} />
-            <Route path="/perfil-publico/:userId" element={<PerfilPublico />} />
-            <Route path="/tarjetas-regalo" element={<TarjetasRegalo />} />
-            <Route path="/comunidad" element={<Comunidad />} />
-            <Route path="/mensajes" element={<Mensajes />} />
-            <Route path="/solicitar-verificacion" element={<SolicitudVerificacion />} />
-            <Route path="/cuenta-suspendida" element={<BannedAccount />} />
-            <Route path="/apelar-baneo" element={<ApelacionBaneo />} />
-            <Route path="/guia-codigos-pago" element={<GuiaCodigosPago />} />
-            <Route path="/rastrear-pedido/:codigoPedido" element={<RastrearPedidoOnline />} />
-            <Route path="/cuenta" element={<Account />} />
-            <Route path="/rastrear-ticket" element={<RastrearTicket />} />
-            <Route path="/suscribir-pedido" element={<SuscribirPedido />} />
-            
-            <Route path="/eventos" element={<Eventos />} />
-            <Route path="/novedades" element={<Novedades />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/mi-pedido/:codigoPedido" element={<MiPedidoDetalle />} />
-            <Route path="/verificacion" element={<VerificacionPage />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/referidos" element={<Referidos />} />
-            <Route path="/emprende-brillarte" element={<EmprendeBrillarte />} />
-            <Route path="/emprende-brillarte/aplicar" element={<EmprendeBrillarteAplicar />} />
-
-            {/* Rutas de agente - requiere rol agent */}
-            <Route path="/agente/login" element={<AgentLogin />} />
-            <Route path="/agente/dashboard" element={<ProtectedRoute requiredRole="agent"><AgentDashboard /></ProtectedRoute>} />
-
-            {/* Rutas protegidas de administración - solo admin verificados */}
-            <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/productos" element={<ProtectedRoute><AdminProductos /></ProtectedRoute>} />
-            <Route path="/admin/promociones" element={<ProtectedRoute><AdminPromociones /></ProtectedRoute>} />
-            <Route path="/admin/tarjetas" element={<ProtectedRoute><AdminTarjetas /></ProtectedRoute>} />
-            <Route path="/admin/roles" element={<ProtectedRoute><AdminRoles /></ProtectedRoute>} />
-            <Route path="/admin/emails" element={<ProtectedRoute><AdminEmails /></ProtectedRoute>} />
-            <Route path="/admin/cuentas" element={<ProtectedRoute><AdminCuentas /></ProtectedRoute>} />
-            <Route path="/admin/cuenta/:userId" element={<ProtectedRoute><AdminCuentaDetalle /></ProtectedRoute>} />
-            <Route path="/admin/tickets" element={<ProtectedRoute><AdminTickets /></ProtectedRoute>} />
-            <Route path="/admin/verificaciones" element={<ProtectedRoute><AdminVerificaciones /></ProtectedRoute>} />
-            <Route path="/admin/contabilidad" element={<ProtectedRoute><AdminContabilidad /></ProtectedRoute>} />
-            <Route path="/admin/carritos-abandonados" element={<ProtectedRoute><AdminCarritosAbandonados /></ProtectedRoute>} />
-            <Route path="/admin/envios" element={<ProtectedRoute><AdminEnvios /></ProtectedRoute>} />
-            <Route path="/admin/solicitudes-ia" element={<ProtectedRoute><AdminSolicitudesIA /></ProtectedRoute>} />
-            <Route path="/admin/codigos-pago" element={<ProtectedRoute><AdminCodigosPago /></ProtectedRoute>} />
-            <Route path="/admin/brillarte-pay" element={<ProtectedRoute><AdminBrillartePay /></ProtectedRoute>} />
-            <Route path="/admin/politicas" element={<ProtectedRoute><AdminPoliticas /></ProtectedRoute>} />
-            <Route path="/admin/cupones" element={<ProtectedRoute><AdminCupones /></ProtectedRoute>} />
-            <Route path="/admin/noticias" element={<ProtectedRoute><AdminNoticias /></ProtectedRoute>} />
-            <Route path="/admin/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
-            <Route path="/admin/referidos" element={<ProtectedRoute><AdminReferidos /></ProtectedRoute>} />
-            <Route path="/admin/correos-ia" element={<ProtectedRoute><AdminCorreosIA /></ProtectedRoute>} />
-            <Route path="/brillarte-pedidos" element={<ProtectedRoute><BrillartePedidos /></ProtectedRoute>} />
-            <Route path="/manage" element={<ProtectedRoute><OrderManagement /></ProtectedRoute>} />
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <ChatbotSection />
-        </Suspense>
+        <AuthProvider>
+          <Suspense fallback={<PageLoader />}>
+            <AnimatedRoutes />
+            <ChatbotSection />
+          </Suspense>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
