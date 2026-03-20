@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -9,52 +8,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole = "admin" }: ProtectedRouteProps) => {
-  const [status, setStatus] = useState<"loading" | "authorized" | "unauthorized">("loading");
+  const { user, profile, isAdmin, isAgent, loading } = useAuth();
 
-  useEffect(() => {
-    const checkAccess = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setStatus("unauthorized");
-          return;
-        }
-
-        // Check if user has the required role
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .eq("role", requiredRole)
-          .maybeSingle();
-
-        if (!roleData) {
-          setStatus("unauthorized");
-          return;
-        }
-
-        // Check if user profile is verified
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("verificado, confirmado")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (!profile?.verificado || !profile?.confirmado) {
-          setStatus("unauthorized");
-          return;
-        }
-
-        setStatus("authorized");
-      } catch {
-        setStatus("unauthorized");
-      }
-    };
-
-    checkAccess();
-  }, [requiredRole]);
-
-  if (status === "loading") {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -62,9 +18,14 @@ const ProtectedRoute = ({ children, requiredRole = "admin" }: ProtectedRouteProp
     );
   }
 
-  if (status === "unauthorized") {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
+
+  // Check role
+  const hasRole = requiredRole === "admin" ? isAdmin : requiredRole === "agent" ? isAgent : false;
+  if (!hasRole) return <Navigate to="/login" replace />;
+
+  // Check profile verification
+  if (!profile?.verificado || !profile?.confirmado) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
 };
