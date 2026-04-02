@@ -635,26 +635,3 @@ function ProductCard({ product, imageIndex, isFavorite, isOfferActive: offerActi
     </div>
   );
 }
-
-interface Product {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  precio_original: number | null;
-  precio_mayoreo: number | null;
-  cantidad_mayoreo: number | null;
-  colores: string[];
-  imagenes: string[];
-  categoria: string;
-  stock: number;
-  destacado: boolean | null;
-  disponible: boolean | null;
-  fecha_lanzamiento: string | null;
-  en_oferta: boolean | null;
-  porcentaje_descuento: number | null;
-  oferta_inicio: string | null;
-  oferta_fin: string | null;
-  codigo_oferta: string | null;
-  tallas: string[] | null;
-}
