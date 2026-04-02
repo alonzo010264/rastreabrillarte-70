@@ -1,20 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { FlyingItem } from "@/components/FlyingItem";
 import { OfferCountdown } from "@/components/OfferCountdown";
 import { createPortal } from "react-dom";
-import { FaShoppingBag, FaChevronLeft, FaChevronRight, FaHeart, FaShoppingCart, FaStar, FaRocket, FaPercent, FaTruck, FaSpinner, FaMoneyBillWave, FaStore } from "react-icons/fa";
-
-interface EmpresaEnvio {
-  id: string;
-  nombre: string;
-  logo_url: string | null;
-}
+import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaHeart,
+  FaRegHeart,
+  FaShoppingCart,
+  FaPercent,
+  FaSpinner,
+  FaSearch,
+  FaSlidersH,
+  FaTimes,
+} from "react-icons/fa";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Product {
   id: string;
@@ -36,538 +54,584 @@ interface Product {
   oferta_inicio: string | null;
   oferta_fin: string | null;
   codigo_oferta: string | null;
+  tallas: string[] | null;
 }
+
+type SortOption = "featured" | "price_asc" | "price_desc" | "newest" | "name";
 
 export const ProductShowcase = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [empresasEnvio, setEmpresasEnvio] = useState<EmpresaEnvio[]>([]);
   const [loading, setLoading] = useState(true);
-  const { ref, isVisible } = useScrollAnimation();
-  const [currentImageIndex, setCurrentImageIndex] = useState<{[key: string]: number}>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedMaterials, setSelectedMaterials] = useState<Set<string>>(new Set());
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
+  const [maxPrice, setMaxPrice] = useState(500);
+  const [sortBy, setSortBy] = useState<SortOption>("featured");
+  const [currentImageIndex, setCurrentImageIndex] = useState<Record<string, number>>({});
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [user, setUser] = useState<any>(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [flyingItems, setFlyingItems] = useState<Array<{
     id: string;
     startPos: { x: number; y: number };
     endPos: { x: number; y: number };
-    type: 'cart' | 'favorite';
+    type: "cart" | "favorite";
   }>>([]);
 
-  useEffect(() => {
-    checkUser();
-    loadEmpresasEnvio();
-  }, []);
+  const { user } = useAuth();
+  const isMobile = useIsMobile();
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-    if (user) {
-      loadFavorites(user.id);
-    }
+  useEffect(() => {
     fetchProducts();
-  };
-
-  const loadEmpresasEnvio = async () => {
-    const { data, error } = await supabase
-      .from('empresas_envio')
-      .select('id, nombre, logo_url')
-      .eq('activo', true);
-    
-    if (!error && data) {
-      setEmpresasEnvio(data);
-    }
-  };
-
-  const loadFavorites = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('favoritos')
-        .select('producto_id')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      setFavorites(new Set(data?.map(f => f.producto_id) || []));
-    } catch (error) {
-      console.error('Error loading favorites:', error);
-    }
-  };
+    if (user) loadFavorites(user.id);
+  }, [user]);
 
   useEffect(() => {
-    const productosChannel = supabase
-      .channel('productos-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'productos' },
-        () => {
-          fetchProducts();
-        }
-      )
+    const ch = supabase
+      .channel("productos-showcase")
+      .on("postgres_changes", { event: "*", schema: "public", table: "productos" }, () => fetchProducts())
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(productosChannel);
-    };
+    return () => { supabase.removeChannel(ch); };
   }, []);
 
   useEffect(() => {
     if (!user) return;
-
-    const favoritosChannel = supabase
-      .channel(`favoritos-showcase-${user.id}`)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'favoritos', filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newFav = payload.new as { producto_id: string };
-            setFavorites(prev => new Set(prev).add(newFav.producto_id));
-          } else if (payload.eventType === 'DELETE') {
-            const oldFav = payload.old as { producto_id: string };
-            setFavorites(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(oldFav.producto_id);
-              return newSet;
-            });
-          }
+    const ch = supabase
+      .channel(`favs-showcase-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "favoritos", filter: `user_id=eq.${user.id}` }, (p) => {
+        if (p.eventType === "INSERT") {
+          setFavorites((prev) => new Set(prev).add((p.new as any).producto_id));
+        } else if (p.eventType === "DELETE") {
+          setFavorites((prev) => { const s = new Set(prev); s.delete((p.old as any).producto_id); return s; });
         }
-      )
+      })
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(favoritosChannel);
-    };
+    return () => { supabase.removeChannel(ch); };
   }, [user]);
 
   const fetchProducts = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('productos')
-      .select('*')
-      .eq('activo', true)
-      .order('destacado', { ascending: false })
-      .order('created_at', { ascending: false });
-
+      .from("productos")
+      .select("*")
+      .eq("activo", true)
+      .order("destacado", { ascending: false })
+      .order("created_at", { ascending: false });
     if (!error && data) {
-      setProducts(data);
-      const indices: {[key: string]: number} = {};
-      data.forEach(product => {
-        indices[product.id] = 0;
-      });
+      setProducts(data as Product[]);
+      const indices: Record<string, number> = {};
+      data.forEach((p) => (indices[p.id] = 0));
       setCurrentImageIndex(indices);
+      const max = Math.max(...data.map((p) => p.precio), 500);
+      setMaxPrice(Math.ceil(max / 10) * 10);
+      setPriceRange([0, Math.ceil(max / 10) * 10]);
     }
     setLoading(false);
   };
 
-  const nextImage = (productId: string, imagesLength: number) => {
-    setCurrentImageIndex(prev => ({
-      ...prev,
-      [productId]: ((prev[productId] || 0) + 1) % imagesLength
-    }));
+  const loadFavorites = async (userId: string) => {
+    const { data } = await supabase.from("favoritos").select("producto_id").eq("user_id", userId);
+    if (data) setFavorites(new Set(data.map((f) => f.producto_id)));
   };
 
-  const prevImage = (productId: string, imagesLength: number) => {
-    setCurrentImageIndex(prev => ({
-      ...prev,
-      [productId]: ((prev[productId] || 0) - 1 + imagesLength) % imagesLength
-    }));
-  };
+  // Derived data
+  const categories = useMemo(() => {
+    const cats = new Set(products.map((p) => p.categoria).filter(Boolean));
+    return Array.from(cats).sort();
+  }, [products]);
 
-  const triggerFlyAnimation = (buttonElement: HTMLElement, type: 'cart' | 'favorite') => {
-    try {
-      const buttonRect = buttonElement.getBoundingClientRect();
-      const targetElement = document.querySelector(
-        type === 'cart' ? '[data-cart-icon]' : '[data-favorites-icon]'
+  const materials = useMemo(() => {
+    const mats = new Set<string>();
+    products.forEach((p) => {
+      if (p.colores) p.colores.forEach((c) => mats.add(c));
+    });
+    return Array.from(mats).sort();
+  }, [products]);
+
+  const isOfferActive = useCallback((p: Product) => {
+    if (!p.en_oferta) return false;
+    const now = new Date();
+    if (p.oferta_inicio && now < new Date(p.oferta_inicio)) return false;
+    if (p.oferta_fin && now > new Date(p.oferta_fin)) return false;
+    return true;
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    let result = [...products];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.nombre.toLowerCase().includes(q) ||
+          p.descripcion?.toLowerCase().includes(q) ||
+          p.categoria?.toLowerCase().includes(q)
       );
-      
-      if (!targetElement) {
-        return;
-      }
-      
-      const targetRect = targetElement.getBoundingClientRect();
-      
-      const flyingItem = {
-        id: Date.now().toString(),
-        startPos: {
-          x: buttonRect.left + buttonRect.width / 2,
-          y: buttonRect.top + buttonRect.height / 2
-        },
-        endPos: {
-          x: targetRect.left + targetRect.width / 2,
-          y: targetRect.top + targetRect.height / 2
-        },
-        type
-      };
-      
-      setFlyingItems(prev => [...prev, flyingItem]);
-    } catch (error) {
-      console.log('Animation skipped:', error);
-    }
-  };
-
-  const removeFlyingItem = (id: string) => {
-    setFlyingItems(prev => prev.filter(item => item.id !== id));
-  };
-
-  const toggleFavorite = async (productId: string, event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!user) {
-      toast.error('Debes iniciar sesion para guardar favoritos');
-      return;
     }
 
+    if (selectedCategory) {
+      result = result.filter((p) => p.categoria === selectedCategory);
+    }
+
+    if (selectedMaterials.size > 0) {
+      result = result.filter((p) =>
+        p.colores?.some((c) => selectedMaterials.has(c))
+      );
+    }
+
+    result = result.filter((p) => p.precio >= priceRange[0] && p.precio <= priceRange[1]);
+
+    switch (sortBy) {
+      case "price_asc":
+        result.sort((a, b) => a.precio - b.precio);
+        break;
+      case "price_desc":
+        result.sort((a, b) => b.precio - a.precio);
+        break;
+      case "newest":
+        result.sort((a, b) => new Date(b.fecha_lanzamiento || b.id).getTime() - new Date(a.fecha_lanzamiento || a.id).getTime());
+        break;
+      case "name":
+        result.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        break;
+      default:
+        result.sort((a, b) => (b.destacado ? 1 : 0) - (a.destacado ? 1 : 0));
+    }
+    return result;
+  }, [products, searchQuery, selectedCategory, selectedMaterials, priceRange, sortBy]);
+
+  const nextImage = (id: string, len: number) =>
+    setCurrentImageIndex((p) => ({ ...p, [id]: ((p[id] || 0) + 1) % len }));
+  const prevImage = (id: string, len: number) =>
+    setCurrentImageIndex((p) => ({ ...p, [id]: ((p[id] || 0) - 1 + len) % len }));
+
+  const triggerFly = (el: HTMLElement, type: "cart" | "favorite") => {
+    const r = el.getBoundingClientRect();
+    const t = document.querySelector(type === "cart" ? "[data-cart-icon]" : "[data-favorites-icon]");
+    if (!t) return;
+    const tr = t.getBoundingClientRect();
+    setFlyingItems((p) => [...p, { id: Date.now().toString(), startPos: { x: r.left + r.width / 2, y: r.top + r.height / 2 }, endPos: { x: tr.left + tr.width / 2, y: tr.top + tr.height / 2 }, type }]);
+  };
+
+  const toggleFavorite = async (productId: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!user) { toast.error("Debes iniciar sesion para guardar favoritos"); return; }
     try {
       if (favorites.has(productId)) {
-        await supabase
-          .from('favoritos')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('producto_id', productId);
-        
-        setFavorites(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(productId);
-          return newSet;
-        });
-        toast.success('Eliminado de favoritos');
+        await supabase.from("favoritos").delete().eq("user_id", user.id).eq("producto_id", productId);
+        setFavorites((p) => { const s = new Set(p); s.delete(productId); return s; });
+        toast.success("Eliminado de favoritos");
       } else {
-        const { error } = await supabase
-          .from('favoritos')
-          .insert({ user_id: user.id, producto_id: productId });
-        
+        const { error } = await supabase.from("favoritos").insert({ user_id: user.id, producto_id: productId });
         if (error) throw error;
-        
-        setFavorites(prev => new Set(prev).add(productId));
-        triggerFlyAnimation(event.currentTarget, 'favorite');
-        toast.success('Agregado a favoritos');
+        setFavorites((p) => new Set(p).add(productId));
+        triggerFly(e.currentTarget, "favorite");
+        toast.success("Agregado a favoritos");
       }
-    } catch (error: any) {
-      console.error('Error toggling favorite:', error);
-      if (error?.code === '23505') {
-        toast.success('Agregado a favoritos');
-        setFavorites(prev => new Set(prev).add(productId));
-      } else {
-        toast.error('Error al actualizar favoritos');
-      }
+    } catch (err: any) {
+      if (err?.code === "23505") { setFavorites((p) => new Set(p).add(productId)); }
+      else toast.error("Error al actualizar favoritos");
     }
   };
 
-  const addToCart = async (product: Product, event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!user) {
-      toast.error('Debes iniciar sesion para agregar al carrito');
-      return;
-    }
-
+  const addToCart = async (product: Product, e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!user) { toast.error("Debes iniciar sesion para agregar al carrito"); return; }
     try {
-      const { data: existing } = await supabase
-        .from('carrito')
-        .select('id, cantidad')
-        .eq('user_id', user.id)
-        .eq('producto_id', product.id)
-        .is('color', null)
-        .is('talla', null)
-        .maybeSingle();
-
+      const { data: existing } = await supabase.from("carrito").select("id, cantidad").eq("user_id", user.id).eq("producto_id", product.id).is("color", null).is("talla", null).maybeSingle();
       if (existing) {
-        await supabase
-          .from('carrito')
-          .update({ cantidad: existing.cantidad + 1 })
-          .eq('id', existing.id);
+        await supabase.from("carrito").update({ cantidad: existing.cantidad + 1 }).eq("id", existing.id);
       } else {
-        await supabase
-          .from('carrito')
-          .insert({
-            user_id: user.id,
-            producto_id: product.id,
-            cantidad: 1
-          });
+        await supabase.from("carrito").insert({ user_id: user.id, producto_id: product.id, cantidad: 1 });
       }
-      
-      triggerFlyAnimation(event.currentTarget, 'cart');
+      triggerFly(e.currentTarget, "cart");
       toast.success(`${product.nombre} agregado al carrito`);
-    } catch (error: any) {
-      console.error('Error adding to cart:', error);
-      toast.error('Error al agregar al carrito');
-    }
+    } catch { toast.error("Error al agregar al carrito"); }
   };
 
-  const isOfferActive = (product: Product) => {
-    if (!product.en_oferta) return false;
-    const now = new Date();
-    const start = product.oferta_inicio ? new Date(product.oferta_inicio) : null;
-    const end = product.oferta_fin ? new Date(product.oferta_fin) : null;
-    
-    if (start && now < start) return false;
-    if (end && now > end) return false;
-    return true;
+  const toggleMaterial = (m: string) => {
+    setSelectedMaterials((prev) => {
+      const s = new Set(prev);
+      s.has(m) ? s.delete(m) : s.add(m);
+      return s;
+    });
   };
 
-  const hasDiscount = (product: Product) => {
-    return product.precio_original && product.precio < product.precio_original;
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory(null);
+    setSelectedMaterials(new Set());
+    setPriceRange([0, maxPrice]);
+    setSortBy("featured");
   };
+
+  const hasActiveFilters = searchQuery || selectedCategory || selectedMaterials.size > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice;
+
+  // --- Sidebar content ---
+  const SidebarContent = () => (
+    <div className="space-y-8">
+      {/* Collections */}
+      <div>
+        <h3 className="text-xs font-semibold tracking-[0.2em] uppercase text-foreground mb-4">
+          Collections
+        </h3>
+        <div className="border-t border-border mb-4" />
+        <div className="space-y-2">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`block w-full text-left text-sm py-1.5 transition-colors ${!selectedCategory ? "text-foreground font-medium" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Todos los accesorios
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat === selectedCategory ? null : cat)}
+              className={`block w-full text-left text-sm py-1.5 transition-colors ${selectedCategory === cat ? "text-foreground font-medium" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Filter by */}
+      <div>
+        <h3 className="text-xs font-semibold tracking-[0.2em] uppercase text-foreground mb-4">
+          Filter By
+        </h3>
+        <div className="border-t border-border mb-4" />
+
+        {/* Material */}
+        {materials.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-xs font-semibold tracking-[0.15em] uppercase text-foreground mb-3">
+              Material
+            </h4>
+            <div className="space-y-2.5">
+              {materials.slice(0, 8).map((m) => (
+                <label key={m} className="flex items-center gap-3 cursor-pointer group">
+                  <Checkbox
+                    checked={selectedMaterials.has(m)}
+                    onCheckedChange={() => toggleMaterial(m)}
+                    className="border-muted-foreground/40 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                  />
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors capitalize">
+                    {m}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Price Range */}
+        <div>
+          <h4 className="text-xs font-semibold tracking-[0.15em] uppercase text-foreground mb-3">
+            Price Range
+          </h4>
+          <Slider
+            value={priceRange}
+            onValueChange={(v) => setPriceRange(v as [number, number])}
+            max={maxPrice}
+            min={0}
+            step={5}
+            className="mb-3"
+          />
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>${priceRange[0]}</span>
+            <span>${priceRange[1]}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Help Card */}
+      <div className="bg-muted/50 p-5 rounded-sm">
+        <h4 className="text-sm font-semibold text-foreground mb-2">Necesitas ayuda?</h4>
+        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+          Nuestro equipo puede ayudarte a definir materiales, colores y estilo para tu pedido.
+        </p>
+        <Link
+          to="/pedir"
+          className="text-sm font-semibold text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+        >
+          PEDIR UN ACCESORIO
+        </Link>
+      </div>
+
+      {hasActiveFilters && (
+        <Button variant="outline" size="sm" onClick={clearFilters} className="w-full">
+          <FaTimes className="w-3 h-3 mr-2" />
+          Limpiar filtros
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <>
-      {flyingItems.map(item => 
+      {flyingItems.map((item) =>
         createPortal(
-          <FlyingItem
-            key={item.id}
-            startPosition={item.startPos}
-            endPosition={item.endPos}
-            type={item.type}
-            onComplete={() => removeFlyingItem(item.id)}
-          />,
+          <FlyingItem key={item.id} startPosition={item.startPos} endPosition={item.endPos} type={item.type} onComplete={() => setFlyingItems((p) => p.filter((i) => i.id !== item.id))} />,
           document.body
         )
       )}
-      <div className="py-16 bg-muted/30" ref={ref}>
-      <div className="container mx-auto px-4">
-        <div className={`text-center mb-12 ${isVisible ? 'animate-on-scroll' : 'opacity-0'}`}>
-          <FaShoppingBag className="w-16 h-16 mx-auto mb-4" />
-          <h2 className="text-4xl font-bold mb-4">Brillarte Shop</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Descubre nuestra coleccion de accesorios unicos hechos a mano
-          </p>
+
+      <div className="min-h-screen bg-background">
+        {/* Search bar area */}
+        <div className="border-b border-border/50 py-4">
+          <div className="container mx-auto px-4">
+            <div className="relative max-w-lg mx-auto md:mx-0">
+              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="BUSCAR ACCESORIO"
+                className="pl-11 h-12 border-border/50 bg-muted/30 rounded-full text-sm tracking-wider placeholder:text-muted-foreground/60 placeholder:tracking-[0.15em] placeholder:uppercase focus-visible:ring-foreground/20"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <FaTimes className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Empresas de envio y métodos de pago */}
-        <div className="mb-8 p-4 bg-primary/5 rounded-lg border border-primary/20">
-          <div className="flex items-center gap-2 mb-3">
-            <FaTruck className="w-5 h-5 text-primary" />
-            <span className="font-medium">Enviamos con:</span>
-          </div>
-          <div className="flex flex-wrap gap-4 items-center mb-4">
-            {empresasEnvio.map((empresa) => (
-              <div key={empresa.id} className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg shadow-sm">
-                {empresa.logo_url && (
-                  <img 
-                    src={empresa.logo_url} 
-                    alt={empresa.nombre} 
-                    className="h-6 w-auto object-contain"
-                  />
-                )}
-                <span className="text-sm font-medium">{empresa.nombre}</span>
+        <div className="container mx-auto px-4 py-8 lg:py-12">
+          <div className="flex gap-10 lg:gap-14">
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:block w-64 flex-shrink-0">
+              <div className="sticky top-24">
+                <SidebarContent />
               </div>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-3 pt-3 border-t border-primary/10">
-            <div className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg shadow-sm">
-              <FaMoneyBillWave className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium">Pago contra entrega</span>
-            </div>
-            <div className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg shadow-sm">
-              <FaStore className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium">Retiro</span>
-            </div>
-          </div>
-        </div>
+            </aside>
 
-        {!loading && products.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map((product, index) => (
-            <Card 
-              key={product.id} 
-              className={`hover-lift overflow-hidden ${isVisible ? 'animate-zoom' : 'opacity-0'}`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {product.imagenes && product.imagenes.length > 0 && (
-                <div className="relative h-64 overflow-hidden group">
-                  <img
-                    src={product.imagenes[currentImageIndex[product.id] || 0]}
-                    alt={`${product.nombre} - Imagen ${(currentImageIndex[product.id] || 0) + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  
-                  {/* Badges de estado */}
-                  <div className="absolute top-2 left-2 flex flex-col gap-1">
-                    {product.destacado && (
-                      <Badge className="bg-amber-500 text-white">
-                        <FaStar className="w-3 h-3 mr-1" />
-                        Destacado
-                      </Badge>
-                    )}
-                    {isOfferActive(product) && (
-                      <Badge className="bg-primary text-primary-foreground">
-                        <FaPercent className="w-3 h-3 mr-1" />
-                        {product.porcentaje_descuento}% OFF
-                      </Badge>
-                    )}
-                    {hasDiscount(product) && !isOfferActive(product) && (
-                      <Badge variant="destructive">
-                        Rebaja
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  {product.imagenes.length > 1 && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          prevImage(product.id, product.imagenes.length);
-                        }}
-                      >
-                        <FaChevronLeft className="h-4 w-4" />
+            {/* Main Content */}
+            <main className="flex-1 min-w-0">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+                <div>
+                  <h1 className="text-4xl md:text-5xl font-light text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                    The Collection
+                  </h1>
+                  <p className="text-muted-foreground mt-2 text-sm italic">
+                    {filteredProducts.length} accesorio{filteredProducts.length !== 1 ? "s" : ""} Brillarte disponible{filteredProducts.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {/* Mobile filter button */}
+                  <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="lg:hidden">
+                        <FaSlidersH className="w-3.5 h-3.5 mr-2" />
+                        Filtros
+                        {hasActiveFilters && <span className="ml-1.5 w-2 h-2 rounded-full bg-foreground" />}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          nextImage(product.id, product.imagenes.length);
-                        }}
-                      >
-                        <FaChevronRight className="h-4 w-4" />
-                      </Button>
-                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                        {product.imagenes.map((_, idx) => (
-                          <div
-                            key={idx}
-                            className={`h-1.5 w-1.5 rounded-full transition-all ${
-                              idx === (currentImageIndex[product.id] || 0)
-                                ? 'bg-white w-3'
-                                : 'bg-white/50'
-                            }`}
-                          />
-                        ))}
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-80 overflow-y-auto">
+                      <div className="pt-6">
+                        <SidebarContent />
                       </div>
-                    </>
+                    </SheetContent>
+                  </Sheet>
+
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                    <SelectTrigger className="w-[200px] border-0 bg-transparent text-xs tracking-[0.15em] uppercase font-semibold text-foreground h-auto py-1 focus:ring-0">
+                      <span className="mr-1">SORT BY:</span>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="featured">Destacados</SelectItem>
+                      <SelectItem value="newest">Recientes</SelectItem>
+                      <SelectItem value="price_asc">Precio: menor</SelectItem>
+                      <SelectItem value="price_desc">Precio: mayor</SelectItem>
+                      <SelectItem value="name">Nombre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Product Grid */}
+              {loading ? (
+                <div className="flex items-center justify-center py-24">
+                  <FaSpinner className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="text-center py-20">
+                  <p className="text-muted-foreground text-lg mb-4">No se encontraron accesorios</p>
+                  {hasActiveFilters && (
+                    <Button variant="outline" onClick={clearFilters}>Limpiar filtros</Button>
                   )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+                  <AnimatePresence mode="popLayout">
+                    {filteredProducts.map((product, index) => (
+                      <motion.div
+                        key={product.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.3) }}
+                      >
+                        <ProductCard
+                          product={product}
+                          imageIndex={currentImageIndex[product.id] || 0}
+                          isFavorite={favorites.has(product.id)}
+                          isOfferActive={isOfferActive(product)}
+                          onNextImage={() => nextImage(product.id, product.imagenes?.length || 1)}
+                          onPrevImage={() => prevImage(product.id, product.imagenes?.length || 1)}
+                          onToggleFavorite={(e) => toggleFavorite(product.id, e)}
+                          onAddToCart={(e) => addToCart(product, e)}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
               )}
-              
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{product.nombre}</CardTitle>
-                  {product.categoria && (
-                    <Badge variant="secondary">{product.categoria}</Badge>
-                  )}
-                </div>
-                {product.descripcion && (
-                  <CardDescription>{product.descripcion}</CardDescription>
-                )}
-              </CardHeader>
-
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Badge de disponibilidad */}
-                  {product.disponible === false ? (
-                    <Badge variant="secondary" className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
-                      <FaRocket className="w-3 h-3 mr-1" />
-                      Proximamente
-                    </Badge>
-                  ) : product.stock === 0 ? (
-                    <Badge variant="destructive">
-                      Agotado
-                    </Badge>
-                  ) : null}
-
-                  {/* Cronometro de oferta */}
-                  {isOfferActive(product) && product.oferta_fin && (
-                    <OfferCountdown 
-                      endDate={product.oferta_fin} 
-                      offerCode={product.codigo_oferta || ''} 
-                    />
-                  )}
-                  
-                  {/* Precios */}
-                  <div>
-                    {(hasDiscount(product) || isOfferActive(product)) ? (
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <p className="text-2xl font-bold text-primary">
-                          ${product.precio.toFixed(2)}
-                        </p>
-                        <p className="text-lg line-through text-muted-foreground">
-                          ${(product.precio_original || product.precio_mayoreo || 0).toFixed(2)}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-2xl font-bold">
-                        ${product.precio.toFixed(2)}
-                      </p>
-                    )}
-                  </div>
-
-                  {product.colores && product.colores.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Colores disponibles:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {product.colores.map((color, i) => (
-                          <div
-                            key={i}
-                            className="w-8 h-8 rounded-full border-2 border-border shadow-sm"
-                            style={{ backgroundColor: color }}
-                            title={color}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Empresas de envio en el producto */}
-                  {empresasEnvio.length > 0 && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <FaTruck className="w-3 h-3" />
-                      <span>Envio disponible</span>
-                      <div className="flex gap-1">
-                        {empresasEnvio.slice(0, 2).map((empresa) => (
-                          empresa.logo_url && (
-                            <img 
-                              key={empresa.id}
-                              src={empresa.logo_url} 
-                              alt={empresa.nombre} 
-                              className="h-4 w-auto object-contain"
-                            />
-                          )
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={(e) => toggleFavorite(product.id, e)}
-                      variant={favorites.has(product.id) ? "default" : "outline"}
-                      size="default"
-                      className="flex-1 min-h-[44px]"
-                    >
-                      <FaHeart className={`w-4 h-4 mr-1 ${favorites.has(product.id) ? 'fill-current' : ''}`} />
-                      {favorites.has(product.id) ? 'Favorito' : 'Me gusta'}
-                    </Button>
-                    <Button
-                      onClick={(e) => addToCart(product, e)}
-                      disabled={product.stock === 0 || product.disponible === false}
-                      size="default"
-                      className="flex-1 min-h-[44px]"
-                    >
-                      <FaShoppingCart className="w-4 h-4 mr-1" />
-                      {product.disponible === false ? 'Proximamente' : 'Agregar'}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+            </main>
+          </div>
         </div>
-        )}
-
-        {loading ? (
-          <div className="text-center py-16">
-            <FaSpinner className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
-            <p className="text-muted-foreground text-lg">
-              Cargando productos...
-            </p>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">
-              No hay productos disponibles en este momento
-            </p>
-          </div>
-        ) : null}
       </div>
-    </div>
     </>
   );
 };
+
+// --- Product Card Component ---
+interface ProductCardProps {
+  product: Product;
+  imageIndex: number;
+  isFavorite: boolean;
+  isOfferActive: boolean;
+  onNextImage: () => void;
+  onPrevImage: () => void;
+  onToggleFavorite: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onAddToCart: (e: React.MouseEvent<HTMLButtonElement>) => void;
+}
+
+function ProductCard({ product, imageIndex, isFavorite, isOfferActive: offerActive, onNextImage, onPrevImage, onToggleFavorite, onAddToCart }: ProductCardProps) {
+  const hasImages = product.imagenes && product.imagenes.length > 0;
+  const hasMultipleImages = hasImages && product.imagenes.length > 1;
+  const hasDiscount = product.precio_original && product.precio < product.precio_original;
+
+  return (
+    <div className="group">
+      {/* Image */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-muted/30 mb-4">
+        {hasImages ? (
+          <img
+            src={product.imagenes[imageIndex]}
+            alt={product.nombre}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            Sin imagen
+          </div>
+        )}
+
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          {product.disponible === false && (
+            <span className="bg-foreground text-background text-[10px] tracking-[0.15em] uppercase font-semibold px-3 py-1.5">
+              Proximamente
+            </span>
+          )}
+          {offerActive && product.porcentaje_descuento && (
+            <span className="bg-foreground text-background text-[10px] tracking-[0.15em] uppercase font-semibold px-3 py-1.5">
+              {product.porcentaje_descuento}% OFF
+            </span>
+          )}
+          {product.stock !== null && product.stock <= 3 && product.stock > 0 && product.disponible !== false && (
+            <span className="bg-foreground text-background text-[10px] tracking-[0.15em] uppercase font-semibold px-3 py-1.5">
+              Limited Edition
+            </span>
+          )}
+        </div>
+
+        {/* Favorite button */}
+        <button
+          onClick={onToggleFavorite}
+          className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-background"
+        >
+          {isFavorite ? (
+            <FaHeart className="w-4 h-4 text-foreground" />
+          ) : (
+            <FaRegHeart className="w-4 h-4 text-foreground" />
+          )}
+        </button>
+
+        {/* Image navigation */}
+        {hasMultipleImages && (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); onPrevImage(); }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <FaChevronLeft className="w-3 h-3" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onNextImage(); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <FaChevronRight className="w-3 h-3" />
+            </button>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {product.imagenes.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === imageIndex ? "w-4 bg-background" : "w-1.5 bg-background/50"
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Quick add overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+          <Button
+            onClick={onAddToCart}
+            disabled={product.stock === 0 || product.disponible === false}
+            className="w-full bg-background/90 backdrop-blur-sm text-foreground hover:bg-background border border-border/50 text-xs tracking-[0.1em] uppercase font-medium h-10"
+          >
+            <FaShoppingCart className="w-3.5 h-3.5 mr-2" />
+            {product.disponible === false ? "Proximamente" : product.stock === 0 ? "Agotado" : "Agregar al carrito"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="text-center space-y-1">
+        {product.categoria && (
+          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">
+            {product.categoria}
+          </p>
+        )}
+        <h3 className="text-sm font-medium text-foreground">
+          {product.nombre}
+        </h3>
+        <div className="flex items-center justify-center gap-2">
+          {(hasDiscount || offerActive) ? (
+            <>
+              <span className="text-sm font-medium text-foreground">${product.precio.toFixed(0)}</span>
+              <span className="text-sm text-muted-foreground line-through">${(product.precio_original || 0).toFixed(0)}</span>
+            </>
+          ) : (
+            <span className="text-sm font-medium text-foreground">${product.precio.toFixed(0)}</span>
+          )}
+        </div>
+
+        {/* Offer countdown */}
+        {offerActive && product.oferta_fin && (
+          <div className="pt-1">
+            <OfferCountdown endDate={product.oferta_fin} offerCode={product.codigo_oferta || ""} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
