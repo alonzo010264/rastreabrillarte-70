@@ -166,6 +166,8 @@ export default function AdminProductos() {
     setOfertaInicio("");
     setOfertaFin("");
     setCodigoOferta("");
+    setEsPreventa(false);
+    setMontoMinimoPreventa("500");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
