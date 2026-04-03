@@ -335,6 +335,11 @@ export default function AdminProductos() {
                           {producto.porcentaje_descuento}% OFF
                         </Badge>
                       )}
+                      {producto.es_preventa && (
+                        <Badge variant="outline" className="border-primary text-primary">
+                          Preventa
+                        </Badge>
+                      )}
                     </div>
                   </CardTitle>
                 </CardHeader>
