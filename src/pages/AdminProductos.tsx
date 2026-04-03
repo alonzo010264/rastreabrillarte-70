@@ -198,6 +198,8 @@ export default function AdminProductos() {
         oferta_inicio: enOferta && ofertaInicio ? new Date(ofertaInicio).toISOString() : null,
         oferta_fin: enOferta && ofertaFin ? new Date(ofertaFin).toISOString() : null,
         codigo_oferta: enOferta ? (codigoOferta || generateOfferCode()) : null,
+        es_preventa: esPreventa,
+        monto_minimo_preventa: esPreventa && montoMinimoPreventa ? parseFloat(montoMinimoPreventa) : null,
       };
 
       if (editingId) {
