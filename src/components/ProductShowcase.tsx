@@ -536,7 +536,12 @@ function ProductCard({ product, imageIndex, isFavorite, isOfferActive: offerActi
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {product.disponible === false && (
+          {product.es_preventa && (
+            <span className="bg-primary text-primary-foreground text-[10px] tracking-[0.15em] uppercase font-semibold px-3 py-1.5">
+              Preventa
+            </span>
+          )}
+          {product.disponible === false && !product.es_preventa && (
             <span className="bg-foreground text-background text-[10px] tracking-[0.15em] uppercase font-semibold px-3 py-1.5">
               Proximamente
             </span>

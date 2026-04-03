@@ -237,6 +237,8 @@ Respuesta: {"nombre":"Pulsera de Mariposas","descripcion":"Delicada pulsera arte
             porcentaje_descuento: productData.porcentaje_descuento || null,
             colores: productData.colores || null,
             tallas: productData.tallas || null,
+            es_preventa: productData.es_preventa || false,
+            monto_minimo_preventa: productData.monto_minimo_preventa || null,
           }])
           .select()
           .single();
