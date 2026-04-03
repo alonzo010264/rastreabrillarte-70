@@ -20,6 +20,8 @@ interface ProductData {
   porcentaje_descuento?: number;
   colores?: string[];
   tallas?: string[];
+  es_preventa?: boolean;
+  monto_minimo_preventa?: number;
 }
 
 interface CommandResult {
@@ -108,13 +110,16 @@ Para cada comando, debes devolver un objeto JSON con la siguiente estructura:
   "en_oferta": boolean (default false),
   "porcentaje_descuento": number (opcional, 0-100),
   "colores": ["array de strings"] (opcional),
-  "tallas": ["array de strings"] (opcional)
+  "tallas": ["array de strings"] (opcional),
+  "es_preventa": boolean (default false),
+  "monto_minimo_preventa": number (opcional, default 500)
 }
 
 Reglas:
 - Si el usuario menciona un precio, extráelo (ej: "$150", "150 pesos", "precio 150")
 - Si menciona descuento/oferta, calcula precio_original y activa en_oferta
 - Si dice "destacado", pon destacado: true
+- Si dice "preventa", "pre-venta", "pre venta" o "preorden", pon es_preventa: true y monto_minimo_preventa (default 500 si no se indica otro monto mínimo)
 - Si no da descripción, crea una atractiva y breve
 - Precios deben ser números positivos
 - Responde SOLO con el JSON, sin explicaciones
@@ -124,7 +129,10 @@ Comando: "Crea producto Aretes Flores precio 120"
 Respuesta: {"nombre":"Aretes Flores","descripcion":"Hermosos aretes artesanales con diseño floral, perfectos para cualquier ocasión.","precio":120,"activo":true,"destacado":false}
 
 Comando: "Nuevo collar dorado $200 con 15% descuento, destacado"
-Respuesta: {"nombre":"Collar Dorado","descripcion":"Elegante collar dorado que complementa cualquier outfit con un toque de sofisticación.","precio":170,"precio_original":200,"en_oferta":true,"porcentaje_descuento":15,"destacado":true,"activo":true}`;
+Respuesta: {"nombre":"Collar Dorado","descripcion":"Elegante collar dorado que complementa cualquier outfit con un toque de sofisticación.","precio":170,"precio_original":200,"en_oferta":true,"porcentaje_descuento":15,"destacado":true,"activo":true}
+
+Comando: "Agrega pulsera de mariposas en preventa precio 300 mínimo 600"
+Respuesta: {"nombre":"Pulsera de Mariposas","descripcion":"Delicada pulsera artesanal con diseño de mariposas, disponible en preventa exclusiva.","precio":300,"activo":true,"destacado":false,"es_preventa":true,"monto_minimo_preventa":600}`;
 
     const results: CommandResult[] = [];
     let productsCreated = 0;
@@ -229,6 +237,8 @@ Respuesta: {"nombre":"Collar Dorado","descripcion":"Elegante collar dorado que c
             porcentaje_descuento: productData.porcentaje_descuento || null,
             colores: productData.colores || null,
             tallas: productData.tallas || null,
+            es_preventa: productData.es_preventa || false,
+            monto_minimo_preventa: productData.monto_minimo_preventa || null,
           }])
           .select()
           .single();

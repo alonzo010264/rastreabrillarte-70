@@ -55,6 +55,8 @@ interface Product {
   oferta_fin: string | null;
   codigo_oferta: string | null;
   tallas: string[] | null;
+  es_preventa: boolean | null;
+  monto_minimo_preventa: number | null;
 }
 
 type SortOption = "featured" | "price_asc" | "price_desc" | "newest" | "name";
@@ -534,7 +536,12 @@ function ProductCard({ product, imageIndex, isFavorite, isOfferActive: offerActi
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {product.disponible === false && (
+          {product.es_preventa && (
+            <span className="bg-primary text-primary-foreground text-[10px] tracking-[0.15em] uppercase font-semibold px-3 py-1.5">
+              Preventa
+            </span>
+          )}
+          {product.disponible === false && !product.es_preventa && (
             <span className="bg-foreground text-background text-[10px] tracking-[0.15em] uppercase font-semibold px-3 py-1.5">
               Proximamente
             </span>
@@ -623,6 +630,24 @@ function ProductCard({ product, imageIndex, isFavorite, isOfferActive: offerActi
           ) : (
             <span className="text-sm font-medium text-foreground">${product.precio.toFixed(0)}</span>
           )}
+        </div>
+
+        {/* Preventa badge */}
+        {product.es_preventa && (
+          <div className="pt-1">
+            <span className="inline-block text-[10px] tracking-[0.1em] uppercase font-semibold px-2.5 py-1 bg-primary/10 text-primary rounded-sm">
+              Preventa · Mín. ${product.monto_minimo_preventa || 500}
+            </span>
+          </div>
+        )}
+
+        {/* Shipping companies */}
+        <div className="flex items-center justify-center gap-1.5 pt-1.5">
+          <span className="text-[9px] tracking-[0.1em] uppercase text-muted-foreground/70">Envíos con</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] font-semibold text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded">Vimenpaq</span>
+            <span className="text-[9px] font-semibold text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded">Domex</span>
+          </div>
         </div>
 
         {/* Offer countdown */}
