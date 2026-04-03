@@ -20,6 +20,8 @@ interface ProductData {
   porcentaje_descuento?: number;
   colores?: string[];
   tallas?: string[];
+  es_preventa?: boolean;
+  monto_minimo_preventa?: number;
 }
 
 interface CommandResult {
