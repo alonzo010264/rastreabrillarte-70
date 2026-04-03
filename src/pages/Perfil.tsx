@@ -218,6 +218,11 @@ export default function Perfil() {
     );
   }
 
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
+
   return (
     <>
       <Navigation />
