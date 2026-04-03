@@ -575,6 +575,42 @@ export default function AdminProductos() {
 
               <Separator />
 
+              {/* Sección de Preventa */}
+              <div className="bg-muted border border-border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-5 h-5 text-primary" />
+                    <Label className="text-lg font-semibold">Producto de Preventa</Label>
+                  </div>
+                  <Switch
+                    checked={esPreventa}
+                    onCheckedChange={setEsPreventa}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Los productos de preventa requieren un monto mínimo de compra. El cliente paga y luego se le asigna un código de rastreo.
+                </p>
+
+                {esPreventa && (
+                  <div>
+                    <Label htmlFor="monto_minimo">Monto Mínimo de Preventa (RD$)</Label>
+                    <Input
+                      id="monto_minimo"
+                      type="number"
+                      min="1"
+                      value={montoMinimoPreventa}
+                      onChange={(e) => setMontoMinimoPreventa(e.target.value)}
+                      placeholder="500"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      El cliente verá este monto como requisito mínimo para ordenar este producto.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="precio_mayoreo">Precio Mayoreo</Label>
