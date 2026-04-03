@@ -247,6 +247,8 @@ export default function AdminProductos() {
     setOfertaInicio(producto.oferta_inicio ? new Date(producto.oferta_inicio).toISOString().slice(0, 16) : "");
     setOfertaFin(producto.oferta_fin ? new Date(producto.oferta_fin).toISOString().slice(0, 16) : "");
     setCodigoOferta(producto.codigo_oferta || "");
+    setEsPreventa(producto.es_preventa ?? false);
+    setMontoMinimoPreventa(producto.monto_minimo_preventa?.toString() || "500");
     setShowForm(true);
   };
 
