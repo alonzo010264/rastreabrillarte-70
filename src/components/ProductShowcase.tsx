@@ -627,6 +627,24 @@ function ProductCard({ product, imageIndex, isFavorite, isOfferActive: offerActi
           )}
         </div>
 
+        {/* Preventa badge */}
+        {product.es_preventa && (
+          <div className="pt-1">
+            <span className="inline-block text-[10px] tracking-[0.1em] uppercase font-semibold px-2.5 py-1 bg-primary/10 text-primary rounded-sm">
+              Preventa · Mín. ${product.monto_minimo_preventa || 500}
+            </span>
+          </div>
+        )}
+
+        {/* Shipping companies */}
+        <div className="flex items-center justify-center gap-1.5 pt-1.5">
+          <span className="text-[9px] tracking-[0.1em] uppercase text-muted-foreground/70">Envíos con</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] font-semibold text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded">Vimenpaq</span>
+            <span className="text-[9px] font-semibold text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded">Domex</span>
+          </div>
+        </div>
+
         {/* Offer countdown */}
         {offerActive && product.oferta_fin && (
           <div className="pt-1">
