@@ -37,6 +37,8 @@ interface Producto {
   oferta_inicio: string | null;
   oferta_fin: string | null;
   codigo_oferta: string | null;
+  es_preventa: boolean | null;
+  monto_minimo_preventa: number | null;
 }
 
 const generateOfferCode = () => {
@@ -76,6 +78,10 @@ export default function AdminProductos() {
   const [ofertaInicio, setOfertaInicio] = useState("");
   const [ofertaFin, setOfertaFin] = useState("");
   const [codigoOferta, setCodigoOferta] = useState("");
+
+  // Preventa state
+  const [esPreventa, setEsPreventa] = useState(false);
+  const [montoMinimoPreventa, setMontoMinimoPreventa] = useState("500");
 
   useEffect(() => {
     checkAdminAndLoad();
@@ -160,6 +166,8 @@ export default function AdminProductos() {
     setOfertaInicio("");
     setOfertaFin("");
     setCodigoOferta("");
+    setEsPreventa(false);
+    setMontoMinimoPreventa("500");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -190,6 +198,8 @@ export default function AdminProductos() {
         oferta_inicio: enOferta && ofertaInicio ? new Date(ofertaInicio).toISOString() : null,
         oferta_fin: enOferta && ofertaFin ? new Date(ofertaFin).toISOString() : null,
         codigo_oferta: enOferta ? (codigoOferta || generateOfferCode()) : null,
+        es_preventa: esPreventa,
+        monto_minimo_preventa: esPreventa && montoMinimoPreventa ? parseFloat(montoMinimoPreventa) : null,
       };
 
       if (editingId) {
@@ -237,6 +247,8 @@ export default function AdminProductos() {
     setOfertaInicio(producto.oferta_inicio ? new Date(producto.oferta_inicio).toISOString().slice(0, 16) : "");
     setOfertaFin(producto.oferta_fin ? new Date(producto.oferta_fin).toISOString().slice(0, 16) : "");
     setCodigoOferta(producto.codigo_oferta || "");
+    setEsPreventa(producto.es_preventa ?? false);
+    setMontoMinimoPreventa(producto.monto_minimo_preventa?.toString() || "500");
     setShowForm(true);
   };
 
@@ -321,6 +333,11 @@ export default function AdminProductos() {
                       {producto.en_oferta && (
                         <Badge className="bg-primary text-primary-foreground">
                           {producto.porcentaje_descuento}% OFF
+                        </Badge>
+                      )}
+                      {producto.es_preventa && (
+                        <Badge variant="outline" className="border-primary text-primary">
+                          Preventa
                         </Badge>
                       )}
                     </div>
@@ -552,6 +569,42 @@ export default function AdminProductos() {
                         </p>
                       </div>
                     )}
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Sección de Preventa */}
+              <div className="bg-muted border border-border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-5 h-5 text-primary" />
+                    <Label className="text-lg font-semibold">Producto de Preventa</Label>
+                  </div>
+                  <Switch
+                    checked={esPreventa}
+                    onCheckedChange={setEsPreventa}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Los productos de preventa requieren un monto mínimo de compra. El cliente paga y luego se le asigna un código de rastreo.
+                </p>
+
+                {esPreventa && (
+                  <div>
+                    <Label htmlFor="monto_minimo">Monto Mínimo de Preventa (RD$)</Label>
+                    <Input
+                      id="monto_minimo"
+                      type="number"
+                      min="1"
+                      value={montoMinimoPreventa}
+                      onChange={(e) => setMontoMinimoPreventa(e.target.value)}
+                      placeholder="500"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      El cliente verá este monto como requisito mínimo para ordenar este producto.
+                    </p>
                   </div>
                 )}
               </div>
