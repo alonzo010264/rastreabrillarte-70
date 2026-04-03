@@ -55,6 +55,8 @@ interface Product {
   oferta_fin: string | null;
   codigo_oferta: string | null;
   tallas: string[] | null;
+  es_preventa: boolean | null;
+  monto_minimo_preventa: number | null;
 }
 
 type SortOption = "featured" | "price_asc" | "price_desc" | "newest" | "name";
