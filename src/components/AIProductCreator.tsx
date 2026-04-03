@@ -321,9 +321,11 @@ export const AIProductCreator = ({ onProductsCreated }: { onProductsCreated: () 
           <ul className="list-disc list-inside space-y-0.5 ml-2">
             <li>Crea un producto "Aretes de Flores" precio 120, descripción elegante;</li>
             <li>Agrega producto Pulsera Corazones a $85 con 20% descuento;</li>
-            <li>Nuevo producto collar dorado, precio 200, stock 50, destacado;</li>
+            <li>Nuevo collar dorado, precio 200, stock 50, destacado;</li>
+            <li>Agrega pulsera mariposas en preventa precio 300 mínimo 600;</li>
           </ul>
           <p className="mt-2 text-primary">💡 Sube imágenes y se asignarán al producto actual</p>
+          <p className="text-primary">🛒 Usa "preventa" para productos de preorden con monto mínimo configurable</p>
         </div>
 
         {/* Results */}
