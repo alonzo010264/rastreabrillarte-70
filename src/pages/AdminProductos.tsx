@@ -37,6 +37,8 @@ interface Producto {
   oferta_inicio: string | null;
   oferta_fin: string | null;
   codigo_oferta: string | null;
+  es_preventa: boolean | null;
+  monto_minimo_preventa: number | null;
 }
 
 const generateOfferCode = () => {
