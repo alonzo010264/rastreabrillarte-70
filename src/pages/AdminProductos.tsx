@@ -79,6 +79,10 @@ export default function AdminProductos() {
   const [ofertaFin, setOfertaFin] = useState("");
   const [codigoOferta, setCodigoOferta] = useState("");
 
+  // Preventa state
+  const [esPreventa, setEsPreventa] = useState(false);
+  const [montoMinimoPreventa, setMontoMinimoPreventa] = useState("500");
+
   useEffect(() => {
     checkAdminAndLoad();
   }, []);
