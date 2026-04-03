@@ -1739,9 +1739,11 @@ export type Database = {
           destacado: boolean | null
           disponible: boolean | null
           en_oferta: boolean | null
+          es_preventa: boolean | null
           fecha_lanzamiento: string | null
           id: string
           imagenes: string[] | null
+          monto_minimo_preventa: number | null
           nombre: string
           oferta_fin: string | null
           oferta_inicio: string | null
@@ -1765,9 +1767,11 @@ export type Database = {
           destacado?: boolean | null
           disponible?: boolean | null
           en_oferta?: boolean | null
+          es_preventa?: boolean | null
           fecha_lanzamiento?: string | null
           id?: string
           imagenes?: string[] | null
+          monto_minimo_preventa?: number | null
           nombre: string
           oferta_fin?: string | null
           oferta_inicio?: string | null
@@ -1791,9 +1795,11 @@ export type Database = {
           destacado?: boolean | null
           disponible?: boolean | null
           en_oferta?: boolean | null
+          es_preventa?: boolean | null
           fecha_lanzamiento?: string | null
           id?: string
           imagenes?: string[] | null
+          monto_minimo_preventa?: number | null
           nombre?: string
           oferta_fin?: string | null
           oferta_inicio?: string | null
