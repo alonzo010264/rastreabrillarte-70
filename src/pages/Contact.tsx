@@ -281,7 +281,7 @@ const Contact = () => {
         </div>
       </div>
 
-      {agentChatOpen && <AgentChat onClose={() => setAgentChatOpen(false)} />}
+      
       <Footer />
     </div>
   );
