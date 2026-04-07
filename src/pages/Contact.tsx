@@ -214,16 +214,6 @@ const Contact = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="pt-4 border-t">
-                    <Button
-                      className="w-full"
-                      variant="default"
-                      onClick={() => setAgentChatOpen(true)}
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Hablar con Nosotros
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
 
