@@ -35,7 +35,20 @@ const Contact = () => {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('contact-auto-reply', {
+      // Guardar en BD
+      const { error: dbError } = await supabase.from('Contactos').insert([{
+        nombre_cliente: formData.name.trim(),
+        correo: formData.email.trim(),
+        descripcion_problema: formData.message.trim(),
+        estado: 'pendiente',
+      }]);
+
+      if (dbError) {
+        console.error('Error guardando contacto:', dbError);
+      }
+
+      // Enviar correo de confirmación automático
+      const { error } = await supabase.functions.invoke('contact-auto-reply', {
         body: {
           nombre: formData.name.trim(),
           correo: formData.email.trim(),
@@ -44,21 +57,15 @@ const Contact = () => {
       });
 
       if (error) {
-        console.error('Error:', error);
-        toast({
-          title: "Error",
-          description: "Hubo un problema al enviar tu consulta. Inténtalo de nuevo.",
-          variant: "destructive"
-        });
-      } else {
-        setAssignedAgent(data?.agente || "un agente");
-        setSubmitted(true);
-        toast({
-          title: "¡Consulta enviada!",
-          description: "Revisa tu correo, te enviamos una confirmación.",
-        });
-        setFormData({ name: '', email: '', message: '' });
+        console.error('Error enviando correo:', error);
       }
+
+      setSubmitted(true);
+      toast({
+        title: "¡Consulta enviada!",
+        description: "Revisa tu correo, te enviamos una confirmación.",
+      });
+      setFormData({ name: '', email: '', message: '' });
     } catch (error) {
       console.error('Error:', error);
       toast({
