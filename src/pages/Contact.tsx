@@ -6,12 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, MapPin, Clock, Instagram, Facebook, Send, MessageSquare, CheckCircle } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Instagram, Facebook, Send, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { AgentChat } from "@/components/AgentChat";
-
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -20,8 +18,6 @@ const Contact = () => {
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [assignedAgent, setAssignedAgent] = useState("");
-  const [agentChatOpen, setAgentChatOpen] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,7 +35,20 @@ const Contact = () => {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('contact-auto-reply', {
+      // Guardar en BD
+      const { error: dbError } = await supabase.from('Contactos').insert([{
+        nombre_cliente: formData.name.trim(),
+        correo: formData.email.trim(),
+        descripcion_problema: formData.message.trim(),
+        estado: 'pendiente',
+      }]);
+
+      if (dbError) {
+        console.error('Error guardando contacto:', dbError);
+      }
+
+      // Enviar correo de confirmación automático
+      const { error } = await supabase.functions.invoke('contact-auto-reply', {
         body: {
           nombre: formData.name.trim(),
           correo: formData.email.trim(),
@@ -48,21 +57,15 @@ const Contact = () => {
       });
 
       if (error) {
-        console.error('Error:', error);
-        toast({
-          title: "Error",
-          description: "Hubo un problema al enviar tu consulta. Inténtalo de nuevo.",
-          variant: "destructive"
-        });
-      } else {
-        setAssignedAgent(data?.agente || "un agente");
-        setSubmitted(true);
-        toast({
-          title: "¡Consulta enviada!",
-          description: "Revisa tu correo, te enviamos una confirmación.",
-        });
-        setFormData({ name: '', email: '', message: '' });
+        console.error('Error enviando correo:', error);
       }
+
+      setSubmitted(true);
+      toast({
+        title: "¡Consulta enviada!",
+        description: "Revisa tu correo, te enviamos una confirmación.",
+      });
+      setFormData({ name: '', email: '', message: '' });
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -100,7 +103,7 @@ const Contact = () => {
                     </div>
                     <h3 className="text-xl font-semibold">¡Consulta recibida!</h3>
                     <p className="text-muted-foreground">
-                      Te enviamos una confirmación a tu correo. Nuestro agente <strong>{assignedAgent}</strong> te responderá en breve directamente a tu Gmail.
+                      Te enviamos una confirmación a tu correo. Nos pondremos en contacto contigo pronto.
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Revisa tu bandeja de entrada (y spam por si acaso).
@@ -211,16 +214,6 @@ const Contact = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="pt-4 border-t">
-                    <Button
-                      className="w-full"
-                      variant="default"
-                      onClick={() => setAgentChatOpen(true)}
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Hablar con Nosotros
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
 
@@ -288,7 +281,7 @@ const Contact = () => {
         </div>
       </div>
 
-      {agentChatOpen && <AgentChat onClose={() => setAgentChatOpen(false)} />}
+      
       <Footer />
     </div>
   );
