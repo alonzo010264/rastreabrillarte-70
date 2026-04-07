@@ -103,7 +103,7 @@ const Contact = () => {
                     </div>
                     <h3 className="text-xl font-semibold">¡Consulta recibida!</h3>
                     <p className="text-muted-foreground">
-                      Te enviamos una confirmación a tu correo. Nuestro agente <strong>{assignedAgent}</strong> te responderá en breve directamente a tu Gmail.
+                      Te enviamos una confirmación a tu correo. Nos pondremos en contacto contigo pronto.
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Revisa tu bandeja de entrada (y spam por si acaso).
