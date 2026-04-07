@@ -10,8 +10,6 @@ import { Mail, Phone, MapPin, Clock, Instagram, Facebook, Send, MessageSquare, C
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { AgentChat } from "@/components/AgentChat";
-
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -20,8 +18,6 @@ const Contact = () => {
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [assignedAgent, setAssignedAgent] = useState("");
-  const [agentChatOpen, setAgentChatOpen] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
