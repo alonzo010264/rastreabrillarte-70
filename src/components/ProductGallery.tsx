@@ -133,10 +133,10 @@ const ProductGallery = () => {
                   {/* Tape effect */}
                   <div className={`absolute ${tape} z-10`}>
                     <div
-                      className="w-10 h-4 md:w-12 md:h-5 rounded-sm opacity-60"
+                      className="w-10 h-4 md:w-12 md:h-5 rounded-sm opacity-50"
                       style={{
-                        background: "linear-gradient(180deg, rgba(255,225,150,0.9) 0%, rgba(240,210,130,0.7) 100%)",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                        background: "linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%)",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
                       }}
                     />
                   </div>
