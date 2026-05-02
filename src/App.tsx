@@ -226,6 +226,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ScrollToTop />
+          <FollowingStar />
           <Suspense fallback={<PageLoader />}>
             <AnimatedRoutes />
             <ChatbotSection />
