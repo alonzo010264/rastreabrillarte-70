@@ -21,24 +21,24 @@ import pulserasIniciales from "@/assets/productos/pulseras-iniciales-personaliza
 import pulserasCorazonesColores from "@/assets/productos/pulseras-corazones-colores.png";
 
 const products = [
-  { id: 1, name: "Pulsera Margarita", image: margarita, description: "Elegante pulsera de perlas con diseño floral", color: "bg-yellow-100 dark:bg-yellow-900/30" },
-  { id: 2, name: "Aretes de Flores", image: aretes, description: "Hermoso set de aretes con flores coloridas", color: "bg-pink-100 dark:bg-pink-900/30" },
-  { id: 3, name: "Pulseras Mariposas", image: pulseras, description: "Colección de pulseras tejidas con mariposas", color: "bg-blue-100 dark:bg-blue-900/30" },
-  { id: 4, name: "Flores Crochet Rojas", image: floresCrochetRojas, description: "Flores tejidas a crochet en rojo intenso", color: "bg-red-100 dark:bg-red-900/30" },
-  { id: 5, name: "Bouquet Crochet", image: bouquetCrochetColores, description: "Ramo de flores multicolor tejido a mano", color: "bg-green-100 dark:bg-green-900/30" },
-  { id: 6, name: "Aretes Margaritas", image: aretesMargaritas, description: "Aretes de margaritas en colores vibrantes", color: "bg-orange-100 dark:bg-orange-900/30" },
-  { id: 7, name: "Anillo Flores Azul", image: anilloFloresAzul, description: "Delicado anillo de flores en tonos azules", color: "bg-sky-100 dark:bg-sky-900/30" },
-  { id: 8, name: "Pulseras Corazones", image: pulserasCorazones, description: "Pulseras con corazones en colores pastel", color: "bg-rose-100 dark:bg-rose-900/30" },
-  { id: 9, name: "Pulseras Love You", image: pulserasLoveYou, description: "Pulseras personalizadas con mensajes de amor", color: "bg-purple-100 dark:bg-purple-900/30" },
-  { id: 10, name: "Flores Crochet Bouquet", image: floresCrochet, description: "Bouquet artesanal de flores tejidas", color: "bg-emerald-100 dark:bg-emerald-900/30" },
-  { id: 11, name: "Pulseras Cristal", image: pulserasCristal, description: "Set de pulseras de cristal multicolor", color: "bg-violet-100 dark:bg-violet-900/30" },
-  { id: 12, name: "Pulseras Brillantes", image: pulserasBrillantes, description: "Pulseras elegantes de esferas brillantes", color: "bg-amber-100 dark:bg-amber-900/30" },
-  { id: 13, name: "Pulsera Girasol", image: pulseraGirasol, description: "Cristales dorados con detalle de girasol", color: "bg-yellow-100 dark:bg-yellow-900/30" },
-  { id: 14, name: "Pulsera Macramé", image: pulseraMacrame, description: "Macramé con girasoles y perlas", color: "bg-lime-100 dark:bg-lime-900/30" },
-  { id: 15, name: "Pulseras Trébol", image: pulserasTrebol, description: "Pulseras tejidas con dije de trébol", color: "bg-teal-100 dark:bg-teal-900/30" },
-  { id: 16, name: "Pulseras Pareja", image: pulserasPareja, description: "Pulseras con corazón magnético", color: "bg-red-100 dark:bg-red-900/30" },
-  { id: 17, name: "Pulseras Iniciales", image: pulserasIniciales, description: "Tejidas con inicial personalizada", color: "bg-pink-100 dark:bg-pink-900/30" },
-  { id: 18, name: "Pulseras Arcoíris", image: pulserasCorazonesColores, description: "Corazones en todos los colores", color: "bg-indigo-100 dark:bg-indigo-900/30" },
+  { id: 1, name: "Pulsera Margarita", image: margarita, description: "Elegante pulsera de perlas con diseño floral" },
+  { id: 2, name: "Aretes de Flores", image: aretes, description: "Hermoso set de aretes con flores coloridas" },
+  { id: 3, name: "Pulseras Mariposas", image: pulseras, description: "Colección de pulseras tejidas con mariposas" },
+  { id: 4, name: "Flores Crochet Rojas", image: floresCrochetRojas, description: "Flores tejidas a crochet" },
+  { id: 5, name: "Bouquet Crochet", image: bouquetCrochetColores, description: "Ramo de flores tejido a mano" },
+  { id: 6, name: "Aretes Margaritas", image: aretesMargaritas, description: "Aretes de margaritas elegantes" },
+  { id: 7, name: "Anillo Flores Azul", image: anilloFloresAzul, description: "Delicado anillo de flores" },
+  { id: 8, name: "Pulseras Corazones", image: pulserasCorazones, description: "Pulseras con corazones" },
+  { id: 9, name: "Pulseras Love You", image: pulserasLoveYou, description: "Pulseras con mensajes de amor" },
+  { id: 10, name: "Flores Crochet Bouquet", image: floresCrochet, description: "Bouquet artesanal de flores tejidas" },
+  { id: 11, name: "Pulseras Cristal", image: pulserasCristal, description: "Set de pulseras de cristal" },
+  { id: 12, name: "Pulseras Brillantes", image: pulserasBrillantes, description: "Pulseras elegantes brillantes" },
+  { id: 13, name: "Pulsera Girasol", image: pulseraGirasol, description: "Cristales con detalle de girasol" },
+  { id: 14, name: "Pulsera Macramé", image: pulseraMacrame, description: "Macramé con girasoles y perlas" },
+  { id: 15, name: "Pulseras Trébol", image: pulserasTrebol, description: "Pulseras tejidas con dije de trébol" },
+  { id: 16, name: "Pulseras Pareja", image: pulserasPareja, description: "Pulseras con corazón magnético" },
+  { id: 17, name: "Pulseras Iniciales", image: pulserasIniciales, description: "Tejidas con inicial personalizada" },
+  { id: 18, name: "Pulseras Corazones", image: pulserasCorazonesColores, description: "Corazones elegantes" },
 ];
 
 // Pre-defined scattered positions/rotations for post-it effect
@@ -116,15 +116,16 @@ const ProductGallery = () => {
                 }}
               >
                 <div
-                  className={`relative cursor-pointer transition-all duration-500 ease-out ${product.color} rounded-sm p-2 pb-4`}
+                  className="relative cursor-pointer transition-all duration-500 ease-out bg-card border border-border/40 rounded-sm p-2 pb-4"
                   style={{
                     transform: isHovered
                       ? "rotate(0deg) scale(1.08) translateY(-12px)"
                       : `rotate(${style.rotate}) translateY(${style.y})`,
                     boxShadow: isHovered
-                      ? "0 20px 40px -8px rgba(0,0,0,0.25), 0 8px 16px -4px rgba(0,0,0,0.15)"
-                      : "2px 4px 12px -2px rgba(0,0,0,0.1), 1px 2px 4px rgba(0,0,0,0.06)",
+                      ? "0 20px 40px -8px rgba(0,0,0,0.6), 0 8px 16px -4px rgba(0,0,0,0.4)"
+                      : "2px 4px 12px -2px rgba(0,0,0,0.4), 1px 2px 4px rgba(0,0,0,0.25)",
                     zIndex: isHovered ? 20 : 1,
+                    filter: isHovered ? "grayscale(100%)" : "grayscale(100%)",
                   }}
                   onMouseEnter={() => setHoveredId(product.id)}
                   onMouseLeave={() => setHoveredId(null)}
@@ -132,10 +133,10 @@ const ProductGallery = () => {
                   {/* Tape effect */}
                   <div className={`absolute ${tape} z-10`}>
                     <div
-                      className="w-10 h-4 md:w-12 md:h-5 rounded-sm opacity-60"
+                      className="w-10 h-4 md:w-12 md:h-5 rounded-sm opacity-50"
                       style={{
-                        background: "linear-gradient(180deg, rgba(255,225,150,0.9) 0%, rgba(240,210,130,0.7) 100%)",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                        background: "linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%)",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
                       }}
                     />
                   </div>
