@@ -158,6 +158,15 @@ export default {
     			'2xl': 'var(--shadow-2xl)'
     		},
     		fontFamily: {
+    			display: [
+    				'"Playfair Display"',
+    				'Georgia',
+    				'serif'
+    			],
+    			script: [
+    				'"Dancing Script"',
+    				'cursive'
+    			],
     			sans: [
     				'Poppins',
     				'ui-sans-serif',
