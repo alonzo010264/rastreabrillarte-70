@@ -125,7 +125,6 @@ const ProductGallery = () => {
                       ? "0 20px 40px -8px rgba(0,0,0,0.6), 0 8px 16px -4px rgba(0,0,0,0.4)"
                       : "2px 4px 12px -2px rgba(0,0,0,0.4), 1px 2px 4px rgba(0,0,0,0.25)",
                     zIndex: isHovered ? 20 : 1,
-                    filter: isHovered ? "grayscale(100%)" : "grayscale(100%)",
                   }}
                   onMouseEnter={() => setHoveredId(product.id)}
                   onMouseLeave={() => setHoveredId(null)}
