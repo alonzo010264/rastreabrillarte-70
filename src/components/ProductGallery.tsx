@@ -116,15 +116,16 @@ const ProductGallery = () => {
                 }}
               >
                 <div
-                  className={`relative cursor-pointer transition-all duration-500 ease-out ${product.color} rounded-sm p-2 pb-4`}
+                  className="relative cursor-pointer transition-all duration-500 ease-out bg-card border border-border/40 rounded-sm p-2 pb-4"
                   style={{
                     transform: isHovered
                       ? "rotate(0deg) scale(1.08) translateY(-12px)"
                       : `rotate(${style.rotate}) translateY(${style.y})`,
                     boxShadow: isHovered
-                      ? "0 20px 40px -8px rgba(0,0,0,0.25), 0 8px 16px -4px rgba(0,0,0,0.15)"
-                      : "2px 4px 12px -2px rgba(0,0,0,0.1), 1px 2px 4px rgba(0,0,0,0.06)",
+                      ? "0 20px 40px -8px rgba(0,0,0,0.6), 0 8px 16px -4px rgba(0,0,0,0.4)"
+                      : "2px 4px 12px -2px rgba(0,0,0,0.4), 1px 2px 4px rgba(0,0,0,0.25)",
                     zIndex: isHovered ? 20 : 1,
+                    filter: isHovered ? "grayscale(100%)" : "grayscale(100%)",
                   }}
                   onMouseEnter={() => setHoveredId(product.id)}
                   onMouseLeave={() => setHoveredId(null)}
