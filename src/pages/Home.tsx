@@ -31,20 +31,17 @@ const Home = () => {
       
       {/* Hero Section with Parallax */}
       <section className="relative min-h-[90vh] flex items-center px-4 bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 pointer-events-none parallax-slow" style={{
-        transform: `translateY(${offsetY * 0.3}px)`
+        {/* Animated background elements - kept away from logo/text area */}
+        <div className="absolute inset-0 pointer-events-none parallax-slow hidden md:block" style={{
+        transform: `translateY(${offsetY * 0.2}px)`
       }}>
-          <Sparkles className="absolute top-20 left-10 text-primary/30 w-16 h-16 animate-float" />
-          <Sparkles className="absolute top-40 right-20 text-primary/20 w-12 h-12 animate-float animation-delay-300" />
-          <Sparkles className="absolute bottom-60 left-20 text-primary/15 w-20 h-20 animate-float animation-delay-600" />
-          <Sparkles className="absolute bottom-20 right-10 text-primary/25 w-14 h-14 animate-float animation-delay-400" />
-          <Sparkles className="absolute top-1/2 left-1/3 text-secondary/15 w-10 h-10 animate-float animation-delay-500" />
-          
-          {/* Gradient orbs */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-3xl animate-pulse animation-delay-500" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl animate-morph" />
+          <Sparkles className="absolute top-10 right-10 text-foreground/15 w-12 h-12 animate-float" />
+          <Sparkles className="absolute top-1/3 right-1/4 text-foreground/10 w-10 h-10 animate-float animation-delay-300" />
+          <Sparkles className="absolute bottom-20 right-20 text-foreground/15 w-14 h-14 animate-float animation-delay-500" />
+
+          {/* Subtle gradient orbs (no heavy blur) */}
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-foreground/5 rounded-full blur-2xl" />
+          <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-foreground/5 rounded-full blur-2xl" />
         </div>
         
         <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
