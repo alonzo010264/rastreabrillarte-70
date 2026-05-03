@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AuthProvider } from "@/contexts/AuthContext";
 import FollowingStar from "@/components/FollowingStar";
+import { supabase } from "@/integrations/supabase/client";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
