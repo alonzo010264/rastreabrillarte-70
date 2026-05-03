@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole = "admin" }: ProtectedRouteProps) => {
-  const { user, profile, isAdmin, isAgent, loading } = useAuth();
+  const { user, isAdmin, isAgent, loading } = useAuth();
 
   if (loading) {
     return (
@@ -20,12 +20,10 @@ const ProtectedRoute = ({ children, requiredRole = "admin" }: ProtectedRouteProp
 
   if (!user) return <Navigate to="/login" replace />;
 
-  // Check role
   const hasRole = requiredRole === "admin" ? isAdmin : requiredRole === "agent" ? isAgent : false;
   if (!hasRole) return <Navigate to="/login" replace />;
 
-  // Check profile verification
-  if (!profile?.verificado || !profile?.confirmado) return <Navigate to="/login" replace />;
+  return <>{children}</>;
 
   return <>{children}</>;
 };
