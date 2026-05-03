@@ -127,18 +127,9 @@ const FAQ = () => {
           </div>
 
           <div className="mt-16 text-center animate-fade-in">
-            <div className="bg-muted/50 rounded-lg p-8 border border-border">
-              <Diamond className="w-12 h-12 text-primary mx-auto mb-4 rotate-45" />
-              <h3 className="text-2xl font-light text-foreground mb-4">
-                ¿No encuentras tu respuesta?
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Nuestro equipo de soporte está aquí para ayudarte con cualquier duda específica que tengas.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Puedes contactarnos a través de la sección de contacto o directamente por nuestros canales de comunicación.
-              </p>
-            </div>
+            <p className="text-muted-foreground">
+              ¿No encuentras tu respuesta? Contáctanos a través de nuestros canales oficiales.
+            </p>
           </div>
         </div>
       </div>
