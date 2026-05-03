@@ -24,9 +24,6 @@ const ProtectedRoute = ({ children, requiredRole = "admin" }: ProtectedRouteProp
   const hasRole = requiredRole === "admin" ? isAdmin : requiredRole === "agent" ? isAgent : false;
   if (!hasRole) return <Navigate to="/login" replace />;
 
-  // Check profile verification
-  if (!profile?.verificado || !profile?.confirmado) return <Navigate to="/login" replace />;
-
   return <>{children}</>;
 };
 
