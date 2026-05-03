@@ -214,6 +214,7 @@ function AnimatedRoutes() {
         <Route path="/admin/blog" element={<PageWrapper><ProtectedRoute><AdminBlog /></ProtectedRoute></PageWrapper>} />
         <Route path="/admin/referidos" element={<PageWrapper><ProtectedRoute><AdminReferidos /></ProtectedRoute></PageWrapper>} />
         <Route path="/admin/correos-ia" element={<PageWrapper><ProtectedRoute><AdminCorreosIA /></ProtectedRoute></PageWrapper>} />
+        <Route path="/correos" element={<PageWrapper><Correos /></PageWrapper>} />
         <Route path="/brillarte-pedidos" element={<PageWrapper><ProtectedRoute><BrillartePedidos /></ProtectedRoute></PageWrapper>} />
         <Route path="/manage" element={<PageWrapper><ProtectedRoute><OrderManagement /></ProtectedRoute></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
