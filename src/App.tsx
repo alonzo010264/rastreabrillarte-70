@@ -111,6 +111,18 @@ const ChatbotTrigger = lazyWithRetry(() => import("./components/Chatbot").then(m
 
 const ChatbotSection = () => {
   const [isOpen, setIsOpen] = useState(false);
+  // Auto-open the chat once for users that are logged in with a Brillarte account
+  useEffect(() => {
+    const tryAutoOpen = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const alreadyOpened = sessionStorage.getItem("brillarte_chat_autoopened");
+      if (alreadyOpened) return;
+      sessionStorage.setItem("brillarte_chat_autoopened", "1");
+      setTimeout(() => setIsOpen(true), 1200);
+    };
+    tryAutoOpen();
+  }, []);
   return isOpen ? <Chatbot onClose={() => setIsOpen(false)} /> : <ChatbotTrigger onClick={() => setIsOpen(true)} />;
 };
 
