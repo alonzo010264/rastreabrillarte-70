@@ -791,6 +791,39 @@ export type Database = {
         }
         Relationships: []
       }
+      correos_enviados: {
+        Row: {
+          asunto: string
+          destinatarios: string[]
+          enviado_at: string
+          id: string
+          mensaje: string
+          sender_email: string
+          sender_nombre: string | null
+          sender_user_id: string
+        }
+        Insert: {
+          asunto: string
+          destinatarios: string[]
+          enviado_at?: string
+          id?: string
+          mensaje: string
+          sender_email: string
+          sender_nombre?: string | null
+          sender_user_id: string
+        }
+        Update: {
+          asunto?: string
+          destinatarios?: string[]
+          enviado_at?: string
+          id?: string
+          mensaje?: string
+          sender_email?: string
+          sender_nombre?: string | null
+          sender_user_id?: string
+        }
+        Relationships: []
+      }
       creditos_dados: {
         Row: {
           admin_creador: string | null

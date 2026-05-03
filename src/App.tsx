@@ -105,6 +105,7 @@ const AdminBlog = lazyWithRetry(() => import("./pages/AdminBlog"));
 const EmprendeBrillarte = lazyWithRetry(() => import("./pages/EmprendeBrillarte"));
 const EmprendeBrillarteAplicar = lazyWithRetry(() => import("./pages/EmprendeBrillarteAplicar"));
 const AdminCorreosIA = lazyWithRetry(() => import("./pages/AdminCorreosIA"));
+const Correos = lazyWithRetry(() => import("./pages/Correos"));
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
 
 const Chatbot = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.Chatbot })));
@@ -213,6 +214,7 @@ function AnimatedRoutes() {
         <Route path="/admin/blog" element={<PageWrapper><ProtectedRoute><AdminBlog /></ProtectedRoute></PageWrapper>} />
         <Route path="/admin/referidos" element={<PageWrapper><ProtectedRoute><AdminReferidos /></ProtectedRoute></PageWrapper>} />
         <Route path="/admin/correos-ia" element={<PageWrapper><ProtectedRoute><AdminCorreosIA /></ProtectedRoute></PageWrapper>} />
+        <Route path="/correos" element={<PageWrapper><Correos /></PageWrapper>} />
         <Route path="/brillarte-pedidos" element={<PageWrapper><ProtectedRoute><BrillartePedidos /></ProtectedRoute></PageWrapper>} />
         <Route path="/manage" element={<PageWrapper><ProtectedRoute><OrderManagement /></ProtectedRoute></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />

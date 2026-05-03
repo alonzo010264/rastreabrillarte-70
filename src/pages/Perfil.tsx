@@ -261,15 +261,7 @@ export default function Perfil() {
               {/* Avatar Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    Foto de Perfil
-                    {profile?.verificado && (
-                      <div className="flex items-center gap-1 bg-blue-500/10 px-2 py-0.5 rounded-full">
-                        <img src={verificadoIcon} alt="Verificado" className="w-5 h-5" />
-                        <span className="text-sm font-medium text-blue-500">Cuenta Oficial</span>
-                      </div>
-                    )}
-                  </CardTitle>
+                   <CardTitle>Foto de Perfil</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4">
                   <div className="relative">

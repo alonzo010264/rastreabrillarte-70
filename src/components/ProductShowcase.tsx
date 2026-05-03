@@ -439,7 +439,6 @@ export const ProductShowcase = () => {
 
                   <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
                     <SelectTrigger className="w-[200px] border-0 bg-transparent text-xs tracking-[0.15em] uppercase font-semibold text-foreground h-auto py-1 focus:ring-0">
-                      <span className="mr-1">SORT BY:</span>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

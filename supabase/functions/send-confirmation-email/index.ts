@@ -19,7 +19,8 @@ interface ContactEmailRequest {
   codigo_pedido?: string;
 }
 
-const LOGO_URL = "https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo.jpg";
+const LOGO_URL = "https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/brillarte-logo-white.png";
+const VERIFIED_BADGE = "https://ahjibuqgthghrykzrrfj.supabase.co/storage/v1/object/public/email-assets/verificado-icon.png";
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -180,9 +181,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "BRILLARTE <contacto@oficial.brillarte.lat>",
+      from: "BRILLARTE Oficial <brillarte@oficial.brillarte.lat>",
       to: [customerEmail],
-      replyTo: ["contacto@oficial.brillarte.lat"],
+      replyTo: ["brillarte@oficial.brillarte.lat"],
       subject: subject,
       html: emailHtml,
     });
