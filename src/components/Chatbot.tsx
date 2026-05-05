@@ -15,11 +15,35 @@ interface Message {
   imageUrl?: string;
   fileUrl?: string;
   fileName?: string;
+  agent?: string;
 }
 
 interface ChatbotProps {
   onClose: () => void;
 }
+
+// Split AI response into short, natural chat-bubble chunks
+const splitIntoChunks = (text: string): string[] => {
+  const cleaned = text.replace(/\*\*/g, "").trim();
+  // Split by sentence enders, keeping short logical units
+  const sentences = cleaned.match(/[^.!?\n]+[.!?]?/g)?.map(s => s.trim()).filter(Boolean) || [cleaned];
+  const chunks: string[] = [];
+  let current = "";
+  for (const s of sentences) {
+    if ((current + " " + s).trim().length <= 90 && current) {
+      current = (current + " " + s).trim();
+    } else {
+      if (current) chunks.push(current);
+      current = s;
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks.slice(0, 5); // cap at 5 bubbles
+};
+
+// Simulate human typing: ~40ms per char, min 600ms, max 2500ms
+const typingDelay = (text: string) =>
+  Math.min(2500, Math.max(600, text.length * 40));
 
 const extractFunctionErrorMessage = async (error: unknown): Promise<string | null> => {
   const functionError = error as {
@@ -86,6 +110,27 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     }
   };
 
+  const sendChunkedAssistantReply = async (
+    baseMessages: Message[],
+    fullText: string,
+  ) => {
+    const chunks = splitIntoChunks(fullText);
+    let acc = [...baseMessages];
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      // show typing indicator
+      setLoading(true);
+      await new Promise(r => setTimeout(r, typingDelay(chunk)));
+      setLoading(false);
+      acc = [...acc, { role: "assistant", content: chunk, agent: "Noah" }];
+      setMessages(acc);
+      // small pause between bubbles
+      if (i < chunks.length - 1) {
+        await new Promise(r => setTimeout(r, 350));
+      }
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || loading) return;
@@ -123,10 +168,11 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         }
       });
       if (error) throw error;
-      setMessages([...newMessages, { role: "assistant", content: data.response }]);
+      setLoading(false);
+      await sendChunkedAssistantReply(newMessages, data.response || "");
     } catch (error) {
       const errorMessage = await extractFunctionErrorMessage(error);
-      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo." }]);
+      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo.", agent: "Noah" }]);
     } finally {
       setLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -153,10 +199,11 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         }
       });
       if (error) throw error;
-      setMessages([...newMessages, { role: "assistant", content: data.response }]);
+      setLoading(false);
+      await sendChunkedAssistantReply(newMessages, data.response || "");
     } catch (error) {
       const errorMessage = await extractFunctionErrorMessage(error);
-      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo." }]);
+      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo.", agent: "Noah" }]);
     } finally {
       setLoading(false);
     }
@@ -260,9 +307,11 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
           </div>
         ))}
         {loading && (
-          <div className="flex justify-start">
-            <div className="bg-background border p-2.5 rounded-lg shadow-sm">
-              <p className="text-sm animate-pulse">Escribiendo...</p>
+          <div className="flex justify-start animate-fade-in">
+            <div className="bg-background border px-3 py-2.5 rounded-lg shadow-sm flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="w-1.5 h-1.5 bg-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="w-1.5 h-1.5 bg-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
             </div>
           </div>
         )}
