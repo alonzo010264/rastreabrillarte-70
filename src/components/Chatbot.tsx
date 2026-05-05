@@ -110,6 +110,27 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     }
   };
 
+  const sendChunkedAssistantReply = async (
+    baseMessages: Message[],
+    fullText: string,
+  ) => {
+    const chunks = splitIntoChunks(fullText);
+    let acc = [...baseMessages];
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      // show typing indicator
+      setLoading(true);
+      await new Promise(r => setTimeout(r, typingDelay(chunk)));
+      setLoading(false);
+      acc = [...acc, { role: "assistant", content: chunk, agent: "Noah" }];
+      setMessages(acc);
+      // small pause between bubbles
+      if (i < chunks.length - 1) {
+        await new Promise(r => setTimeout(r, 350));
+      }
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || loading) return;
