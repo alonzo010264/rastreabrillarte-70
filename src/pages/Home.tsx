@@ -248,6 +248,9 @@ const Home = () => {
       {/* Galería de Productos */}
       <ProductGallery />
 
+      {/* Agentes 24/7 */}
+      <AgentsShowcase />
+
       {/* Por qué elegirnos */}
       <section className="py-24 px-4 bg-muted/20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
