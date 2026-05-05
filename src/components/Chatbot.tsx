@@ -15,11 +15,35 @@ interface Message {
   imageUrl?: string;
   fileUrl?: string;
   fileName?: string;
+  agent?: string;
 }
 
 interface ChatbotProps {
   onClose: () => void;
 }
+
+// Split AI response into short, natural chat-bubble chunks
+const splitIntoChunks = (text: string): string[] => {
+  const cleaned = text.replace(/\*\*/g, "").trim();
+  // Split by sentence enders, keeping short logical units
+  const sentences = cleaned.match(/[^.!?\n]+[.!?]?/g)?.map(s => s.trim()).filter(Boolean) || [cleaned];
+  const chunks: string[] = [];
+  let current = "";
+  for (const s of sentences) {
+    if ((current + " " + s).trim().length <= 90 && current) {
+      current = (current + " " + s).trim();
+    } else {
+      if (current) chunks.push(current);
+      current = s;
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks.slice(0, 5); // cap at 5 bubbles
+};
+
+// Simulate human typing: ~40ms per char, min 600ms, max 2500ms
+const typingDelay = (text: string) =>
+  Math.min(2500, Math.max(600, text.length * 40));
 
 const extractFunctionErrorMessage = async (error: unknown): Promise<string | null> => {
   const functionError = error as {
