@@ -199,10 +199,11 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         }
       });
       if (error) throw error;
-      setMessages([...newMessages, { role: "assistant", content: data.response }]);
+      setLoading(false);
+      await sendChunkedAssistantReply(newMessages, data.response || "");
     } catch (error) {
       const errorMessage = await extractFunctionErrorMessage(error);
-      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo." }]);
+      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo.", agent: "Noah" }]);
     } finally {
       setLoading(false);
     }
