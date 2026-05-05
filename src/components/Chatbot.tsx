@@ -307,9 +307,11 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
           </div>
         ))}
         {loading && (
-          <div className="flex justify-start">
-            <div className="bg-background border p-2.5 rounded-lg shadow-sm">
-              <p className="text-sm animate-pulse">Escribiendo...</p>
+          <div className="flex justify-start animate-fade-in">
+            <div className="bg-background border px-3 py-2.5 rounded-lg shadow-sm flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="w-1.5 h-1.5 bg-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="w-1.5 h-1.5 bg-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
             </div>
           </div>
         )}
