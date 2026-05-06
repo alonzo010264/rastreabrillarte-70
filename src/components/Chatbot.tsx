@@ -76,12 +76,13 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const { user, profile, loading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
   const userEmail = profile?.correo || user?.email || "";
+  const [activeAgent, setActiveAgent] = useState<{ initial: string; name: string; role: string } | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
       content: userEmail
-        ? `Hola ${profile?.nombre_completo?.split(" ")[0] || ""}, bienvenido a Atención al Cliente BRILLARTE. ¿En qué te puedo ayudar?`
-        : "Hola, bienvenido a Atención al Cliente BRILLARTE."
+        ? `Hola ${profile?.nombre_completo?.split(" ")[0] || ""}, soy el Asistente Virtual de BRILLARTE. ¿En qué te puedo ayudar?`
+        : "Hola, soy el Asistente Virtual de BRILLARTE. ¿En qué te puedo ayudar?"
     }
   ]);
   const [input, setInput] = useState("");
@@ -110,21 +111,51 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     }
   };
 
+  const HUMAN_AGENTS = [
+    { initial: "L", name: "Luis", role: "Atención al Cliente", greet: "Hola, soy Luis, agente verificado de BRILLARTE. Voy a continuar ayudándote desde aquí." },
+    { initial: "M", name: "Miranda", role: "Atención al Cliente", greet: "Hola, soy Miranda, agente verificada de BRILLARTE. Estoy aquí para ayudarte personalmente." },
+    { initial: "S", name: "Sofía", role: "Atención al Cliente", greet: "Hola, soy Sofía, agente verificada de BRILLARTE. Cuéntame en qué te puedo ayudar." },
+  ];
+
+  const transferToAgent = async (baseMessages: Message[]) => {
+    const agent = HUMAN_AGENTS[Math.floor(Math.random() * HUMAN_AGENTS.length)];
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 1200));
+    setLoading(false);
+    let acc: Message[] = [...baseMessages, {
+      role: "assistant",
+      content: `── ${agent.name} se ha unido al chat ──`,
+      agent: "system",
+    }];
+    setMessages(acc);
+    setActiveAgent(agent);
+    await new Promise(r => setTimeout(r, 600));
+    setLoading(true);
+    await new Promise(r => setTimeout(r, typingDelay(agent.greet)));
+    setLoading(false);
+    acc = [...acc, { role: "assistant", content: agent.greet, agent: agent.name }];
+    setMessages(acc);
+  };
+
   const sendChunkedAssistantReply = async (
     baseMessages: Message[],
     fullText: string,
   ) => {
+    // Transfer trigger
+    if (fullText.includes("[TRANSFER_TO_AGENT]")) {
+      await transferToAgent(baseMessages);
+      return;
+    }
     const chunks = splitIntoChunks(fullText);
     let acc = [...baseMessages];
+    const agentLabel = activeAgent?.name || "Virtual";
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
-      // show typing indicator
       setLoading(true);
       await new Promise(r => setTimeout(r, typingDelay(chunk)));
       setLoading(false);
-      acc = [...acc, { role: "assistant", content: chunk, agent: "Noah" }];
+      acc = [...acc, { role: "assistant", content: chunk, agent: agentLabel }];
       setMessages(acc);
-      // small pause between bubbles
       if (i < chunks.length - 1) {
         await new Promise(r => setTimeout(r, 350));
       }
@@ -257,10 +288,18 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     <Card className={cardClass}>
       <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full shrink-0" />
+          {activeAgent ? (
+            <div className="w-9 h-9 rounded-full bg-background text-foreground flex items-center justify-center font-display text-base shrink-0">
+              {activeAgent.initial}
+            </div>
+          ) : (
+            <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full shrink-0" />
+          )}
           <div className="min-w-0 leading-tight">
-            <h3 className="font-display text-sm truncate">BRILLARTE</h3>
-            <p className="text-[11px] opacity-90 truncate">Atención al Cliente · {userEmail || "Virtual"}</p>
+            <h3 className="font-display text-sm truncate">{activeAgent ? activeAgent.name : "BRILLARTE"}</h3>
+            <p className="text-[11px] opacity-90 truncate">
+              {activeAgent ? `${activeAgent.role} · Verificado` : "Asistente Virtual"}
+            </p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={() => { setIsOpen(false); onClose(); }}
@@ -270,7 +309,15 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-muted/30">
-        {messages.map((msg, idx) => (
+        {messages.map((msg, idx) => {
+          if (msg.agent === "system") {
+            return (
+              <div key={idx} className="flex justify-center animate-fade-in">
+                <div className="text-[11px] text-muted-foreground bg-muted px-3 py-1 rounded-full">{msg.content}</div>
+              </div>
+            );
+          }
+          return (
           <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
             <div className={`max-w-[85%] p-2.5 rounded-lg text-sm ${
               msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-background border shadow-sm"
@@ -305,7 +352,8 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
         {loading && (
           <div className="flex justify-start animate-fade-in">
             <div className="bg-background border px-3 py-2.5 rounded-lg shadow-sm flex items-center gap-1">

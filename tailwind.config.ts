@@ -131,6 +131,10 @@ export default {
     					transform: 'scale(1)',
     					opacity: '1'
     				}
+    			},
+    			'marquee': {
+    				'0%': { transform: 'translateX(0)' },
+    				'100%': { transform: 'translateX(-50%)' }
     			}
     		},
     		animation: {
@@ -139,7 +143,8 @@ export default {
     			'fade-in': 'fade-in 0.6s ease-out',
     			'scale-in': 'scale-in 0.4s ease-out',
     			'slide-up': 'slide-up 0.5s ease-out',
-    			'bounce-in': 'bounce-in 0.6s ease-out'
+    			'bounce-in': 'bounce-in 0.6s ease-out',
+    			'marquee': 'marquee 40s linear infinite'
     		},
     		animationDelay: {
     			'100': '100ms',
