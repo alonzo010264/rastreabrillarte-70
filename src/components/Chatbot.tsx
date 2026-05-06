@@ -111,21 +111,51 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     }
   };
 
+  const HUMAN_AGENTS = [
+    { initial: "L", name: "Luis", role: "Atención al Cliente", greet: "Hola, soy Luis, agente verificado de BRILLARTE. Voy a continuar ayudándote desde aquí." },
+    { initial: "M", name: "Miranda", role: "Atención al Cliente", greet: "Hola, soy Miranda, agente verificada de BRILLARTE. Estoy aquí para ayudarte personalmente." },
+    { initial: "S", name: "Sofía", role: "Atención al Cliente", greet: "Hola, soy Sofía, agente verificada de BRILLARTE. Cuéntame en qué te puedo ayudar." },
+  ];
+
+  const transferToAgent = async (baseMessages: Message[]) => {
+    const agent = HUMAN_AGENTS[Math.floor(Math.random() * HUMAN_AGENTS.length)];
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 1200));
+    setLoading(false);
+    let acc: Message[] = [...baseMessages, {
+      role: "assistant",
+      content: `── ${agent.name} se ha unido al chat ──`,
+      agent: "system",
+    }];
+    setMessages(acc);
+    setActiveAgent(agent);
+    await new Promise(r => setTimeout(r, 600));
+    setLoading(true);
+    await new Promise(r => setTimeout(r, typingDelay(agent.greet)));
+    setLoading(false);
+    acc = [...acc, { role: "assistant", content: agent.greet, agent: agent.name }];
+    setMessages(acc);
+  };
+
   const sendChunkedAssistantReply = async (
     baseMessages: Message[],
     fullText: string,
   ) => {
+    // Transfer trigger
+    if (fullText.includes("[TRANSFER_TO_AGENT]")) {
+      await transferToAgent(baseMessages);
+      return;
+    }
     const chunks = splitIntoChunks(fullText);
     let acc = [...baseMessages];
+    const agentLabel = activeAgent?.name || "Virtual";
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
-      // show typing indicator
       setLoading(true);
       await new Promise(r => setTimeout(r, typingDelay(chunk)));
       setLoading(false);
-      acc = [...acc, { role: "assistant", content: chunk, agent: "Noah" }];
+      acc = [...acc, { role: "assistant", content: chunk, agent: agentLabel }];
       setMessages(acc);
-      // small pause between bubbles
       if (i < chunks.length - 1) {
         await new Promise(r => setTimeout(r, 350));
       }
