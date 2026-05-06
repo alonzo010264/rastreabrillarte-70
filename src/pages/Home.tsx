@@ -1,6 +1,7 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ProductGallery from "@/components/ProductGallery";
+import ProductCarousel from "@/components/ProductCarousel";
 import AgentsShowcase from "@/components/AgentsShowcase";
 import { Star, Clock, Sparkles, Zap, Shield, Heart, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
