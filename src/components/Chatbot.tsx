@@ -288,10 +288,18 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     <Card className={cardClass}>
       <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full shrink-0" />
+          {activeAgent ? (
+            <div className="w-9 h-9 rounded-full bg-background text-foreground flex items-center justify-center font-display text-base shrink-0">
+              {activeAgent.initial}
+            </div>
+          ) : (
+            <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full shrink-0" />
+          )}
           <div className="min-w-0 leading-tight">
-            <h3 className="font-display text-sm truncate">BRILLARTE</h3>
-            <p className="text-[11px] opacity-90 truncate">Atención al Cliente · {userEmail || "Virtual"}</p>
+            <h3 className="font-display text-sm truncate">{activeAgent ? activeAgent.name : "BRILLARTE"}</h3>
+            <p className="text-[11px] opacity-90 truncate">
+              {activeAgent ? `${activeAgent.role} · Verificado` : "Asistente Virtual"}
+            </p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={() => { setIsOpen(false); onClose(); }}
