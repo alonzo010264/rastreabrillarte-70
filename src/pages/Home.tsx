@@ -249,6 +249,9 @@ const Home = () => {
       {/* Galería de Productos */}
       <ProductGallery />
 
+      {/* Carrusel de productos */}
+      <ProductCarousel />
+
       {/* Agentes 24/7 */}
       <AgentsShowcase />
 
