@@ -309,7 +309,15 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-muted/30">
-        {messages.map((msg, idx) => (
+        {messages.map((msg, idx) => {
+          if (msg.agent === "system") {
+            return (
+              <div key={idx} className="flex justify-center animate-fade-in">
+                <div className="text-[11px] text-muted-foreground bg-muted px-3 py-1 rounded-full">{msg.content}</div>
+              </div>
+            );
+          }
+          return (
           <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
             <div className={`max-w-[85%] p-2.5 rounded-lg text-sm ${
               msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-background border shadow-sm"
