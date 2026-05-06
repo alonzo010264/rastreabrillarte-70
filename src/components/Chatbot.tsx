@@ -80,8 +80,8 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     {
       role: "assistant",
       content: userEmail
-        ? `Hola ${profile?.nombre_completo?.split(" ")[0] || ""}, soy Noah de BRILLARTE. En que te puedo ayudar?`
-        : "Hola, soy Noah de BRILLARTE."
+        ? `Hola ${profile?.nombre_completo?.split(" ")[0] || ""}, bienvenido a Atención al Cliente BRILLARTE. ¿En qué te puedo ayudar?`
+        : "Hola, bienvenido a Atención al Cliente BRILLARTE."
     }
   ]);
   const [input, setInput] = useState("");
