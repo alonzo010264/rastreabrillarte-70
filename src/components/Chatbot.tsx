@@ -257,10 +257,10 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     <Card className={cardClass}>
       <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <img src={brillarteLogo} alt="Brillarte" className="w-8 h-8 rounded-full shrink-0" />
-          <div className="min-w-0">
-            <h3 className="font-semibold text-sm truncate">BRILLARTE</h3>
-            <p className="text-xs opacity-90 truncate">Noah · {userEmail || "Asistente"}</p>
+          <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full shrink-0" />
+          <div className="min-w-0 leading-tight">
+            <h3 className="font-display text-sm truncate">BRILLARTE</h3>
+            <p className="text-[11px] opacity-90 truncate">Atención al Cliente · {userEmail || "Virtual"}</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={() => { setIsOpen(false); onClose(); }}
