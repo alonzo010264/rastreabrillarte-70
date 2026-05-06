@@ -352,7 +352,8 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
         {loading && (
           <div className="flex justify-start animate-fade-in">
             <div className="bg-background border px-3 py-2.5 rounded-lg shadow-sm flex items-center gap-1">
