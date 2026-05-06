@@ -221,10 +221,10 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       <Card className={cardClass}>
         <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={brillarteLogo} alt="Brillarte" className="w-8 h-8 rounded-full" />
-            <div>
-              <h3 className="font-semibold text-sm">BRILLARTE</h3>
-              <p className="text-xs opacity-90">Noah · Asistente Virtual</p>
+            <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full shrink-0" />
+            <div className="leading-tight">
+              <h3 className="font-display text-sm">BRILLARTE</h3>
+              <p className="text-[11px] opacity-90">Atención al Cliente</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={() => { setIsOpen(false); onClose(); }}
