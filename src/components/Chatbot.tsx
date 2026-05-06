@@ -76,12 +76,13 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const { user, profile, loading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
   const userEmail = profile?.correo || user?.email || "";
+  const [activeAgent, setActiveAgent] = useState<{ initial: string; name: string; role: string } | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
       content: userEmail
-        ? `Hola ${profile?.nombre_completo?.split(" ")[0] || ""}, bienvenido a Atención al Cliente BRILLARTE. ¿En qué te puedo ayudar?`
-        : "Hola, bienvenido a Atención al Cliente BRILLARTE."
+        ? `Hola ${profile?.nombre_completo?.split(" ")[0] || ""}, soy el Asistente Virtual de BRILLARTE. ¿En qué te puedo ayudar?`
+        : "Hola, soy el Asistente Virtual de BRILLARTE. ¿En qué te puedo ayudar?"
     }
   ]);
   const [input, setInput] = useState("");
