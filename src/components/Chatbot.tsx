@@ -327,17 +327,20 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     <Card className={cardClass}>
       <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          {activeAgent ? (
-            <div className="w-9 h-9 rounded-full bg-background text-foreground flex items-center justify-center font-display text-base shrink-0">
-              {activeAgent.initial}
-            </div>
-          ) : (
-            <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full shrink-0" />
-          )}
+          <div className="relative shrink-0">
+            {activeAgent ? (
+              <div className="w-9 h-9 rounded-full bg-background text-foreground flex items-center justify-center font-display text-base">
+                {activeAgent.initial}
+              </div>
+            ) : (
+              <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full" />
+            )}
+            <BadgeCheck className="absolute -bottom-0.5 -right-0.5 w-4 h-4 text-blue-500 bg-primary-foreground rounded-full" />
+          </div>
           <div className="min-w-0 leading-tight">
             <h3 className="font-display text-sm truncate">{activeAgent ? activeAgent.name : "BRILLARTE"}</h3>
             <p className="text-[11px] opacity-90 truncate">
-              {activeAgent ? `${activeAgent.role} · Verificado` : "Asistente Virtual"}
+              {activeAgent ? activeAgent.role : "Asistente Virtual"}
             </p>
           </div>
         </div>
