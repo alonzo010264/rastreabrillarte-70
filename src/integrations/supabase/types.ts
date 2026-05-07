@@ -289,6 +289,60 @@ export type Database = {
           },
         ]
       }
+      casos_especialistas: {
+        Row: {
+          agente_id: string | null
+          agente_nombre: string | null
+          cliente_email: string
+          cliente_nombre: string | null
+          codigo_pedido: string | null
+          created_at: string
+          descripcion: string
+          estado: string
+          evidencias: Json | null
+          id: string
+          respondido_at: string | null
+          respondido_por: string | null
+          respuesta: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          agente_id?: string | null
+          agente_nombre?: string | null
+          cliente_email: string
+          cliente_nombre?: string | null
+          codigo_pedido?: string | null
+          created_at?: string
+          descripcion: string
+          estado?: string
+          evidencias?: Json | null
+          id?: string
+          respondido_at?: string | null
+          respondido_por?: string | null
+          respuesta?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          agente_id?: string | null
+          agente_nombre?: string | null
+          cliente_email?: string
+          cliente_nombre?: string | null
+          codigo_pedido?: string | null
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          evidencias?: Json | null
+          id?: string
+          respondido_at?: string | null
+          respondido_por?: string | null
+          respuesta?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           archivo_nombre: string | null

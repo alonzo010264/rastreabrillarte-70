@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { X, Send, MessageCircle, Paperclip, LogIn } from "lucide-react";
+import { X, Send, MessageCircle, Paperclip, LogIn, BadgeCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -137,6 +137,40 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setMessages(acc);
   };
 
+  const escalarAEspecialistas = async (baseMessages: Message[]) => {
+    // Recolecta evidencias (imágenes/archivos) del usuario
+    const evidencias = baseMessages
+      .filter(m => m.role === "user" && (m.imageUrl || m.fileUrl))
+      .map(m => ({ url: m.imageUrl || m.fileUrl, name: m.fileName || "imagen" }));
+    const descripcion = baseMessages
+      .filter(m => m.role === "user")
+      .map(m => m.content)
+      .join("\n---\n");
+
+    try {
+      await supabase.from("casos_especialistas" as any).insert({
+        tipo: "reembolso",
+        cliente_email: userEmail,
+        cliente_nombre: profile?.nombre_completo || null,
+        codigo_pedido: orderCode || null,
+        descripcion,
+        evidencias,
+        agente_nombre: activeAgent?.name || "Virtual",
+      });
+    } catch (e) {
+      console.error("Error creando caso:", e);
+    }
+
+    const agentName = activeAgent?.name || "Virtual";
+    const escalation: Message[] = [
+      ...baseMessages,
+      { role: "assistant", content: `── Caso enviado al equipo de Especialistas ──`, agent: "system" },
+      { role: "assistant", content: `Listo, ya pasé tu caso al equipo de Especialistas de BRILLARTE. Ellos toman las decisiones finales sobre reembolsos y reclamos.`, agent: agentName },
+      { role: "assistant", content: `Te contactarán a tu correo (${userEmail}) en un plazo de 1 a 3 días laborables.`, agent: agentName },
+    ];
+    setMessages(escalation);
+  };
+
   const sendChunkedAssistantReply = async (
     baseMessages: Message[],
     fullText: string,
@@ -144,6 +178,11 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     // Transfer trigger
     if (fullText.includes("[TRANSFER_TO_AGENT]")) {
       await transferToAgent(baseMessages);
+      return;
+    }
+    // Escalar a especialistas (reembolsos, reclamos, decisiones)
+    if (fullText.includes("[ESCALAR_A_ESPECIALISTAS]")) {
+      await escalarAEspecialistas(baseMessages);
       return;
     }
     const chunks = splitIntoChunks(fullText);
@@ -288,17 +327,20 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     <Card className={cardClass}>
       <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          {activeAgent ? (
-            <div className="w-9 h-9 rounded-full bg-background text-foreground flex items-center justify-center font-display text-base shrink-0">
-              {activeAgent.initial}
-            </div>
-          ) : (
-            <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full shrink-0" />
-          )}
+          <div className="relative shrink-0">
+            {activeAgent ? (
+              <div className="w-9 h-9 rounded-full bg-background text-foreground flex items-center justify-center font-display text-base">
+                {activeAgent.initial}
+              </div>
+            ) : (
+              <img src={brillarteLogo} alt="Brillarte" className="w-9 h-9 rounded-full" />
+            )}
+            <BadgeCheck className="absolute -bottom-0.5 -right-0.5 w-4 h-4 text-blue-500 bg-primary-foreground rounded-full" />
+          </div>
           <div className="min-w-0 leading-tight">
             <h3 className="font-display text-sm truncate">{activeAgent ? activeAgent.name : "BRILLARTE"}</h3>
             <p className="text-[11px] opacity-90 truncate">
-              {activeAgent ? `${activeAgent.role} · Verificado` : "Asistente Virtual"}
+              {activeAgent ? activeAgent.role : "Asistente Virtual"}
             </p>
           </div>
         </div>

@@ -3,12 +3,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import FollowingStar from "@/components/FollowingStar";
 import { supabase } from "@/integrations/supabase/client";
+
+function ManageGate({ children }: { children: React.ReactNode }) {
+  const { user, isAdmin, isAgent, loading } = useAuth();
+  if (loading) return <PageLoader />;
+  if (!user || (!isAdmin && !isAgent)) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -106,6 +113,7 @@ const EmprendeBrillarte = lazyWithRetry(() => import("./pages/EmprendeBrillarte"
 const EmprendeBrillarteAplicar = lazyWithRetry(() => import("./pages/EmprendeBrillarteAplicar"));
 const AdminCorreosIA = lazyWithRetry(() => import("./pages/AdminCorreosIA"));
 const Correos = lazyWithRetry(() => import("./pages/Correos"));
+const Especialistas = lazyWithRetry(() => import("./pages/Especialistas"));
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
 
 const Chatbot = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.Chatbot })));
@@ -181,6 +189,7 @@ function AnimatedRoutes() {
         <Route path="/emprende-brillarte/aplicar" element={<PageWrapper><EmprendeBrillarteAplicar /></PageWrapper>} />
         <Route path="/agente/login" element={<PageWrapper><AgentLogin /></PageWrapper>} />
         <Route path="/agente/dashboard" element={<PageWrapper><ProtectedRoute requiredRole="agent"><AgentDashboard /></ProtectedRoute></PageWrapper>} />
+        <Route path="/especialistas" element={<PageWrapper><Especialistas /></PageWrapper>} />
         <Route path="/admin-dashboard" element={<PageWrapper><ProtectedRoute><AdminDashboard /></ProtectedRoute></PageWrapper>} />
         <Route path="/admin/productos" element={<PageWrapper><ProtectedRoute><AdminProductos /></ProtectedRoute></PageWrapper>} />
         <Route path="/admin/promociones" element={<PageWrapper><ProtectedRoute><AdminPromociones /></ProtectedRoute></PageWrapper>} />
@@ -205,7 +214,7 @@ function AnimatedRoutes() {
         <Route path="/admin/correos-ia" element={<PageWrapper><ProtectedRoute><AdminCorreosIA /></ProtectedRoute></PageWrapper>} />
         <Route path="/correos" element={<PageWrapper><Correos /></PageWrapper>} />
         <Route path="/brillarte-pedidos" element={<PageWrapper><ProtectedRoute><BrillartePedidos /></ProtectedRoute></PageWrapper>} />
-        <Route path="/manage" element={<PageWrapper><ProtectedRoute><OrderManagement /></ProtectedRoute></PageWrapper>} />
+        <Route path="/manage" element={<PageWrapper><ManageGate><OrderManagement /></ManageGate></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
@@ -234,6 +243,8 @@ const App = () => (
           <FollowingStar />
           <Suspense fallback={<PageLoader />}>
             <AnimatedRoutes />
+          </Suspense>
+          <Suspense fallback={null}>
             <ChatbotSection />
           </Suspense>
         </AuthProvider>
