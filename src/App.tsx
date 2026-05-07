@@ -106,6 +106,7 @@ const EmprendeBrillarte = lazyWithRetry(() => import("./pages/EmprendeBrillarte"
 const EmprendeBrillarteAplicar = lazyWithRetry(() => import("./pages/EmprendeBrillarteAplicar"));
 const AdminCorreosIA = lazyWithRetry(() => import("./pages/AdminCorreosIA"));
 const Correos = lazyWithRetry(() => import("./pages/Correos"));
+const Especialistas = lazyWithRetry(() => import("./pages/Especialistas"));
 const ProtectedRoute = lazyWithRetry(() => import("./components/ProtectedRoute"));
 
 const Chatbot = lazyWithRetry(() => import("./components/Chatbot").then(m => ({ default: m.Chatbot })));
