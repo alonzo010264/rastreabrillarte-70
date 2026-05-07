@@ -182,6 +182,7 @@ function AnimatedRoutes() {
         <Route path="/emprende-brillarte/aplicar" element={<PageWrapper><EmprendeBrillarteAplicar /></PageWrapper>} />
         <Route path="/agente/login" element={<PageWrapper><AgentLogin /></PageWrapper>} />
         <Route path="/agente/dashboard" element={<PageWrapper><ProtectedRoute requiredRole="agent"><AgentDashboard /></ProtectedRoute></PageWrapper>} />
+        <Route path="/especialistas" element={<PageWrapper><Especialistas /></PageWrapper>} />
         <Route path="/admin-dashboard" element={<PageWrapper><ProtectedRoute><AdminDashboard /></ProtectedRoute></PageWrapper>} />
         <Route path="/admin/productos" element={<PageWrapper><ProtectedRoute><AdminProductos /></ProtectedRoute></PageWrapper>} />
         <Route path="/admin/promociones" element={<PageWrapper><ProtectedRoute><AdminPromociones /></ProtectedRoute></PageWrapper>} />
