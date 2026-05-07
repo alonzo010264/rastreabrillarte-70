@@ -1,8 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import ProductGallery from "@/components/ProductGallery";
 import ProductCarousel from "@/components/ProductCarousel";
-import AgentsShowcase from "@/components/AgentsShowcase";
 import { Star, Clock, Sparkles, Zap, Shield, Heart, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -246,14 +244,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Galería de Productos */}
-      <ProductGallery />
-
       {/* Carrusel de productos */}
       <ProductCarousel />
-
-      {/* Agentes 24/7 */}
-      <AgentsShowcase />
 
       {/* Por qué elegirnos */}
       <section className="py-24 px-4 bg-muted/20 relative overflow-hidden">
