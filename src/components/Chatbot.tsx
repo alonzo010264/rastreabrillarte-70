@@ -137,6 +137,40 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setMessages(acc);
   };
 
+  const escalarAEspecialistas = async (baseMessages: Message[]) => {
+    // Recolecta evidencias (imágenes/archivos) del usuario
+    const evidencias = baseMessages
+      .filter(m => m.role === "user" && (m.imageUrl || m.fileUrl))
+      .map(m => ({ url: m.imageUrl || m.fileUrl, name: m.fileName || "imagen" }));
+    const descripcion = baseMessages
+      .filter(m => m.role === "user")
+      .map(m => m.content)
+      .join("\n---\n");
+
+    try {
+      await supabase.from("casos_especialistas" as any).insert({
+        tipo: "reembolso",
+        cliente_email: userEmail,
+        cliente_nombre: profile?.nombre_completo || null,
+        codigo_pedido: orderCode || null,
+        descripcion,
+        evidencias,
+        agente_nombre: activeAgent?.name || "Virtual",
+      });
+    } catch (e) {
+      console.error("Error creando caso:", e);
+    }
+
+    const agentName = activeAgent?.name || "Virtual";
+    const escalation: Message[] = [
+      ...baseMessages,
+      { role: "assistant", content: `── Caso enviado al equipo de Especialistas ──`, agent: "system" },
+      { role: "assistant", content: `Listo, ya pasé tu caso al equipo de Especialistas de BRILLARTE. Ellos toman las decisiones finales sobre reembolsos y reclamos.`, agent: agentName },
+      { role: "assistant", content: `Te contactarán a tu correo (${userEmail}) en un plazo de 1 a 3 días laborables.`, agent: agentName },
+    ];
+    setMessages(escalation);
+  };
+
   const sendChunkedAssistantReply = async (
     baseMessages: Message[],
     fullText: string,
@@ -144,6 +178,11 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     // Transfer trigger
     if (fullText.includes("[TRANSFER_TO_AGENT]")) {
       await transferToAgent(baseMessages);
+      return;
+    }
+    // Escalar a especialistas (reembolsos, reclamos, decisiones)
+    if (fullText.includes("[ESCALAR_A_ESPECIALISTAS]")) {
+      await escalarAEspecialistas(baseMessages);
       return;
     }
     const chunks = splitIntoChunks(fullText);
