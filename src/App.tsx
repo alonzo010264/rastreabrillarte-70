@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -13,15 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 function ManageGate({ children }: { children: React.ReactNode }) {
   const { user, isAdmin, isAgent, loading } = useAuth();
   if (loading) return <PageLoader />;
-  if (!user) return <NavigateLogin />;
-  if (!isAdmin && !isAgent) return <NavigateLogin />;
+  if (!user || (!isAdmin && !isAgent)) return <Navigate to="/login" replace />;
   return <>{children}</>;
-}
-function NavigateLogin() {
-  // dynamic import not needed — use react-router's Navigate
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { Navigate } = require("react-router-dom");
-  return <Navigate to="/login" replace />;
 }
 
 function ScrollToTop() {
