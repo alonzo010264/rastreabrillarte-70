@@ -234,6 +234,8 @@ const App = () => (
           <FollowingStar />
           <Suspense fallback={<PageLoader />}>
             <AnimatedRoutes />
+          </Suspense>
+          <Suspense fallback={null}>
             <ChatbotSection />
           </Suspense>
         </AuthProvider>
