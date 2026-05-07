@@ -203,7 +203,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       await sendChunkedAssistantReply(newMessages, data.response || "");
     } catch (error) {
       const errorMessage = await extractFunctionErrorMessage(error);
-      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo.", agent: "Noah" }]);
+      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo.", agent: "Virtual" }]);
     } finally {
       setLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -234,7 +234,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       await sendChunkedAssistantReply(newMessages, data.response || "");
     } catch (error) {
       const errorMessage = await extractFunctionErrorMessage(error);
-      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo.", agent: "Noah" }]);
+      setMessages([...newMessages, { role: "assistant", content: errorMessage || "Disculpa, hubo un problema. Intenta de nuevo.", agent: "Virtual" }]);
     } finally {
       setLoading(false);
     }
