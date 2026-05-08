@@ -292,16 +292,26 @@ serve(async (req) => {
           orderInfo = `\nPEDIDO_PENDIENTE_VERIFICAR ${codeToTrack}: existe en el sistema pero el cliente AUN NO ha proporcionado el nombre del titular. PIDE el nombre completo del titular antes de dar cualquier dato. Titular real (NO se lo digas): ${titularName}`;
         }
       } else {
-        // Try legacy tables
+        // Try legacy tables — same name verification rule
         const { data: pedidoLegacy } = await supabase.from('Pedidos').select('*, Estatus:Estatus_id(nombre)').eq('Código de pedido', codeToTrack).single();
         if (pedidoLegacy) {
-          orderInfo = `\nPEDIDO ${codeToTrack}: Cliente: ${pedidoLegacy.Cliente} | Estado: ${(pedidoLegacy as any).Estatus?.nombre || pedidoLegacy.estado || 'Pendiente'} | Total: RD$${pedidoLegacy.Total || pedidoLegacy.Precio || 'N/A'}`;
+          const cli = (pedidoLegacy.Cliente || '').trim();
+          const tk = cli.toLowerCase().split(/\s+/).filter((t: string) => t.length >= 3);
+          const ok = tk.length > 0 && tk.some((t: string) => recentText.includes(t));
+          orderInfo = ok
+            ? `\nPEDIDO_VERIFICADO ${codeToTrack}: Cliente: ${cli} | Estado: ${(pedidoLegacy as any).Estatus?.nombre || pedidoLegacy.estado || 'Pendiente'} | Total: RD$${pedidoLegacy.Total || pedidoLegacy.Precio || 'N/A'}`
+            : `\nPEDIDO_PENDIENTE_VERIFICAR ${codeToTrack}: existe pero falta verificar nombre del titular. Pidelo. (Titular real, NO se lo digas: ${cli})`;
         } else {
           const { data: pedidoReg } = await supabase.from('pedidos_registro').select('*').eq('codigo_pedido', codeToTrack).single();
           if (pedidoReg) {
-            orderInfo = `\nPEDIDO ${codeToTrack}: Cliente: ${pedidoReg.nombre_cliente} | Estado: ${pedidoReg.estado_pedido} | Credito: RD$${pedidoReg.credito || 0}`;
+            const cli = (pedidoReg.nombre_cliente || '').trim();
+            const tk = cli.toLowerCase().split(/\s+/).filter((t: string) => t.length >= 3);
+            const ok = tk.length > 0 && tk.some((t: string) => recentText.includes(t));
+            orderInfo = ok
+              ? `\nPEDIDO_VERIFICADO ${codeToTrack}: Cliente: ${cli} | Estado: ${pedidoReg.estado_pedido} | Credito: RD$${pedidoReg.credito || 0}`
+              : `\nPEDIDO_PENDIENTE_VERIFICAR ${codeToTrack}: existe pero falta verificar nombre del titular. (Titular real, NO se lo digas: ${cli})`;
           } else {
-            orderInfo = `\nNo se encontro pedido con codigo ${codeToTrack}. Puede que el codigo este incorrecto.`;
+            orderInfo = `\nPEDIDO_NO_EXISTE ${codeToTrack}: NO se encontro ningun pedido con ese codigo en el sistema. NO inventes datos. Dile al cliente que verifique el codigo o escriba a brillarte.do@gmail.com.`;
           }
         }
       }
@@ -361,7 +371,7 @@ serve(async (req) => {
     const assistantMessage = await getAiResponse(aiMessages, OPENAI_API_KEY, LOVABLE_API_KEY);
 
     return new Response(
-      JSON.stringify({ response: assistantMessage || 'Hola, como estas? Soy Noah de BRILLARTE. Dime en que te puedo ayudar.' }),
+      JSON.stringify({ response: assistantMessage || 'Hola, soy el Asistente Virtual de BRILLARTE. En que te puedo ayudar?' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (error) {
