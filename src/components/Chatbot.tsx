@@ -171,10 +171,36 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setMessages(escalation);
   };
 
+  const crearPedidoDesdeChat = async (baseMessages: Message[], jsonStr: string) => {
+    try {
+      const data = JSON.parse(jsonStr);
+      const agentName = activeAgent?.name || "Virtual";
+      const { data: res, error } = await supabase.functions.invoke('agent-create-order', {
+        body: { ...data, agente_nombre: agentName, cliente_email: data.cliente_email || userEmail },
+      });
+      if (error || !res?.ok) throw new Error(error?.message || res?.error || 'Error');
+      const eta = new Date(res.fecha_estimada).toLocaleDateString('es-DO', { weekday:'long', day:'numeric', month:'long' });
+      setMessages([
+        ...baseMessages,
+        { role: "assistant", content: `── Pedido registrado en el sistema ──`, agent: "system" },
+        { role: "assistant", content: `Listo, tu pedido fue creado. Código: ${res.codigo_pedido}`, agent: agentName },
+        { role: "assistant", content: `Entrega estimada: ${eta}. Te enviamos el detalle por correo a ${data.cliente_email || userEmail}. Guarda tu código.`, agent: agentName },
+      ]);
+    } catch (e: any) {
+      setMessages([...baseMessages, { role: "assistant", content: `No pude registrar el pedido: ${e.message}. Escríbenos a brillarte.do@gmail.com`, agent: activeAgent?.name || "Virtual" }]);
+    }
+  };
+
   const sendChunkedAssistantReply = async (
     baseMessages: Message[],
     fullText: string,
   ) => {
+    // Order creation trigger: [CREAR_PEDIDO]{...json...}
+    const crearMatch = fullText.match(/\[CREAR_PEDIDO\]\s*(\{[\s\S]*\})/);
+    if (crearMatch) {
+      await crearPedidoDesdeChat(baseMessages, crearMatch[1]);
+      return;
+    }
     // Transfer trigger
     if (fullText.includes("[TRANSFER_TO_AGENT]")) {
       await transferToAgent(baseMessages);

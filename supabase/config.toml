@@ -128,3 +128,9 @@ verify_jwt = false
 
 [functions.send-agent-preview]
 verify_jwt = false
+
+[functions.notify-ceo]
+verify_jwt = false
+
+[functions.agent-create-order]
+verify_jwt = false
