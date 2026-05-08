@@ -22,6 +22,18 @@ REGLA #1 - SALUDOS: Cuando alguien te diga "hola", "hey", "buenas", o cualquier 
 
 REGLA #1B - TRANSFERIR A AGENTE HUMANO: SOLO transfieres cuando el cliente PIDE EXPLICITAMENTE hablar con un agente/humano/persona real (frases claras como "quiero hablar con un agente", "quiero un humano", "pasame con una persona"). En ese caso UNICO responde EXACTAMENTE: [TRANSFER_TO_AGENT] sin nada mas. NUNCA transfieras por iniciativa propia.
 
+REGLA #1A - CONFIDENCIALIDAD DE PEDIDOS (CRITICO):
+NUNCA des datos de un pedido (estado, direccion, total, items, tracking, fecha) sin antes VERIFICAR identidad.
+Para verificar necesitas DOS cosas del cliente:
+  1. Codigo de pedido (formato B0XXXXX-XXXXX, B01-XXXXX o BRI-XXXXX)
+  2. Nombre completo del titular del pedido (debe COINCIDIR con el registrado)
+Si el cliente da el codigo pero NO el nombre: pidele el nombre completo del titular antes de dar cualquier dato.
+Si el nombre NO coincide o el codigo NO existe: responde "Por confidencialidad no puedo compartir esos datos. Si crees que hay un error escribenos a brillarte.do@gmail.com o hola@brillarte.lat".
+NUNCA inventes datos. Si no aparece el pedido en CONTEXTO, NO existe para ti.
+En el CONTEXTO veras "PEDIDO_VERIFICADO" (puedes dar datos) o "PEDIDO_PENDIENTE_VERIFICAR" (pide nombre primero).
+
+REGLA #1D - CUANDO NO SEPAS ALGO: NO INVENTES. Di "Eso no lo tengo confirmado, mejor escribenos a brillarte.do@gmail.com o hola@brillarte.lat para darte info exacta".
+
 REGLA #1C - ESCALAR A ESPECIALISTAS (SOLO REEMBOLSOS/RECLAMOS/DECISIONES):
 Los AGENTES NO TOMAN DECISIONES. Solo recogen informacion.
 Si el cliente pide un REEMBOLSO, hace un RECLAMO o requiere una DECISION (cancelar pedido, devolver dinero, cambio especial, etc.):
@@ -262,23 +274,44 @@ serve(async (req) => {
       supabase.from('noticias').select('titulo, descripcion, categoria').eq('activo', true).order('created_at', { ascending: false }).limit(5),
     ]);
 
-    // Build order info
+    // Build order info — REQUIRES NAME VERIFICATION
     let orderInfo = '';
+    // Try to detect if user mentioned a name in recent messages
+    const recentText = messages.slice(-6).map((m: any) => m.content || '').join(' ').toLowerCase();
     if (codeToTrack) {
       if (orderResult.data) {
-        const p = orderResult.data;
-        orderInfo = `\nPEDIDO ${codeToTrack}: Estado: ${p.estado}${p.estado_detallado ? ` (${p.estado_detallado})` : ''} | Total: RD$${p.total} | Direccion: ${p.direccion_envio}${p.tracking_envio ? ` | Tracking: ${p.tracking_envio}` : ''}${p.empresas_envio ? ` | Enviado por: ${(p.empresas_envio as any).nombre}` : ''} | Fecha: ${new Date(p.created_at!).toLocaleDateString('es-DO')}`;
+        const p: any = orderResult.data;
+        // Look up titular name
+        const { data: titular } = await supabase.from('profiles').select('nombre_completo').eq('user_id', p.user_id).single();
+        const titularName = (titular?.nombre_completo || '').trim();
+        const nameTokens = titularName.toLowerCase().split(/\s+/).filter((t: string) => t.length >= 3);
+        const nameMatched = nameTokens.length > 0 && nameTokens.some((tok: string) => recentText.includes(tok));
+        if (nameMatched) {
+          orderInfo = `\nPEDIDO_VERIFICADO ${codeToTrack}: Titular: ${titularName} | Estado: ${p.estado}${p.estado_detallado ? ` (${p.estado_detallado})` : ''} | Total: RD$${p.total} | Direccion: ${p.direccion_envio}${p.tracking_envio ? ` | Tracking: ${p.tracking_envio}` : ''}${p.empresas_envio ? ` | Enviado por: ${(p.empresas_envio as any).nombre}` : ''} | Fecha: ${new Date(p.created_at!).toLocaleDateString('es-DO')}`;
+        } else {
+          orderInfo = `\nPEDIDO_PENDIENTE_VERIFICAR ${codeToTrack}: existe en el sistema pero el cliente AUN NO ha proporcionado el nombre del titular. PIDE el nombre completo del titular antes de dar cualquier dato. Titular real (NO se lo digas): ${titularName}`;
+        }
       } else {
-        // Try legacy tables
+        // Try legacy tables — same name verification rule
         const { data: pedidoLegacy } = await supabase.from('Pedidos').select('*, Estatus:Estatus_id(nombre)').eq('Código de pedido', codeToTrack).single();
         if (pedidoLegacy) {
-          orderInfo = `\nPEDIDO ${codeToTrack}: Cliente: ${pedidoLegacy.Cliente} | Estado: ${(pedidoLegacy as any).Estatus?.nombre || pedidoLegacy.estado || 'Pendiente'} | Total: RD$${pedidoLegacy.Total || pedidoLegacy.Precio || 'N/A'}`;
+          const cli = (pedidoLegacy.Cliente || '').trim();
+          const tk = cli.toLowerCase().split(/\s+/).filter((t: string) => t.length >= 3);
+          const ok = tk.length > 0 && tk.some((t: string) => recentText.includes(t));
+          orderInfo = ok
+            ? `\nPEDIDO_VERIFICADO ${codeToTrack}: Cliente: ${cli} | Estado: ${(pedidoLegacy as any).Estatus?.nombre || pedidoLegacy.estado || 'Pendiente'} | Total: RD$${pedidoLegacy.Total || pedidoLegacy.Precio || 'N/A'}`
+            : `\nPEDIDO_PENDIENTE_VERIFICAR ${codeToTrack}: existe pero falta verificar nombre del titular. Pidelo. (Titular real, NO se lo digas: ${cli})`;
         } else {
           const { data: pedidoReg } = await supabase.from('pedidos_registro').select('*').eq('codigo_pedido', codeToTrack).single();
           if (pedidoReg) {
-            orderInfo = `\nPEDIDO ${codeToTrack}: Cliente: ${pedidoReg.nombre_cliente} | Estado: ${pedidoReg.estado_pedido} | Credito: RD$${pedidoReg.credito || 0}`;
+            const cli = (pedidoReg.nombre_cliente || '').trim();
+            const tk = cli.toLowerCase().split(/\s+/).filter((t: string) => t.length >= 3);
+            const ok = tk.length > 0 && tk.some((t: string) => recentText.includes(t));
+            orderInfo = ok
+              ? `\nPEDIDO_VERIFICADO ${codeToTrack}: Cliente: ${cli} | Estado: ${pedidoReg.estado_pedido} | Credito: RD$${pedidoReg.credito || 0}`
+              : `\nPEDIDO_PENDIENTE_VERIFICAR ${codeToTrack}: existe pero falta verificar nombre del titular. (Titular real, NO se lo digas: ${cli})`;
           } else {
-            orderInfo = `\nNo se encontro pedido con codigo ${codeToTrack}. Puede que el codigo este incorrecto.`;
+            orderInfo = `\nPEDIDO_NO_EXISTE ${codeToTrack}: NO se encontro ningun pedido con ese codigo en el sistema. NO inventes datos. Dile al cliente que verifique el codigo o escriba a brillarte.do@gmail.com.`;
           }
         }
       }
@@ -338,7 +371,7 @@ serve(async (req) => {
     const assistantMessage = await getAiResponse(aiMessages, OPENAI_API_KEY, LOVABLE_API_KEY);
 
     return new Response(
-      JSON.stringify({ response: assistantMessage || 'Hola, como estas? Soy Noah de BRILLARTE. Dime en que te puedo ayudar.' }),
+      JSON.stringify({ response: assistantMessage || 'Hola, soy el Asistente Virtual de BRILLARTE. En que te puedo ayudar?' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (error) {
