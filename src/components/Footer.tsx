@@ -1,136 +1,114 @@
-import { FaInstagram, FaFacebookF, FaTwitter, FaEnvelope, FaPhone, FaMapMarkerAlt, FaHeart } from "react-icons/fa";
+import { FaInstagram, FaFacebookF, FaTiktok, FaYoutube, FaPinterest } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { Sparkles } from "lucide-react";
-import NewsletterForm from "./NewsletterForm";
 
 const Footer = () => {
-  return (
-    <footer className="relative bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-16 mt-12 overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-10 right-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <Sparkles className="absolute top-20 right-20 text-primary/20 w-8 h-8 animate-float" />
-        <Sparkles className="absolute bottom-20 left-20 text-primary/20 w-6 h-6 animate-float" style={{ animationDelay: '1.5s' }} />
-      </div>
+  const enlacesRapidos = [
+    { to: "/", label: "Inicio" },
+    { to: "/productos", label: "Colecciones" },
+    { to: "/productos", label: "Tienda" },
+    { to: "/rastrear", label: "Rastrear tu pedido" },
+    { to: "/nosotros", label: "Sobre nosotros" },
+    { to: "/contacto", label: "Contacto" },
+    { to: "/faq", label: "Preguntas frecuentes" },
+  ];
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid md:grid-cols-4 gap-8 mb-12">
-          {/* Logo y descripción */}
-          <div className="md:col-span-2 space-y-6">
-            <div className="flex items-center group">
-              <img 
-                alt="BRILLARTE" 
-                width="64" 
-                height="64" 
-                src="/lovable-uploads/108965a0-1419-4718-a2a0-1aa29864b805.jpg" 
-                className="h-16 w-auto object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-6" 
-              />
+  const colecciones = [
+    { to: "/productos?cat=clasica", label: "Clásica" },
+    { to: "/productos?cat=premium", label: "Premium" },
+    { to: "/productos?cat=black-silver", label: "Black & Silver" },
+    { to: "/productos?cat=signature", label: "Signature" },
+    { to: "/productos?cat=ediciones", label: "Ediciones limitadas" },
+    { to: "/productos", label: "Todos los productos" },
+  ];
+
+  const ayuda = [
+    { to: "/politicas-envio", label: "Envíos y entregas" },
+    { to: "/politicas-reembolso", label: "Cambios y devoluciones" },
+    { to: "/terminos-condiciones", label: "Términos y condiciones" },
+    { to: "/politicas-privacidad", label: "Política de privacidad" },
+    { to: "/guia-codigos-pago", label: "Métodos de pago" },
+  ];
+
+  return (
+    <footer className="bg-neutral-950 text-neutral-300">
+      <div className="container mx-auto px-6 py-16">
+        <div className="grid md:grid-cols-4 gap-12">
+          {/* Brand */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2">
+              <span className="font-display text-3xl tracking-tight italic text-white">B</span>
+              <span className="font-display text-xl tracking-[0.25em] text-white">BRILLARTE</span>
             </div>
-            <p className="text-gray-300 text-sm leading-relaxed max-w-md">
-              El Arte de Brillar. Productos únicos de calidad que reflejan tu personalidad. 
-              Pulseras, aretes, monederos y accesorios exclusivos para hacer brillar tu estilo.
+            <p className="text-sm leading-relaxed text-neutral-400">
+              Diseñamos pulseras que expresan quién eres. Estilo, calidad y propósito en cada detalle.
             </p>
-            <div className="flex space-x-4">
-              <a href="https://www.instagram.com/brillarte.do/" target="_blank" rel="noopener noreferrer" className="group p-3 rounded-xl bg-white/5 hover:bg-primary/20 transition-all duration-300 hover:scale-110 hover:-translate-y-1">
-                <FaInstagram size={20} className="text-gray-300 group-hover:text-primary transition-colors" />
-              </a>
-              <a href="#" className="group p-3 rounded-xl bg-white/5 hover:bg-primary/20 transition-all duration-300 hover:scale-110 hover:-translate-y-1" style={{ transitionDelay: '50ms' }}>
-                <FaFacebookF size={20} className="text-gray-300 group-hover:text-primary transition-colors" />
-              </a>
-              <a href="#" className="group p-3 rounded-xl bg-white/5 hover:bg-primary/20 transition-all duration-300 hover:scale-110 hover:-translate-y-1" style={{ transitionDelay: '100ms' }}>
-                <FaTwitter size={20} className="text-gray-300 group-hover:text-primary transition-colors" />
-              </a>
+            <div className="flex gap-3">
+              {[
+                { icon: FaInstagram, href: "https://www.instagram.com/brillarte.do/" },
+                { icon: FaFacebookF, href: "#" },
+                { icon: FaTiktok, href: "#" },
+                { icon: FaYoutube, href: "#" },
+                { icon: FaPinterest, href: "#" },
+              ].map((s, i) => (
+                <a
+                  key={i}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full border border-neutral-700 flex items-center justify-center text-neutral-300 hover:bg-white hover:text-neutral-900 hover:border-white transition-all"
+                >
+                  <s.icon size={14} />
+                </a>
+              ))}
             </div>
           </div>
 
           {/* Enlaces rápidos */}
           <div>
-            <h3 className="text-white font-semibold mb-6 flex items-center gap-2">
-              <span className="w-8 h-0.5 bg-primary rounded-full" />
-              Enlaces Rápidos
-            </h3>
+            <h3 className="text-[11px] tracking-[0.3em] text-white mb-6">ENLACES RÁPIDOS</h3>
             <ul className="space-y-3 text-sm">
-              {[
-                { to: "/", label: "Inicio", external: false },
-                { to: "/nosotros", label: "Nosotros", external: false },
-                { to: "/productos", label: "Tienda", external: false },
-                { to: "https://pedidos.brillarte.lat/", label: "Pedir pulsera", external: true },
-                { to: "/comunidad", label: "Comunidad", external: false },
-                { to: "/eventos", label: "Eventos", external: false },
-                { to: "/referidos", label: "Programa de Referidos", external: false },
-                { to: "/emprende-brillarte", label: "Emprende Brillarte", external: false },
-                { to: "/regalos", label: "Regalos Brillarte", external: false },
-                { to: "/rastrear", label: "Rastrear Pedidos", external: false },
-                { to: "/politicas-privacidad", label: "Politicas de Privacidad", external: false },
-                { to: "/politicas-envio", label: "Politicas de Envio", external: false },
-                { to: "/politicas-reembolso", label: "Politicas de Reembolso", external: false },
-              ].map((link, index) => (
-                <li key={link.to}>
-                  {link.external ? (
-                    <a 
-                      href={link.to}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-primary transition-all duration-300 hover:translate-x-2 inline-flex items-center gap-2 group"
-                      style={{ transitionDelay: `${index * 30}ms` }}
-                    >
-                      <span className="w-0 group-hover:w-2 h-0.5 bg-primary transition-all duration-300 rounded-full" />
-                      {link.label}
-                    </a>
-                  ) : (
-                    <Link 
-                      to={link.to} 
-                      className="text-gray-400 hover:text-primary transition-all duration-300 hover:translate-x-2 inline-flex items-center gap-2 group"
-                      style={{ transitionDelay: `${index * 30}ms` }}
-                    >
-                      <span className="w-0 group-hover:w-2 h-0.5 bg-primary transition-all duration-300 rounded-full" />
-                      {link.label}
-                    </Link>
-                  )}
+              {enlacesRapidos.map((l) => (
+                <li key={l.label}>
+                  <Link to={l.to} className="text-neutral-400 hover:text-white transition-colors">
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Newsletter y Contacto */}
+          {/* Colecciones */}
           <div>
-            <h3 className="text-white font-semibold mb-6 flex items-center gap-2">
-              <span className="w-8 h-0.5 bg-primary rounded-full" />
-              Suscríbete
-            </h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Recibe ofertas exclusivas y novedades
-            </p>
-            <NewsletterForm />
-            
-            <div className="space-y-3 text-sm">
-              {[
-                { icon: FaEnvelope, text: "brillarte.oficial.ventas@gmail.com" },
-                { icon: FaPhone, text: "849-425-2220" },
-                { icon: FaMapMarkerAlt, text: "Santiago de los Caballeros, RD" },
-              ].map((item, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center text-gray-400 hover:text-primary transition-all duration-300 group cursor-pointer"
-                >
-                  <item.icon className="w-4 h-4 mr-3 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                  <span>{item.text}</span>
-                </div>
+            <h3 className="text-[11px] tracking-[0.3em] text-white mb-6">COLECCIONES</h3>
+            <ul className="space-y-3 text-sm">
+              {colecciones.map((l) => (
+                <li key={l.label}>
+                  <Link to={l.to} className="text-neutral-400 hover:text-white transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
+          </div>
+
+          {/* Ayuda */}
+          <div>
+            <h3 className="text-[11px] tracking-[0.3em] text-white mb-6">AYUDA</h3>
+            <ul className="space-y-3 text-sm">
+              {ayuda.map((l) => (
+                <li key={l.label}>
+                  <Link to={l.to} className="text-neutral-400 hover:text-white transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-        
-        <div className="border-t border-white/10 pt-8 text-center">
-          <p className="text-gray-500 text-xs flex items-center justify-center mb-3 group">
-            Hecho con 
-            <FaHeart className="text-primary mx-2 group-hover:scale-125 transition-transform animate-pulse" size={12} /> 
-            para nuestros clientes
-          </p>
-          <p className="text-gray-500 text-xs">
-            © 2024 BRILLARTE. Todos los derechos reservados. Productos únicos de calidad.
-          </p>
+
+        <div className="mt-16 pt-8 border-t border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-neutral-500">© {new Date().getFullYear()} Brillarte. Todos los derechos reservados.</p>
+          <p className="text-xs text-neutral-500 tracking-widest">VISA · MASTERCARD · PAYPAL</p>
         </div>
       </div>
     </footer>

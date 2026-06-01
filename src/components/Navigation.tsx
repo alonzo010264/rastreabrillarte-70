@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Heart } from "lucide-react";
+import { Menu, X, Heart, Search, User, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
-import brillarteLogo from "@/assets/brillarte-logo-new.jpg";
 import { ShoppingCart } from "@/components/ShoppingCart";
 import UserAvatar from "@/components/UserAvatar";
 import NotificationBell from "@/components/NotificationBell";
@@ -22,131 +21,128 @@ const Navigation = () => {
   const favoritesCount = useRealtimeFavorites();
 
   const navigationItems = [
-    { name: "Inicio", href: "/" },
-    { name: "Nosotros", href: "/nosotros" },
-    { name: "Tienda", href: "/productos" },
-    { name: "Rastrear Pedidos", href: "/rastrear" },
-    { name: "Promociones", href: "/promociones" },
-    { name: "Preguntas Frecuentes", href: "/faq" },
-    { name: "Contacto", href: "/contacto" },
+    { name: "INICIO", href: "/" },
+    { name: "COLECCIONES", href: "/productos" },
+    { name: "TIENDA", href: "/productos" },
+    { name: "RASTREAR TU PEDIDO", href: "/rastrear" },
+    { name: "SOBRE NOSOTROS", href: "/nosotros" },
+    { name: "CONTACTO", href: "/contacto" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
   const isProductsPage = location.pathname === '/productos';
 
   return (
-    <nav className="bg-background/80 backdrop-blur-xl border-b border-border/50 sticky top-0 z-50 transition-all duration-300">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-3 group">
-            <img src={brillarteLogo} alt="BRILLARTE Logo" className="h-10 w-10 object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-12" />
-            <span className="font-light text-xl text-foreground transition-colors duration-300 group-hover:text-primary">BRILLARTE</span>
+    <header className="bg-white text-neutral-900 sticky top-0 z-50 border-b border-neutral-200">
+      {/* Top info bar */}
+      <div className="hidden md:block bg-white border-b border-neutral-200 text-[11px] tracking-[0.2em] text-neutral-700">
+        <div className="container mx-auto px-4 grid grid-cols-3">
+          <div className="py-2 border-r border-neutral-200 text-center">ENVÍOS A TODO EL PAÍS</div>
+          <div className="py-2 border-r border-neutral-200 text-center">PAGOS 100% SEGUROS</div>
+          <div className="py-2 text-center">CAMBIOS Y DEVOLUCIONES FÁCILES</div>
+        </div>
+      </div>
+
+      <nav className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <span className="font-display text-3xl tracking-tight italic">B</span>
+            <span className="font-display text-2xl tracking-[0.25em] text-neutral-900">BRILLARTE</span>
           </Link>
 
-          <div className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item, index) => {
-              const isExternal = item.href.startsWith('http');
-              return isExternal ? (
-                <a key={item.name} href={item.href} target="_blank" rel="noopener noreferrer"
-                  className="px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary text-muted-foreground hover:scale-105 link-underline"
-                  style={{ animationDelay: `${index * 50}ms` }}>{item.name}</a>
-              ) : (
-                <Link key={item.name} to={item.href}
-                  className={cn("px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:scale-105 relative overflow-hidden",
-                    isActive(item.href) ? "bg-primary/15 text-primary shadow-sm" : "text-muted-foreground"
-                  )} style={{ animationDelay: `${index * 50}ms` }}>
-                  {item.name}
-                  {isActive(item.href) && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-primary rounded-full" />}
-                </Link>
-              );
-            })}
-            
-            {isProductsPage && (
-              <div className="flex items-center gap-1 ml-2 border-l pl-2">
-                <SafeBoundary>
-                  <div className="relative" data-cart-icon>
-                    <ShoppingCart />
-                    {cartCount > 0 && <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in" variant="destructive">{cartCount}</Badge>}
-                  </div>
-                </SafeBoundary>
-                <SafeBoundary>
-                  <Button variant="ghost" size="icon" asChild className="relative" data-favorites-icon>
-                    <Link to="/favoritos">
-                      <Heart className="h-5 w-5" />
-                      {favoritesCount > 0 && <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in" variant="destructive">{favoritesCount}</Badge>}
-                    </Link>
-                  </Button>
-                </SafeBoundary>
-              </div>
-            )}
-            
-            <div className="ml-2 border-l pl-2 flex items-center gap-1">
-              <SafeBoundary><NotificationBell /></SafeBoundary>
-              <SafeBoundary>
-                {isAdmin ? <AdminMenu /> : (
-                  <Button variant="ghost" size="icon" asChild>
-                    <Link to="/perfil"><UserAvatar size="sm" /></Link>
-                  </Button>
+          {/* Center nav */}
+          <div className="hidden lg:flex items-center gap-8">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={cn(
+                  "text-[11px] tracking-[0.25em] font-medium transition-colors hover:text-neutral-900 relative py-2",
+                  isActive(item.href) ? "text-neutral-900" : "text-neutral-600"
                 )}
-              </SafeBoundary>
-            </div>
+              >
+                {item.name}
+                {isActive(item.href) && (
+                  <span className="absolute -bottom-0.5 left-0 right-0 h-px bg-neutral-900" />
+                )}
+              </Link>
+            ))}
           </div>
 
-          <div className="md:hidden flex items-center gap-2">
-            {isProductsPage && (
-              <>
-                <SafeBoundary>
-                  <div className="relative" data-cart-icon>
-                    <ShoppingCart />
-                    {cartCount > 0 && <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in" variant="destructive">{cartCount}</Badge>}
-                  </div>
-                </SafeBoundary>
-                <SafeBoundary>
-                  <Button variant="ghost" size="icon" asChild className="relative" data-favorites-icon>
-                    <Link to="/favoritos">
-                      <Heart className="h-5 w-5" />
-                      {favoritesCount > 0 && <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-scale-in" variant="destructive">{favoritesCount}</Badge>}
-                    </Link>
-                  </Button>
-                </SafeBoundary>
-              </>
-            )}
+          {/* Right icons */}
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="text-neutral-800 hover:bg-neutral-100" asChild>
+              <Link to="/productos" aria-label="Buscar"><Search className="h-5 w-5" /></Link>
+            </Button>
+
             <SafeBoundary><NotificationBell /></SafeBoundary>
+
             <SafeBoundary>
               {isAdmin ? <AdminMenu /> : (
-                <Button variant="ghost" size="icon" asChild>
-                  <Link to="/perfil"><UserAvatar size="sm" /></Link>
+                <Button variant="ghost" size="icon" className="text-neutral-800 hover:bg-neutral-100" asChild>
+                  <Link to="/perfil" aria-label="Perfil"><User className="h-5 w-5" /></Link>
                 </Button>
               )}
             </SafeBoundary>
-            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+
+            {isProductsPage && (
+              <>
+                <SafeBoundary>
+                  <Button variant="ghost" size="icon" className="relative text-neutral-800 hover:bg-neutral-100" asChild data-favorites-icon>
+                    <Link to="/favoritos" aria-label="Favoritos">
+                      <Heart className="h-5 w-5" />
+                      {favoritesCount > 0 && (
+                        <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px] bg-neutral-900 text-white">{favoritesCount}</Badge>
+                      )}
+                    </Link>
+                  </Button>
+                </SafeBoundary>
+                <SafeBoundary>
+                  <div className="relative" data-cart-icon>
+                    <ShoppingCart />
+                    {cartCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px] bg-neutral-900 text-white pointer-events-none">{cartCount}</Badge>
+                    )}
+                  </div>
+                </SafeBoundary>
+              </>
+            )}
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden text-neutral-800 hover:bg-neutral-100"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Menú"
+            >
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
 
+        {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/50 animate-slide-up-fade glass">
-            <div className="flex flex-col space-y-1">
-              {navigationItems.map((item, index) => {
-                const isExternal = item.href.startsWith('http');
-                return isExternal ? (
-                  <a key={item.name} href={item.href} target="_blank" rel="noopener noreferrer"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary text-muted-foreground hover:translate-x-2"
-                    style={{ animationDelay: `${index * 50}ms` }}>{item.name}</a>
-                ) : (
-                  <Link key={item.name} to={item.href} onClick={() => setIsMenuOpen(false)}
-                    className={cn("px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:translate-x-2",
-                      isActive(item.href) ? "bg-primary/15 text-primary border-l-2 border-primary" : "text-muted-foreground"
-                    )} style={{ animationDelay: `${index * 50}ms` }}>{item.name}</Link>
-                );
-              })}
+          <div className="lg:hidden py-6 border-t border-neutral-200 animate-slide-up-fade">
+            <div className="flex flex-col">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={cn(
+                    "py-3 text-[12px] tracking-[0.25em] font-medium border-b border-neutral-100",
+                    isActive(item.href) ? "text-neutral-900" : "text-neutral-600"
+                  )}
+                >
+                  {item.name}
+                </Link>
+              ))}
             </div>
           </div>
         )}
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 };
 
