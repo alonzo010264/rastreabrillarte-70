@@ -12,6 +12,7 @@ import { useRealtimeFavorites } from "@/hooks/useRealtimeFavorites";
 import { Badge } from "@/components/ui/badge";
 import SafeBoundary from "@/components/SafeBoundary";
 import { useAuth } from "@/contexts/AuthContext";
+import brillarteLogo from "@/assets/brillarte-logo.jpg";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,8 +48,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <span className="font-display text-3xl tracking-tight italic">B</span>
-            <span className="font-display text-2xl tracking-[0.25em] text-neutral-900">BRILLARTE</span>
+            <img src={brillarteLogo} alt="Brillarte" className="h-12 w-auto object-contain" />
           </Link>
 
           {/* Center nav */}

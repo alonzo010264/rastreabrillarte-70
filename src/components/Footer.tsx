@@ -1,5 +1,6 @@
 import { FaInstagram, FaFacebookF, FaTiktok, FaYoutube, FaPinterest } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import brillarteLogoWhite from "@/assets/brillarte-logo-white.png";
 
 const Footer = () => {
   const enlacesRapidos = [
@@ -36,8 +37,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-6">
             <div className="flex items-center gap-2">
-              <span className="font-display text-3xl tracking-tight italic text-white">B</span>
-              <span className="font-display text-xl tracking-[0.25em] text-white">BRILLARTE</span>
+              <img src={brillarteLogoWhite} alt="Brillarte" className="h-14 w-auto object-contain" />
             </div>
             <p className="text-sm leading-relaxed text-neutral-400">
               Diseñamos pulseras que expresan quién eres. Estilo, calidad y propósito en cada detalle.
