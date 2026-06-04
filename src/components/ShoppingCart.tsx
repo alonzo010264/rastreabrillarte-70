@@ -226,15 +226,6 @@ export const ShoppingCart = () => {
                 ))}
               </div>
 
-              {/* Aviso de compra por WhatsApp */}
-              <div className="border-t pt-4">
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg mb-4">
-                  <p className="text-sm text-green-700 dark:text-green-300 text-center">
-                    Completa tu compra por WhatsApp para una atencion personalizada
-                  </p>
-                </div>
-              </div>
-
               {/* Resumen */}
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
