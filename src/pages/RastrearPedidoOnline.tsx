@@ -2,25 +2,18 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Package, CheckCircle, Truck, ArrowLeft } from "lucide-react";
+import { Loader2, Package, Check, Truck, ArrowLeft, MapPin, Clock } from "lucide-react";
 import { format, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 
-interface HistorialEstado {
-  estado: string;
-  fecha: string;
-  descripcion: string;
-}
-
+interface HistorialEstado { estado: string; fecha: string; descripcion: string; }
 interface PedidoOnline {
   id: string;
   codigo_pedido: string;
   total: number;
+  subtotal?: number;
   estado: string;
   estado_detallado: string;
   historial_estados: HistorialEstado[];
@@ -29,21 +22,28 @@ interface PedidoOnline {
   created_at: string;
   empresa_envio_id?: string;
   tracking_envio?: string;
-  empresas_envio?: {
-    nombre: string;
-    logo_url: string | null;
-  };
+  empresas_envio?: { nombre: string; logo_url: string | null } | null;
 }
 
-// Estados del proceso de pedido
 const ESTADOS_PROCESO = [
-  { id: 'Pedido Pagado', label: 'Pedido Pagado', descripcion: '¡Tu pedido ha sido pagado con éxito!' },
-  { id: 'Pedido Recogido', label: 'Pedido Recogido', descripcion: 'Tu pedido ha sido recogido para preparación' },
-  { id: 'Creando Etiqueta', label: 'Creando Etiqueta', descripcion: 'Estamos creando la etiqueta de envío' },
-  { id: 'Validando Calidad', label: 'Validando Calidad', descripcion: 'Revisando la calidad de tus productos' },
-  { id: 'Inspeccionando Artículos', label: 'Inspeccionando Artículos', descripcion: 'Verificando que todo esté correcto' },
-  { id: 'Pedido Enviado', label: 'Pedido Enviado', descripcion: '¡Tu pedido está en camino!' },
+  { id: 'Pedido Pagado', label: 'Pagado', descripcion: 'Tu pedido fue confirmado correctamente.' },
+  { id: 'Pedido Recogido', label: 'Recogido', descripcion: 'Tu pedido fue recogido para preparación.' },
+  { id: 'Creando Etiqueta', label: 'Etiqueta', descripcion: 'Estamos creando la etiqueta de envío.' },
+  { id: 'Validando Calidad', label: 'Calidad', descripcion: 'Revisando la calidad de tus productos.' },
+  { id: 'Inspeccionando Artículos', label: 'Inspección', descripcion: 'Verificando que todo esté correcto.' },
+  { id: 'Pedido Enviado', label: 'Enviado', descripcion: 'Tu pedido está en camino.' },
 ];
+
+const toArr = (v: unknown): any[] => {
+  if (Array.isArray(v)) return v;
+  if (typeof v === "string") { try { const p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch { return []; } }
+  return [];
+};
+const safeDate = (v?: string | null, fmt = "d 'de' MMMM, yyyy", fb = "—") => {
+  if (!v) return fb;
+  const d = new Date(v);
+  return isValid(d) ? format(d, fmt, { locale: es }) : fb;
+};
 
 const RastrearPedidoOnline = () => {
   const { codigoPedido } = useParams<{ codigoPedido: string }>();
@@ -52,115 +52,44 @@ const RastrearPedidoOnline = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadPedido = async () => {
     if (!codigoPedido) return;
+    try {
+      const { data, error: err } = await supabase.rpc('get_order_tracking', { p_codigo: codigoPedido });
+      if (err) throw err;
+      if (!data) { setError('No se encontró el pedido'); return; }
+      const p = data as any;
+      p.historial_estados = toArr(p.historial_estados).filter((x: any) => x && typeof x === 'object');
+      p.items = toArr(p.items).filter((x: any) => x && typeof x === 'object');
+      p.total = Number(p.total) || 0;
+      setPedido(p as PedidoOnline);
+      setError(null);
+    } catch (e: any) {
+      console.error(e);
+      setError('No se encontró el pedido');
+    } finally { setLoading(false); }
+  };
 
+  useEffect(() => {
+    setLoading(true);
     loadPedido();
-    const cleanupRealtime = setupRealtime();
-    return cleanupRealtime;
+    if (!codigoPedido) return;
+    const ch = supabase
+      .channel(`tracking-${codigoPedido}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_online', filter: `codigo_pedido=eq.${codigoPedido}` }, () => loadPedido())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codigoPedido]);
 
-  const toSafeDate = (value?: string | null) => {
-    if (!value) return null;
-    const parsedDate = new Date(value);
-    return isValid(parsedDate) ? parsedDate : null;
-  };
-
-  const formatSafeDate = (value: string | null | undefined, formatPattern: string, fallback = "Fecha no disponible") => {
-    const dateValue = toSafeDate(value);
-    return dateValue ? format(dateValue, formatPattern, { locale: es }) : fallback;
-  };
-
-  const normalizeArrayField = (value: unknown): any[] => {
-    if (Array.isArray(value)) return value;
-
-    if (typeof value === "string") {
-      try {
-        const parsed = JSON.parse(value);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
-      }
-    }
-
-    return [];
-  };
-
-  const loadPedido = async () => {
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('pedidos_online')
-        .select(`
-          *,
-          empresas_envio(nombre, logo_url)
-        `)
-        .eq('codigo_pedido', codigoPedido)
-        .maybeSingle();
-
-      if (fetchError) throw fetchError;
-      
-      if (!data) {
-        setError('No se encontró el pedido');
-        return;
-      }
-
-      // Normalizar data para evitar crashes en clientes con datos antiguos/incompletos
-      const pedidoData = data as Record<string, any>;
-      pedidoData.historial_estados = normalizeArrayField(pedidoData.historial_estados).filter(
-        (item) => item && typeof item === "object"
-      );
-      pedidoData.items = normalizeArrayField(pedidoData.items).filter(
-        (item) => item && typeof item === "object"
-      );
-      pedidoData.total = Number(pedidoData.total) || 0;
-
-      setPedido(pedidoData as PedidoOnline);
-    } catch (err: any) {
-      console.error('Error loading pedido:', err);
-      setError('No se encontró el pedido');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const setupRealtime = () => {
-    if (!codigoPedido) return () => undefined;
-
-    const channel = supabase
-      .channel(`pedido-tracking-${codigoPedido}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'pedidos_online',
-          filter: `codigo_pedido=eq.${codigoPedido}`
-        },
-        () => {
-          loadPedido();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
-
-  const getEstadoIndex = () => {
-    if (!pedido) return -1;
-    return ESTADOS_PROCESO.findIndex(e => e.id === pedido.estado_detallado);
-  };
-
-  const estadoActualIndex = getEstadoIndex();
+  const estadoIdx = pedido ? ESTADOS_PROCESO.findIndex(e => e.id === pedido.estado_detallado) : -1;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navigation />
-        <PageHeader title="Rastrear Pedido" subtitle="Siguiendo tu pedido..." />
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-foreground" />
         </div>
         <Footer />
       </div>
@@ -169,222 +98,151 @@ const RastrearPedidoOnline = () => {
 
   if (error || !pedido) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navigation />
-        <PageHeader title="Pedido No Encontrado" subtitle="No pudimos encontrar tu pedido" />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground mb-6">{error || 'El pedido no existe'}</p>
-          <Button onClick={() => navigate('/rastrear')} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Buscar otro pedido
+        <main className="flex-1 container mx-auto px-4 py-20 max-w-xl text-center">
+          <div className="w-20 h-20 mx-auto mb-6 border-2 border-foreground rounded-full flex items-center justify-center">
+            <Package className="w-9 h-9 text-foreground" />
+          </div>
+          <h1 className="font-display text-3xl mb-3 text-foreground">Pedido no encontrado</h1>
+          <p className="text-muted-foreground mb-8">No pudimos encontrar un pedido con el código <span className="font-mono font-semibold text-foreground">{codigoPedido}</span></p>
+          <Button onClick={() => navigate('/rastrear')} variant="outline" className="border-foreground text-foreground hover:bg-foreground hover:text-background">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Buscar otro pedido
           </Button>
-        </div>
+        </main>
         <Footer />
       </div>
     );
   }
 
+  const progressPct = estadoIdx >= 0 ? ((estadoIdx + 1) / ESTADOS_PROCESO.length) * 100 : 0;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
-      <PageHeader 
-        title={`Pedido ${pedido.codigo_pedido}`} 
-        subtitle="Seguimiento de tu pedido en tiempo real"
-        backPath="/perfil?tab=pedidos"
-      />
-      
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header del pedido */}
-        <div className="mb-8">
-          
-          <Card className="bg-primary text-primary-foreground">
-            <CardContent className="py-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                  <h1 className="text-2xl font-bold mb-1">Pedido {pedido.codigo_pedido}</h1>
-                  <p className="text-primary-foreground/70">
-                    {formatSafeDate(pedido.created_at, "d 'de' MMMM, yyyy")}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-primary-foreground/70 text-sm">Total</p>
-                  <p className="text-2xl font-bold">${pedido.total.toFixed(2)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
+      <main className="flex-1 container mx-auto px-4 py-10 max-w-3xl">
+        {/* Header card */}
+        <div className="border-2 border-foreground bg-background rounded-2xl p-6 sm:p-8 mb-8">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Pedido</p>
+              <h1 className="font-display text-3xl sm:text-4xl text-foreground leading-tight">{pedido.codigo_pedido}</h1>
+              <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {safeDate(pedido.created_at)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Total</p>
+              <p className="font-display text-3xl text-foreground">${pedido.total.toFixed(2)}</p>
+            </div>
+          </div>
         </div>
 
-        {/* Línea de progreso rosa */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5 text-primary" />
-              Estado del Pedido
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              {/* Línea de fondo */}
-              <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded-full" />
-              
-              {/* Línea de progreso */}
-              <div 
-                className="absolute top-5 left-0 h-1 bg-primary rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${estadoActualIndex >= 0 ? ((estadoActualIndex + 1) / ESTADOS_PROCESO.length) * 100 : 0}%` 
-                }}
-              />
+        {/* Progress */}
+        <div className="border border-border rounded-2xl p-6 sm:p-8 mb-8 bg-background">
+          <h2 className="font-display text-xl text-foreground mb-6">Estado del envío</h2>
 
-              {/* Círculos de estados */}
-              <div className="relative flex justify-between">
-                {ESTADOS_PROCESO.map((estado, index) => {
-                  const isCompleted = index <= estadoActualIndex;
-                  const isCurrent = index === estadoActualIndex;
-                  
-                  return (
-                    <div key={estado.id} className="flex flex-col items-center" style={{ width: '16%' }}>
-                      {/* Círculo */}
-                      <div 
-                        className={`
-                          w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300
-                          ${isCompleted 
-                            ? 'bg-primary border-primary text-primary-foreground' 
-                            : 'bg-background border-border text-muted-foreground'}
-                          ${isCurrent ? 'ring-4 ring-primary/20 scale-110' : ''}
-                        `}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle className="w-5 h-5" />
-                        ) : (
-                          <span className="text-sm font-bold">{index + 1}</span>
-                        )}
-                      </div>
-                      
-                      {/* Label */}
-                      <p className={`
-                        mt-3 text-xs text-center font-medium leading-tight
-                        ${isCompleted ? 'text-primary' : 'text-muted-foreground'}
-                      `}>
-                        {estado.label}
-                      </p>
+          <div className="relative mb-8">
+            <div className="absolute top-4 left-4 right-4 h-px bg-border" />
+            <div className="absolute top-4 left-4 h-px bg-foreground transition-all duration-700" style={{ width: `calc((100% - 2rem) * ${progressPct / 100})` }} />
+            <div className="relative flex justify-between">
+              {ESTADOS_PROCESO.map((e, i) => {
+                const done = i <= estadoIdx;
+                const current = i === estadoIdx;
+                return (
+                  <div key={e.id} className="flex flex-col items-center" style={{ width: `${100 / ESTADOS_PROCESO.length}%` }}>
+                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${done ? 'bg-foreground border-foreground text-background' : 'bg-background border-border text-muted-foreground'} ${current ? 'ring-4 ring-foreground/10 scale-110' : ''}`}>
+                      {done ? <Check className="w-4 h-4" /> : <span className="text-[10px] font-semibold">{i + 1}</span>}
                     </div>
-                  );
-                })}
-              </div>
+                    <p className={`mt-2 text-[10px] sm:text-xs text-center leading-tight font-medium ${done ? 'text-foreground' : 'text-muted-foreground'}`}>{e.label}</p>
+                  </div>
+                );
+              })}
             </div>
+          </div>
 
-            {/* Estado actual descripción */}
-            <div className="mt-8 p-4 bg-muted rounded-xl border border-border">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div>
-                  <p className="font-semibold text-foreground">
-                    {pedido.estado_detallado || 'Pedido Pagado'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {ESTADOS_PROCESO.find(e => e.id === pedido.estado_detallado)?.descripcion || 
-                     '¡Tu pedido ha sido pagado con éxito!'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="border-t border-border pt-5">
+            <p className="font-display text-lg text-foreground">{pedido.estado_detallado || 'Pedido Pagado'}</p>
+            <p className="text-sm text-muted-foreground mt-1">{ESTADOS_PROCESO.find(e => e.id === pedido.estado_detallado)?.descripcion || 'Tu pedido fue confirmado correctamente.'}</p>
+          </div>
+        </div>
 
-        {/* Información de envío si está disponible */}
+        {/* Envío */}
         {pedido.empresas_envio && pedido.tracking_envio && (
-          <Card className="mb-8 border-border">
-            <CardContent className="py-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                  <Truck className="w-6 h-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold">Enviado con {pedido.empresas_envio.nombre}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Número de tracking: <span className="font-mono">{pedido.tracking_envio}</span>
-                  </p>
-                </div>
-                {pedido.empresas_envio.logo_url && (
-                  <img 
-                    src={pedido.empresas_envio.logo_url} 
-                    alt={pedido.empresas_envio.nombre}
-                    className="h-10 object-contain"
-                  />
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="border border-border rounded-2xl p-5 mb-8 bg-background flex items-center gap-4">
+            <div className="w-11 h-11 rounded-full border border-foreground flex items-center justify-center">
+              <Truck className="w-5 h-5 text-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-foreground">Enviado con {pedido.empresas_envio.nombre}</p>
+              <p className="text-xs text-muted-foreground">Tracking <span className="font-mono">{pedido.tracking_envio}</span></p>
+            </div>
+            {pedido.empresas_envio.logo_url && (
+              <img src={pedido.empresas_envio.logo_url} alt={pedido.empresas_envio.nombre} className="h-8 object-contain grayscale" />
+            )}
+          </div>
         )}
 
-        {/* Historial de estados */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Historial de Actualizaciones</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pedido.historial_estados && pedido.historial_estados.length > 0 ? (
-                [...pedido.historial_estados].reverse().map((historial, index) => (
-                  <div key={index} className="flex items-start gap-4 pb-4 border-b last:border-0">
-                    <div className={`
-                      w-3 h-3 rounded-full mt-1.5
-                      ${index === 0 ? 'bg-primary' : 'bg-muted'}
-                    `} />
-                    <div className="flex-1">
-                      <p className="font-medium">{historial.estado}</p>
-                      <p className="text-sm text-muted-foreground">{historial.descripcion}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatSafeDate(historial.fecha, "d 'de' MMMM, yyyy - h:mm a")}
-                      </p>
-                    </div>
+        {/* Productos */}
+        <div className="border border-border rounded-2xl p-6 mb-8 bg-background">
+          <h2 className="font-display text-xl text-foreground mb-5">Productos</h2>
+          <div className="space-y-3">
+            {pedido.items.map((it: any, i: number) => (
+              <div key={i} className="flex items-center gap-4 p-3 border border-border rounded-xl">
+                {it.imagen ? (
+                  <img src={it.imagen} alt={it.nombre} className="w-16 h-16 object-cover rounded-lg border border-border" />
+                ) : (
+                  <div className="w-16 h-16 rounded-lg border border-border bg-muted flex items-center justify-center">
+                    <Package className="w-6 h-6 text-muted-foreground" />
                   </div>
-                ))
-              ) : (
-                <p className="text-muted-foreground text-center py-4">
-                  El pedido fue recibido y está en proceso
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm text-foreground truncate">{it.nombre}</p>
+                  <div className="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
+                    <span>Cant. {it.cantidad}</span>
+                    {it.color && <span>· {it.color}</span>}
+                    {it.talla && <span>· Talla {it.talla}</span>}
+                  </div>
+                </div>
+                <span className="font-semibold text-sm text-foreground whitespace-nowrap">${(Number(it.precio) * Number(it.cantidad)).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        {/* Productos del pedido */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Productos del Pedido</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pedido.items.map((item: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  {item.imagen && (
-                    <img 
-                      src={item.imagen} 
-                      alt={item.nombre}
-                      className="w-16 h-16 object-cover rounded-md border"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{item.nombre}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>Cantidad: {item.cantidad}</span>
-                      {item.color && <span>• {item.color}</span>}
-                      {item.talla && <span>• Talla {item.talla}</span>}
-                    </div>
+        {/* Dirección */}
+        {pedido.direccion_envio && (
+          <div className="border border-border rounded-2xl p-5 mb-8 bg-background flex items-start gap-3">
+            <MapPin className="w-5 h-5 text-foreground mt-0.5" />
+            <div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Dirección de envío</p>
+              <p className="text-sm text-foreground">{pedido.direccion_envio}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Historial */}
+        {pedido.historial_estados.length > 0 && (
+          <div className="border border-border rounded-2xl p-6 bg-background">
+            <h2 className="font-display text-xl text-foreground mb-5">Historial</h2>
+            <div className="space-y-4">
+              {[...pedido.historial_estados].reverse().map((h, i) => (
+                <div key={i} className="flex gap-4 pb-4 border-b border-border last:border-0 last:pb-0">
+                  <div className={`w-2.5 h-2.5 rounded-full mt-1.5 ${i === 0 ? 'bg-foreground' : 'bg-border'}`} />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm text-foreground">{h.estado}</p>
+                    {h.descripcion && <p className="text-xs text-muted-foreground">{h.descripcion}</p>}
+                    <p className="text-[11px] text-muted-foreground mt-1">{safeDate(h.fecha, "d 'de' MMMM, yyyy · h:mm a", '')}</p>
                   </div>
-                  <span className="font-semibold">${(item.precio * item.cantidad).toFixed(2)}</span>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        )}
       </main>
-      
+
       <Footer />
     </div>
   );
