@@ -11,6 +11,8 @@ import { Package, Plus, Copy, Edit, Trash2, Upload } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import OnlineOrdersManagement from "./OnlineOrdersManagement";
 import AsignarPedidoCuenta from "./AsignarPedidoCuenta";
+import { AdminCrearPedido } from "./AdminCrearPedido";
+
 
 interface Estatus {
   id: number;
@@ -378,6 +380,10 @@ const OrderManagement = () => {
       <div className="flex justify-end">
         <AsignarPedidoCuenta />
       </div>
+
+      {/* Crear pedido completo con productos reales (aparece como pedido rastreable) */}
+      <AdminCrearPedido />
+
 
       {/* Crear nuevo pedido */}
       <Card className="p-6">

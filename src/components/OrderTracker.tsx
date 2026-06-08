@@ -78,58 +78,16 @@ const OrderTracker = () => {
     setSearchAttempted(true);
     
     try {
-      // Primero buscar en pedidos_online (tienda online)
-      const { data: pedidoOnline } = await supabase
-        .from('pedidos_online')
-        .select('*, empresas_envio(nombre)')
-        .eq('codigo_pedido', orderCode)
-        .maybeSingle();
+      // Primero buscar en pedidos_online (público vía RPC, funciona en cualquier dispositivo)
+      const { data: pedidoOnline } = await supabase.rpc('get_order_tracking', { p_codigo: orderCode });
 
       if (pedidoOnline) {
-        const orderData = {
-          orderCode: pedidoOnline.codigo_pedido,
-          customerName: 'Cliente',
-          currentStatus: pedidoOnline.estado,
-          totalAmount: pedidoOnline.total || 0,
-          trackingNumber: pedidoOnline.tracking_envio,
-          shippingCompany: pedidoOnline.empresas_envio?.nombre,
-          estimatedDelivery: pedidoOnline.fecha_envio || undefined,
-          statusHistory: [
-            {
-              status: 'Recibido',
-              date: formatSafeDate(pedidoOnline.created_at, 'date') || 'Pendiente',
-              time: formatSafeDate(pedidoOnline.created_at, 'time'),
-              description: 'Pedido recibido',
-              category: 'processing' as const
-            },
-            ...(pedidoOnline.estado === 'Pagado' ? [{
-              status: 'Pagado',
-              date: formatSafeDate(pedidoOnline.updated_at || pedidoOnline.created_at, 'date') || 'Pendiente',
-              time: formatSafeDate(pedidoOnline.updated_at || pedidoOnline.created_at, 'time'),
-              description: 'Pago confirmado',
-              category: 'processing' as const
-            }] : []),
-            ...(pedidoOnline.estado === 'Enviado' || pedidoOnline.tracking_envio ? [{
-              status: 'Enviado',
-              date: formatSafeDate(pedidoOnline.fecha_envio, 'date') || 'Pendiente',
-              time: formatSafeDate(pedidoOnline.fecha_envio, 'time'),
-              description: `Enviado por ${pedidoOnline.empresas_envio?.nombre || 'courier'}${pedidoOnline.tracking_envio ? ` - Tracking: ${pedidoOnline.tracking_envio}` : ''}`,
-              category: 'shipping' as const
-            }] : []),
-            ...(pedidoOnline.estado === 'Entregado' ? [{
-              status: 'Entregado',
-              date: formatSafeDate(pedidoOnline.updated_at || pedidoOnline.created_at, 'date') || 'Pendiente',
-              time: formatSafeDate(pedidoOnline.updated_at || pedidoOnline.created_at, 'time'),
-              description: 'Pedido entregado al cliente',
-              category: 'shipping' as const
-            }] : [])
-          ]
-        };
-
-        setOrderFound(orderData);
-        setIsSearching(false);
+        const p: any = pedidoOnline;
+        // Redirigir a la página de rastreo dedicada con diseño completo
+        window.location.href = `/rastrear-pedido/${p.codigo_pedido}`;
         return;
       }
+
 
       // Si no está en pedidos_online, buscar en Pedidos (sistema anterior)
       const { data: pedido, error } = await supabase

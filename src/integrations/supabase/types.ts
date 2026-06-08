@@ -3082,6 +3082,7 @@ export type Database = {
       generate_order_code: { Args: never; Returns: string }
       generate_referral_code: { Args: { p_user_id: string }; Returns: string }
       generate_verification_code: { Args: never; Returns: string }
+      get_order_tracking: { Args: { p_codigo: string }; Returns: Json }
       get_user_conversation_ids: {
         Args: { p_user_id: string }
         Returns: string[]
