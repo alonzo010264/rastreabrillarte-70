@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Package, Truck, Edit, Loader2, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import EditarEstadosPedido from "./EditarEstadosPedido";
 
 interface EmpresaEnvio {
   id: string;
