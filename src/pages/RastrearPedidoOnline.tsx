@@ -157,7 +157,7 @@ const RastrearPedidoOnline = () => {
                 const done = i <= estadoIdx;
                 const current = i === estadoIdx;
                 return (
-                  <div key={e.id} className="flex flex-col items-center" style={{ width: `${100 / ESTADOS_PROCESO.length}%` }}>
+                  <div key={(e.id || e.label) + i} className="flex flex-col items-center" style={{ width: `${100 / ESTADOS_PROCESO.length}%` }}>
                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${done ? 'bg-foreground border-foreground text-background' : 'bg-background border-border text-muted-foreground'} ${current ? 'ring-4 ring-foreground/10 scale-110' : ''}`}>
                       {done ? <Check className="w-4 h-4" /> : <span className="text-[10px] font-semibold">{i + 1}</span>}
                     </div>
