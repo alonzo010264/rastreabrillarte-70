@@ -84,7 +84,10 @@ const RastrearPedidoOnline = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codigoPedido]);
 
-  const estadoIdx = pedido ? ESTADOS_PROCESO.findIndex(e => e.id === pedido.estado_detallado) : -1;
+  const ESTADOS_PROCESO: PasoProceso[] = (pedido?.estados_proceso && Array.isArray(pedido.estados_proceso) && pedido.estados_proceso.length > 0)
+    ? pedido.estados_proceso
+    : ESTADOS_DEFAULT;
+  const estadoIdx = pedido ? ESTADOS_PROCESO.findIndex(e => (e.id || e.label) === pedido.estado_detallado || e.label === pedido.estado_detallado) : -1;
 
   if (loading) {
     return (
