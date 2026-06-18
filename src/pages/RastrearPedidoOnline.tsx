@@ -169,8 +169,8 @@ const RastrearPedidoOnline = () => {
           </div>
 
           <div className="border-t border-border pt-5">
-            <p className="font-display text-lg text-foreground">{pedido.estado_detallado || 'Pedido Pagado'}</p>
-            <p className="text-sm text-muted-foreground mt-1">{ESTADOS_PROCESO.find(e => e.id === pedido.estado_detallado)?.descripcion || 'Tu pedido fue confirmado correctamente.'}</p>
+            <p className="font-display text-lg text-foreground">{pedido.estado_detallado || ESTADOS_PROCESO[0]?.label || 'En proceso'}</p>
+            <p className="text-sm text-muted-foreground mt-1">{ESTADOS_PROCESO.find(e => (e.id || e.label) === pedido.estado_detallado || e.label === pedido.estado_detallado)?.descripcion || ''}</p>
           </div>
         </div>
 
