@@ -697,6 +697,7 @@ const OrderManagement = () => {
       )}
 
       <OnlineOrdersManagement />
+      <PedidosCuentaList />
     </div>
   );
 };
