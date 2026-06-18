@@ -1565,6 +1565,7 @@ export type Database = {
           descripcion: string | null
           detalles: Json | null
           estado: string | null
+          estados_proceso: Json | null
           fecha_asignacion: string | null
           id: string
           imagen_url: string | null
@@ -1580,6 +1581,7 @@ export type Database = {
           descripcion?: string | null
           detalles?: Json | null
           estado?: string | null
+          estados_proceso?: Json | null
           fecha_asignacion?: string | null
           id?: string
           imagen_url?: string | null
@@ -1595,6 +1597,7 @@ export type Database = {
           descripcion?: string | null
           detalles?: Json | null
           estado?: string | null
+          estados_proceso?: Json | null
           fecha_asignacion?: string | null
           id?: string
           imagen_url?: string | null
@@ -1680,6 +1683,7 @@ export type Database = {
           empresa_envio_id: string | null
           estado: string
           estado_detallado: string | null
+          estados_proceso: Json | null
           factura_url: string | null
           fecha_envio: string | null
           historial_estados: Json | null
@@ -1699,6 +1703,7 @@ export type Database = {
           empresa_envio_id?: string | null
           estado?: string
           estado_detallado?: string | null
+          estados_proceso?: Json | null
           factura_url?: string | null
           fecha_envio?: string | null
           historial_estados?: Json | null
@@ -1718,6 +1723,7 @@ export type Database = {
           empresa_envio_id?: string | null
           estado?: string
           estado_detallado?: string | null
+          estados_proceso?: Json | null
           factura_url?: string | null
           fecha_envio?: string | null
           historial_estados?: Json | null
