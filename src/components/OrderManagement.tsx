@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import OnlineOrdersManagement from "./OnlineOrdersManagement";
 import AsignarPedidoCuenta from "./AsignarPedidoCuenta";
 import { AdminCrearPedido } from "./AdminCrearPedido";
+import PedidosCuentaList from "./PedidosCuentaList";
 
 
 interface Estatus {
