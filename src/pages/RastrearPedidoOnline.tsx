@@ -9,6 +9,7 @@ import { format, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 
 interface HistorialEstado { estado: string; fecha: string; descripcion: string; }
+interface PasoProceso { id?: string; label: string; descripcion?: string; }
 interface PedidoOnline {
   id: string;
   codigo_pedido: string;
@@ -16,6 +17,7 @@ interface PedidoOnline {
   subtotal?: number;
   estado: string;
   estado_detallado: string;
+  estados_proceso?: PasoProceso[] | null;
   historial_estados: HistorialEstado[];
   direccion_envio: string;
   items: any[];
@@ -25,7 +27,7 @@ interface PedidoOnline {
   empresas_envio?: { nombre: string; logo_url: string | null } | null;
 }
 
-const ESTADOS_PROCESO = [
+const ESTADOS_DEFAULT: PasoProceso[] = [
   { id: 'Pedido Pagado', label: 'Pagado', descripcion: 'Tu pedido fue confirmado correctamente.' },
   { id: 'Pedido Recogido', label: 'Recogido', descripcion: 'Tu pedido fue recogido para preparación.' },
   { id: 'Creando Etiqueta', label: 'Etiqueta', descripcion: 'Estamos creando la etiqueta de envío.' },
@@ -82,7 +84,10 @@ const RastrearPedidoOnline = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codigoPedido]);
 
-  const estadoIdx = pedido ? ESTADOS_PROCESO.findIndex(e => e.id === pedido.estado_detallado) : -1;
+  const ESTADOS_PROCESO: PasoProceso[] = (pedido?.estados_proceso && Array.isArray(pedido.estados_proceso) && pedido.estados_proceso.length > 0)
+    ? pedido.estados_proceso
+    : ESTADOS_DEFAULT;
+  const estadoIdx = pedido ? ESTADOS_PROCESO.findIndex(e => (e.id || e.label) === pedido.estado_detallado || e.label === pedido.estado_detallado) : -1;
 
   if (loading) {
     return (
@@ -152,7 +157,7 @@ const RastrearPedidoOnline = () => {
                 const done = i <= estadoIdx;
                 const current = i === estadoIdx;
                 return (
-                  <div key={e.id} className="flex flex-col items-center" style={{ width: `${100 / ESTADOS_PROCESO.length}%` }}>
+                  <div key={(e.id || e.label) + i} className="flex flex-col items-center" style={{ width: `${100 / ESTADOS_PROCESO.length}%` }}>
                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${done ? 'bg-foreground border-foreground text-background' : 'bg-background border-border text-muted-foreground'} ${current ? 'ring-4 ring-foreground/10 scale-110' : ''}`}>
                       {done ? <Check className="w-4 h-4" /> : <span className="text-[10px] font-semibold">{i + 1}</span>}
                     </div>
@@ -164,8 +169,8 @@ const RastrearPedidoOnline = () => {
           </div>
 
           <div className="border-t border-border pt-5">
-            <p className="font-display text-lg text-foreground">{pedido.estado_detallado || 'Pedido Pagado'}</p>
-            <p className="text-sm text-muted-foreground mt-1">{ESTADOS_PROCESO.find(e => e.id === pedido.estado_detallado)?.descripcion || 'Tu pedido fue confirmado correctamente.'}</p>
+            <p className="font-display text-lg text-foreground">{pedido.estado_detallado || ESTADOS_PROCESO[0]?.label || 'En proceso'}</p>
+            <p className="text-sm text-muted-foreground mt-1">{ESTADOS_PROCESO.find(e => (e.id || e.label) === pedido.estado_detallado || e.label === pedido.estado_detallado)?.descripcion || ''}</p>
           </div>
         </div>
 

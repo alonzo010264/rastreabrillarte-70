@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Package, Truck, Edit, Loader2, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import EditarEstadosPedido from "./EditarEstadosPedido";
 
 interface EmpresaEnvio {
   id: string;
@@ -24,6 +25,7 @@ interface PedidoOnline {
   total: number;
   estado: string;
   estado_detallado: string;
+  estados_proceso?: any[] | null;
   historial_estados: any[];
   direccion_envio: string;
   items: any[];
@@ -268,7 +270,15 @@ export const OnlineOrdersManagement = () => {
                     </div>
 
                     {/* Acciones */}
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <EditarEstadosPedido
+                        tabla="pedidos_online"
+                        pedidoId={pedido.id}
+                        codigo={pedido.codigo_pedido}
+                        estadosActuales={pedido.estados_proceso as any}
+                        estadoActual={pedido.estado_detallado}
+                        onSaved={loadData}
+                      />
                       <Dialog open={dialogOpen && selectedPedido?.id === pedido.id} onOpenChange={(open) => {
                         setDialogOpen(open);
                         if (!open) {
