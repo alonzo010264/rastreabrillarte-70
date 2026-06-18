@@ -25,6 +25,7 @@ interface PedidoOnline {
   total: number;
   estado: string;
   estado_detallado: string;
+  estados_proceso?: any[] | null;
   historial_estados: any[];
   direccion_envio: string;
   items: any[];
