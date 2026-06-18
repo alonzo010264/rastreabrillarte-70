@@ -9,6 +9,7 @@ import { format, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 
 interface HistorialEstado { estado: string; fecha: string; descripcion: string; }
+interface PasoProceso { id?: string; label: string; descripcion?: string; }
 interface PedidoOnline {
   id: string;
   codigo_pedido: string;
@@ -16,6 +17,7 @@ interface PedidoOnline {
   subtotal?: number;
   estado: string;
   estado_detallado: string;
+  estados_proceso?: PasoProceso[] | null;
   historial_estados: HistorialEstado[];
   direccion_envio: string;
   items: any[];
@@ -25,7 +27,7 @@ interface PedidoOnline {
   empresas_envio?: { nombre: string; logo_url: string | null } | null;
 }
 
-const ESTADOS_PROCESO = [
+const ESTADOS_DEFAULT: PasoProceso[] = [
   { id: 'Pedido Pagado', label: 'Pagado', descripcion: 'Tu pedido fue confirmado correctamente.' },
   { id: 'Pedido Recogido', label: 'Recogido', descripcion: 'Tu pedido fue recogido para preparación.' },
   { id: 'Creando Etiqueta', label: 'Etiqueta', descripcion: 'Estamos creando la etiqueta de envío.' },
