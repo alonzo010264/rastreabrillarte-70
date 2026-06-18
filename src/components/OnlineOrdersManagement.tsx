@@ -270,7 +270,15 @@ export const OnlineOrdersManagement = () => {
                     </div>
 
                     {/* Acciones */}
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <EditarEstadosPedido
+                        tabla="pedidos_online"
+                        pedidoId={pedido.id}
+                        codigo={pedido.codigo_pedido}
+                        estadosActuales={pedido.estados_proceso as any}
+                        estadoActual={pedido.estado_detallado}
+                        onSaved={loadData}
+                      />
                       <Dialog open={dialogOpen && selectedPedido?.id === pedido.id} onOpenChange={(open) => {
                         setDialogOpen(open);
                         if (!open) {
